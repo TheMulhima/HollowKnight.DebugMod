@@ -515,7 +515,7 @@ namespace DebugMod
 
 		private static IEnumerator LoadStateCoro()
         {
-            if (_savedPd == null || string.IsNullOrEmpty(_saveScene)) return;
+            if (_savedPd == null || string.IsNullOrEmpty(_saveScene)) yield break;
             
 			USceneManager.LoadScene("Room_Sly_Storeroom");
 			

@@ -38,5 +38,6 @@
                                           CREDITS
 ----------------------------------------------------------------------------------------
 Coding - Seanpr
+SaveStates/Current Patch - 56
 UI design and graphics - The Embraced One
 Assistance with canvas - KDT
