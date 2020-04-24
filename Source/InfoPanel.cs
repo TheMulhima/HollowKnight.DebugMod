@@ -132,9 +132,10 @@ namespace DebugMod
         public static void Update()
         {
             if (panel == null)
-            {
                 return;
-            }
+
+            if (DebugMod.GM == null)
+                return;
 
             if (DebugMod.GM.IsNonGameplayScene())
             {
