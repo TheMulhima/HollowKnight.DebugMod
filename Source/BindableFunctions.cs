@@ -514,7 +514,9 @@ namespace DebugMod
 		}
 
 		private static IEnumerator LoadStateCoro()
-		{
+        {
+            if (_savedPd == null || string.IsNullOrEmpty(_saveScene)) return;
+            
 			USceneManager.LoadScene("Room_Sly_Storeroom");
 			
 			yield return new WaitUntil(() => USceneManager.GetActiveScene().name == "Room_Sly_Storeroom");
