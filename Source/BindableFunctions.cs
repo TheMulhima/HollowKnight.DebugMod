@@ -1,11 +1,9 @@
 ﻿using System;
-using System.CodeDom;
 using System.Collections;
 using System.Linq;
 using System.Reflection;
 using GlobalEnums;
-using MonoMod.RuntimeDetour.HookGen;
-using On.HutongGames.PlayMaker.Actions;
+using JetBrains.Annotations;
 using UnityEngine;
 using Random = System.Random;
 using USceneManager = UnityEngine.SceneManagement.SceneManager;
@@ -509,6 +507,7 @@ namespace DebugMod
 		}
 
 		[BindableMethod(name = "Load SaveState", category = "Misc")]
+        [UsedImplicitly]
 		public static void LoadState()
 		{
 			GameManager.instance.StartCoroutine(LoadStateCoro());
@@ -528,45 +527,42 @@ namespace DebugMod
 			HeroController.instance.gameObject.transform.position = _savePos;
 			
 			PlayerData.instance = GameManager.instance.playerData = HeroController.instance.playerData = JsonUtility.FromJson<PlayerData>(JsonUtility.ToJson(_savedPd));
-
-            On.HeroController.EnterScene += Ok;
-
-			USceneManager.LoadScene(_saveScene);
-
-            yield return null;
-			
-			HeroController.instance.gameObject.transform.position = _savePos;
-
-            yield return null;
-            yield return null;
             
-			cameraLockArea.SetValue(GameManager.instance.cameraCtrl, _lockArea);
-			GameManager.instance.cameraCtrl.LockToArea(_lockArea as CameraLockArea);
-			cameraGameplayScene.SetValue(GameManager.instance.cameraCtrl, true);
+            GameManager.instance.BeginSceneTransition(new GameManager.SceneLoadInfo
+            {
+                SceneName = _saveScene,
+                HeroLeaveDirection = GatePosition.unknown,
+                EntryDelay = 0f,
+                WaitForSceneTransitionCameraFade = false,
+                Visualization = 0,
+                AlwaysUnloadUnusedAssets = true
+            });
+            
+            yield return null;
 			
-			yield return new WaitUntil(() => USceneManager.GetActiveScene().name == _saveScene);
-
 			HeroController.instance.gameObject.transform.position = _savePos;
-			
+
+            yield return new WaitUntil(() => USceneManager.GetActiveScene().name == _saveScene);
+            
+            GameManager.instance.cameraCtrl.FadeSceneIn();
+
 			HeroController.instance.TakeMP(1);
 			HeroController.instance.AddMPChargeSpa(1);
 			HeroController.instance.TakeHealth(1);
 			HeroController.instance.AddHealth(1);
 			
 			GameCameras.instance.hudCanvas.gameObject.SetActive(true);
-			
-            On.HeroController.EnterScene -= Ok;
-        }
+            
+            cameraGameplayScene.SetValue(GameManager.instance.cameraCtrl, true);
 
-        private static IEnumerator Ok(On.HeroController.orig_EnterScene orig, HeroController self, TransitionPoint entergate, float delaybeforeenter)
-        {
-            // Fix transition state, etc.
-            TransitionPoint gate2 = UnityEngine.Object.Instantiate(entergate);
+            yield return null;
+
+            HeroController.instance.gameObject.transform.position = _savePos;
+            HeroController.instance.transitionState = HeroTransitionState.WAITING_TO_TRANSITION;
             
-            // Invalid gate name causes it not to put you wherever.
-            gate2.name = "no";
-            
-            yield return orig(self, gate2, delaybeforeenter);
+            typeof(HeroController)
+                .GetMethod("FinishedEnteringScene", BindingFlags.NonPublic | BindingFlags.Instance)?
+                .Invoke(HeroController.instance, new object[] {true, false});
         }
 
         #endregion
