@@ -512,11 +512,14 @@ namespace DebugMod
 		public static void LoadState()
 		{
 			GameManager.instance.StartCoroutine(LoadStateCoro());
-		}
+        }
 
         private static IEnumerator LoadStateCoro()
         {
             if (_savedPd == null || string.IsNullOrEmpty(_saveScene)) yield break;
+            
+            GameManager.instance.entryGateName = "dreamGate";
+            GameManager.instance.startedOnThisScene = true;
 
             USceneManager.LoadScene("Room_Sly_Storeroom");
 
@@ -535,6 +538,7 @@ namespace DebugMod
                 {
                     SceneName = _saveScene,
                     HeroLeaveDirection = GatePosition.unknown,
+                    EntryGateName = "dreamGate",
                     EntryDelay = 0f,
                     WaitForSceneTransitionCameraFade = false,
                     Visualization = 0,
