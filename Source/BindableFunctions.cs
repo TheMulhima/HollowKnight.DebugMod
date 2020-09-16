@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using GlobalEnums;
 using JetBrains.Annotations;
+using Modding;
 using UnityEngine;
 using Random = System.Random;
 using USceneManager = UnityEngine.SceneManagement.SceneManager;
@@ -513,36 +514,42 @@ namespace DebugMod
 			GameManager.instance.StartCoroutine(LoadStateCoro());
 		}
 
-		private static IEnumerator LoadStateCoro()
+        private static IEnumerator LoadStateCoro()
         {
             if (_savedPd == null || string.IsNullOrEmpty(_saveScene)) yield break;
-            
-			USceneManager.LoadScene("Room_Sly_Storeroom");
-			
-			yield return new WaitUntil(() => USceneManager.GetActiveScene().name == "Room_Sly_Storeroom");
-			
-			GameManager.instance.sceneData = SceneData.instance = JsonUtility.FromJson<SceneData>(JsonUtility.ToJson(_savedSd));
-			GameManager.instance.ResetSemiPersistentItems();
-			
-			yield return null;
-			
-			HeroController.instance.gameObject.transform.position = _savePos;
-			
-			PlayerData.instance = GameManager.instance.playerData = HeroController.instance.playerData = JsonUtility.FromJson<PlayerData>(JsonUtility.ToJson(_savedPd));
-            
-            GameManager.instance.BeginSceneTransition(new GameManager.SceneLoadInfo
-            {
-                SceneName = _saveScene,
-                HeroLeaveDirection = GatePosition.unknown,
-                EntryDelay = 0f,
-                WaitForSceneTransitionCameraFade = false,
-                Visualization = 0,
-                AlwaysUnloadUnusedAssets = true
-            });
-            
+
+            USceneManager.LoadScene("Room_Sly_Storeroom");
+
+            yield return new WaitUntil(() => USceneManager.GetActiveScene().name == "Room_Sly_Storeroom");
+
+            GameManager.instance.sceneData = SceneData.instance = JsonUtility.FromJson<SceneData>(JsonUtility.ToJson(_savedSd));
+            GameManager.instance.ResetSemiPersistentItems();
+
             yield return null;
-			
-			HeroController.instance.gameObject.transform.position = _savePos;
+
+            PlayerData.instance = GameManager.instance.playerData = HeroController.instance.playerData = JsonUtility.FromJson<PlayerData>(JsonUtility.ToJson(_savedPd));
+
+            GameManager.instance.BeginSceneTransition
+            (
+                new GameManager.SceneLoadInfo
+                {
+                    SceneName = _saveScene,
+                    HeroLeaveDirection = GatePosition.unknown,
+                    EntryDelay = 0f,
+                    WaitForSceneTransitionCameraFade = false,
+                    Visualization = 0,
+                    AlwaysUnloadUnusedAssets = true
+                }
+            );
+
+            ReflectionHelper.SetAttr(GameManager.instance.cameraCtrl, "isGameplayScene", true);
+
+            GameManager.instance.cameraCtrl.PositionToHero(false);
+
+            if (_lockArea != null)
+            {
+                GameManager.instance.cameraCtrl.LockToArea(_lockArea as CameraLockArea);
+            }
 
             yield return new WaitUntil(() => USceneManager.GetActiveScene().name == _saveScene);
             
@@ -552,6 +559,8 @@ namespace DebugMod
 			HeroController.instance.AddMPChargeSpa(1);
 			HeroController.instance.TakeHealth(1);
 			HeroController.instance.AddHealth(1);
+            
+            HeroController.instance.geoCounter.geoTextMesh.text = _savedPd.geo.ToString();
 			
 			GameCameras.instance.hudCanvas.gameObject.SetActive(true);
             
