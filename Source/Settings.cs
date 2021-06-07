@@ -1,49 +1,29 @@
-﻿using Modding;
+using System.Collections.Generic;
+using Modding;
 
 namespace DebugMod
 {
     //Empty class required for DebugMod class definition
-    public class SaveSettings : IModSettings { }
+    public class SaveSettings { }
 
-    public class GlobalSettings : IModSettings
+    public class GlobalSettings
     {
         //Save members
-        public SerializableIntDictionary binds = new SerializableIntDictionary();
+        public Dictionary<string, int> binds = new Dictionary<string, int>();
 
-        public bool ConsoleVisible
-        {
-            get => GetBool(true);
-            set => SetBool(value);
-        }
+        public bool ConsoleVisible = true;
 
-        public bool EnemiesPanelVisible
-        {
-            get => GetBool(true);
-            set => SetBool(value);
-        }
+        public bool EnemiesPanelVisible = true;
 
-        public bool HelpPanelVisible
-        {
-            get => GetBool(true);
-            set => SetBool(value);
-        }
+        public bool HelpPanelVisible = true;
 
-        public bool InfoPanelVisible
-        {
-            get => GetBool(true);
-            set => SetBool(value);
-        }
+        public bool InfoPanelVisible = true;
 
-        public bool TopMenuVisible
-        {
-            get => GetBool(true);
-            set => SetBool(value);
-        }
+        public bool TopMenuVisible = true;
 
-        public bool FirstRun
-        {
-            get => GetBool(true);
-            set => SetBool(value);
-        }
+        public bool FirstRun = true;
+        public int ShowHitBoxes;
+
+        public float AmountToMove = 0.1f;
     }
 }
