@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Linq;
 using System.Reflection;
@@ -40,7 +40,7 @@ namespace DebugMod
             {
                 num = 5;
             }
-            PlayerData.instance.nailDamage = PlayerData.instance.nailDamage + num;
+            PlayerData.instance.nailDamage += num;
             PlayMakerFSM.BroadcastEvent("UPDATE NAIL DAMAGE");
             Console.AddLine("Increased base nailDamage by " + num);
         }
@@ -136,7 +136,7 @@ namespace DebugMod
                 Console.AddLine("Returning camera to normal settings");
             }
         }
-
+        
         [BindableMethod(name = "Decrease Timescale", category = "Misc")]
         public static void TimescaleDown()
         {
@@ -168,16 +168,63 @@ namespace DebugMod
                 Console.AddLine("Cannot set TimeScale greater than 2.0");
             }
         }
+        
+        [BindableMethod(name = "Reset settings", category = "Misc")]
+        public static void Reset()
+        {
+            var pd = PlayerData.instance;
+            var HC = HeroController.instance;
+            var GC = GameCameras.instance;
+            
+            //nail damage
+            pd.nailDamage = 5+ pd.nailSmithUpgrades * 4;
+            PlayMakerFSM.BroadcastEvent("UPDATE NAIL DAMAGE");
+
+            //Hero Light
+            GameObject gameObject = DebugMod.RefKnight.transform.Find("HeroLight").gameObject;
+            Color color = gameObject.GetComponent<SpriteRenderer>().color;
+            color.a = 0.7f;
+            gameObject.GetComponent<SpriteRenderer>().color = color;
+            
+            //HUD
+            if (!GC.hudCanvas.gameObject.activeInHierarchy) 
+                GC.hudCanvas.gameObject.SetActive(true);
+            
+            //Hide Hero
+            tk2dSprite component = DebugMod.RefKnight.GetComponent<tk2dSprite>();
+            color = component.color;  color.a = 1f;
+            component.color = color;
+
+            //rest all is self explanatory
+            Time.timeScale = 1f;
+            GC.tk2dCam.ZoomFactor = 1f;
+            HC.vignette.enabled = false;
+            EnemiesPanel.hitboxes = false;
+            EnemiesPanel.hpBars = false;
+            EnemiesPanel.autoUpdate = false;
+            pd.infiniteAirJump=false;
+            DebugMod.infiniteSoul = false;
+            DebugMod.infiniteHP = false; 
+            pd.isInvincible=false; 
+            DebugMod.noclip=false;
+        }
 
         #endregion
-
         #region Visual
 
+        [BindableMethod(name = "Show Hitboxes", category = "Visual")]
+        public static void ShowHitboxes()
+        {
+            if (++DebugMod.settings.ShowHitBoxes > 2) DebugMod.settings.ShowHitBoxes = 0;
+            Console.AddLine("Toggled show hitboxes: " + DebugMod.settings.ShowHitBoxes);
+        }
+        
         [BindableMethod(name = "Toggle Vignette", category = "Visual")]
         public static void ToggleVignette()
         {
             HeroController.instance.vignette.enabled = !HeroController.instance.vignette.enabled;
         }
+        //
 
         [BindableMethod(name = "Toggle Hero Light", category = "Visual")]
         public static void ToggleHeroLight()
@@ -253,6 +300,13 @@ namespace DebugMod
                 component.color = color;
                 Console.AddLine("Rendering Hero sprite visible...");
             }
+        }
+        [BindableMethod(name = "Toggle Camera Shake", category = "Visual")]
+        public static void ToggleCameraShake()
+        {
+            bool newValue = !GameCameras.instance.cameraShakeFSM.enabled;
+            GameCameras.instance.cameraShakeFSM.enabled = newValue;
+            Console.AddLine($"{(newValue ? "Enabling" : "Disabling")} Camera Shake...");
         }
 
         #endregion
@@ -374,47 +428,9 @@ namespace DebugMod
                 Console.AddLine("Unacceptable conditions for selfDamage(" + PlayerData.instance.health + "," + DebugMod.HC.cState.dead + "," + DebugMod.GM.IsGameplayScene() + "," + DebugMod.HC.cState.recoiling + "," + DebugMod.GM.IsGamePaused() + "," + DebugMod.HC.cState.invulnerable + ")." + " Pressed too many times at once?");
                 return;
             }
-            if (!DebugMod.settings.EnemiesPanelVisible)
-            {
-                Console.AddLine("Enable EnemyPanel for self-damage");
-                return;
-            }
-            if (EnemiesPanel.enemyPool.Count < 1)
-            {
-                Console.AddLine("Unable to locate a single enemy in the scene.");
-                return;
-            }
-
-            GameObject enemyObj = EnemiesPanel.enemyPool.ElementAt(new Random().Next(0, EnemiesPanel.enemyPool.Count)).gameObject;
-            CollisionSide side = HeroController.instance.cState.facingRight ? CollisionSide.right : CollisionSide.left;
-            int damageAmount = 1;
-            int hazardType = (int)HazardType.NON_HAZARD;
-
-            PlayMakerFSM fsm = FSMUtility.LocateFSM(enemyObj, "damages_hero");
-            if (fsm != null)
-            {
-                damageAmount = FSMUtility.GetInt(fsm, "damageDealt");
-                hazardType = FSMUtility.GetInt(fsm, "hazardType");
-            }
-
-            object[] paramArray;
-
-            if (EnemiesPanel.parameters.Length == 2)
-            {
-                paramArray = new object[] { enemyObj, side };
-            }
-            else if (EnemiesPanel.parameters.Length == 4)
-            {
-                paramArray = new object[] { enemyObj, side, damageAmount, hazardType };
-            }
-            else
-            {
-                Console.AddLine("Unexpected parameter count on HeroController.TakeDamage");
-                return;
-            }
+            GameManager.instance.gameObject.AddComponent<SelfDamage>();
 
             Console.AddLine("Attempting self damage");
-            EnemiesPanel.takeDamage.Invoke(HeroController.instance, paramArray);
         }
 
         #endregion
@@ -601,6 +617,7 @@ namespace DebugMod
             PlayerData.instance.hasCharm = true;
             PlayerData.instance.charmsOwned = 40;
             PlayerData.instance.royalCharmState = 4;
+            PlayerData.instance.gotShadeCharm = true;
             PlayerData.instance.gotKingFragment = true;
             PlayerData.instance.gotQueenFragment = true;
             PlayerData.instance.notchShroomOgres = true;
@@ -633,6 +650,8 @@ namespace DebugMod
             }
 
             PlayerData.instance.royalCharmState++;
+
+            PlayerData.instance.gotShadeCharm = PlayerData.instance.royalCharmState == 4;
 
             if (PlayerData.instance.royalCharmState >= 5)
             {
@@ -1175,7 +1194,7 @@ namespace DebugMod
             }
             else
             {
-                PlayerData.instance.hasLantern = false;
+                PlayerData.instance.hasXunFlower = false;
                 Console.AddLine("Taking away delicate flower");
             }
         }
@@ -1266,5 +1285,72 @@ namespace DebugMod
         }
 
         #endregion
+        
+        #region MovePlayer
+
+        [BindableMethod(name = "Move 0.1 units to the right", category = "PlayerMovement")]
+        public static void MoveRight()
+        {
+            var HeroPos = HeroController.instance.transform.position;
+            HeroController.instance.transform.position= new Vector3(HeroPos.x + DebugMod.settings.AmountToMove, HeroPos.y);
+            Console.AddLine("Moved player 0.1 units to the right");
+        }
+        [BindableMethod(name = "Move 0.1 units to the left", category = "PlayerMovement")]
+        public static void MoveL()
+        {
+            var HeroPos = HeroController.instance.transform.position;
+            HeroController.instance.transform.position = new Vector3(HeroPos.x - DebugMod.settings.AmountToMove, HeroPos.y);
+            Console.AddLine("Moved player 0.1 units to the left");
+        }
+        [BindableMethod(name = "Move 0.1 units up", category = "PlayerMovement")]
+        public static void MoveUp()
+        {
+            var HeroPos = HeroController.instance.transform.position;
+            HeroController.instance.transform.position = new Vector3(HeroPos.x, HeroPos.y +  DebugMod.settings.AmountToMove);
+            Console.AddLine("Moved player 0.1 units to the up");
+        }
+        [BindableMethod(name = "Move 0.1 units down", category = "PlayerMovement")]
+        public static void MoveDown()
+        {
+            var HeroPos = HeroController.instance.transform.position;
+            HeroController.instance.transform.position = new Vector3(HeroPos.x, HeroPos.y - DebugMod.settings.AmountToMove);
+            Console.AddLine("Moved player 0.1 units to the down");
+        }
+        
+        [BindableMethod(name = "FaceLeft", category = "PlayerMovement")]
+        public static void FaceLeft()
+        {
+            HeroController.instance.FaceLeft();
+            Console.AddLine("Made player face left");
+        }
+        
+        [BindableMethod(name = "FaceRight", category = "PlayerMovement")]
+        public static void FaceRight()
+        {
+            HeroController.instance.FaceRight();
+            Console.AddLine("Made player face right");
+        }
+        
+        #endregion
+    }
+
+    public class SelfDamage : MonoBehaviour
+    {
+        public void Start()
+        {
+            GameObject Enemyprefab = DebugMod.PreloadedObjects["Enemy"];
+            GameObject Enemy = Instantiate(Enemyprefab);
+            Enemy.SetActive(false);
+            
+            CollisionSide side = HeroController.instance.cState.facingRight ? CollisionSide.right : CollisionSide.left;
+            int damageAmount = 1;
+            int hazardType = (int)HazardType.NON_HAZARD;
+
+            HeroController.instance.TakeDamage(Enemy,side,damageAmount,hazardType);
+
+            var MyMonoBehaviour = GameManager.instance.gameObject.GetComponent<SelfDamage>();
+            if (MyMonoBehaviour != null) Destroy(GameManager.instance.gameObject.GetComponent<SelfDamage>());
+        }
+        
     }
 }
