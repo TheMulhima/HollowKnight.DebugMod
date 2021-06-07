@@ -1,129 +1,166 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <ProductVersion>10.0.0</ProductVersion>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <NoWarn />
-    <TargetFramework>net35</TargetFramework>
-    <LangVersion>6</LangVersion>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugType>full</DebugType>
-    <EnableUnmanagedDebugging>true</EnableUnmanagedDebugging>
-    <OutputPath>bin\$(Configuration)\</OutputPath>
-    <IntermediateOutputPath>obj\Windows\$(Platform)\Debug</IntermediateOutputPath>
-    <DocumentationFile>bin\$(Configuration)\DebugMod.xml</DocumentationFile>
-    <DefineConstants>DEBUG;PLATFORM_WINDOWS</DefineConstants>
-    <LangVersion>default</LangVersion>
-    <NoWarn>1591</NoWarn>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>none</DebugType>
-    <OutputPath>bin\Windows\$(Platform)\Release</OutputPath>
-    <IntermediateOutputPath>obj\Windows\$(Platform)\Release</IntermediateOutputPath>
-    <DocumentationFile>bin\Windows\$(Platform)\$(Configuration)\DebugMod.xml</DocumentationFile>
-    <DefineConstants>PLATFORM_WINDOWS</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup>
-    <_PostBuildHookTimestamp>@(IntermediateAssembly->'%(FullPath).timestamp')</_PostBuildHookTimestamp>
-    <_PostBuildHookHostPlatform>$(Platform)</_PostBuildHookHostPlatform>
-  </PropertyGroup>
-  <Target Name="PostBuildHooks" Inputs="@(IntermediateAssembly);@(ReferencePath)" Outputs="@(IntermediateAssembly);$(_PostBuildHookTimestamp)" AfterTargets="CoreCompile" BeforeTargets="AfterCompile">
-    <Touch Files="$(_PostBuildHookTimestamp)" AlwaysCreate="True" />
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+    <PropertyGroup>
+        <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+        <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+        <ProjectGuid>{932ED497-4C09-461E-B198-8B44FD9B288F}</ProjectGuid>
+        <OutputType>Library</OutputType>
+        <AppDesignerFolder>Properties</AppDesignerFolder>
+        <RootNamespace>DebugMod</RootNamespace>
+        <AssemblyName>DebugMod</AssemblyName>
+        <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+        <FileAlignment>512</FileAlignment>
+        <LangVersion>latest</LangVersion>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+        <PlatformTarget>AnyCPU</PlatformTarget>
+        <DebugSymbols>true</DebugSymbols>
+        <DebugType>full</DebugType>
+        <Optimize>false</Optimize>
+        <OutputPath>bin\Debug\</OutputPath>
+        <DefineConstants>DEBUG;TRACE</DefineConstants>
+        <ErrorReport>prompt</ErrorReport>
+        <WarningLevel>4</WarningLevel>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+        <PlatformTarget>AnyCPU</PlatformTarget>
+        <DebugType>pdbonly</DebugType>
+        <Optimize>true</Optimize>
+        <OutputPath>bin\Release\</OutputPath>
+        <DefineConstants>TRACE</DefineConstants>
+        <ErrorReport>prompt</ErrorReport>
+        <WarningLevel>4</WarningLevel>
+    </PropertyGroup>
+    <ItemGroup>
+        <EmbeddedResource Include="Images\AddEntry.png" />
+        <EmbeddedResource Include="Images\BlueGlow.png" />
+        <EmbeddedResource Include="Images\ButtonDel.png" />
+        <EmbeddedResource Include="Images\ButtonInf.png" />
+        <EmbeddedResource Include="Images\ButtonPlus.png" />
+        <EmbeddedResource Include="Images\ButtonRect.png" />
+        <EmbeddedResource Include="Images\ButtonRectEmpty.png" />
+        <EmbeddedResource Include="Images\ButtonsMenuBG.png" />
+        <EmbeddedResource Include="Images\CityKey.png" />
+        <EmbeddedResource Include="Images\ConsoleBg.png" />
+        <EmbeddedResource Include="Images\CrystalHeart.png" />
+        <EmbeddedResource Include="Images\DreamGate.png" />
+        <EmbeddedResource Include="Images\DreamGateDropdownBG.png" />
+        <EmbeddedResource Include="Images\DreamNail1.png" />
+        <EmbeddedResource Include="Images\DreamNail2.png" />
+        <EmbeddedResource Include="Images\DropdownBG.png" />
+        <EmbeddedResource Include="Images\ElegantKey.png" />
+        <EmbeddedResource Include="Images\EnemiesBg.png" />
+        <EmbeddedResource Include="Images\EnemiesPBg.png" />
+        <EmbeddedResource Include="Images\Essence.png" />
+        <EmbeddedResource Include="Images\Essence2.png" />
+        <EmbeddedResource Include="Images\Flower.png" />
+        <EmbeddedResource Include="Images\Geo.png" />
+        <EmbeddedResource Include="Images\HelpBG.png" />
+        <EmbeddedResource Include="Images\IsmasTear.png" />
+        <EmbeddedResource Include="Images\Kingsbrand.png" />
+        <EmbeddedResource Include="Images\Lantern.png" />
+        <EmbeddedResource Include="Images\LoveKey.png" />
+        <EmbeddedResource Include="Images\MantisClaw.png" />
+        <EmbeddedResource Include="Images\MapQuill.png" />
+        <EmbeddedResource Include="Images\MonarchWings.png" />
+        <EmbeddedResource Include="Images\MothwingCloak.png" />
+        <EmbeddedResource Include="Images\NailArt_CycloneSlash.png" />
+        <EmbeddedResource Include="Images\NailArt_DashSlash.png" />
+        <EmbeddedResource Include="Images\NailArt_GreatSlash.png" />
+        <EmbeddedResource Include="Images\PaleOre.png" />
+        <EmbeddedResource Include="Images\RancidEgg.png" />
+        <EmbeddedResource Include="Images\ScrollBarArrowDown.png" />
+        <EmbeddedResource Include="Images\ScrollBarArrowUp.png" />
+        <EmbeddedResource Include="Images\scrollbar_mid.png" />
+        <EmbeddedResource Include="Images\Scrollbar_point.png" />
+        <EmbeddedResource Include="Images\ShadeCloak.png" />
+        <EmbeddedResource Include="Images\SimpleKey.png" />
+        <EmbeddedResource Include="Images\SlyKey.png" />
+        <EmbeddedResource Include="Images\StatusPanelBG.png" />
+        <EmbeddedResource Include="Images\TramPass.png" />
+    </ItemGroup>
+    <ItemGroup>
+        <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+          <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\Assembly-CSharp.dll</HintPath>
+        </Reference>
+        <Reference Include="PlayMaker, Version=1.6.0.0, Culture=neutral, PublicKeyToken=null">
+          <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\PlayMaker.dll</HintPath>
+        </Reference>
+        <Reference Include="System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e">
+          <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\System.dll</HintPath>
+        </Reference>
+        <Reference Include="System.IO.Compression, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+          <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\System.IO.Compression.dll</HintPath>
+        </Reference>
+        <Reference Include="System.Net.Http, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+          <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\System.Net.Http.dll</HintPath>
+        </Reference>
+        <Reference Include="System.Runtime.Serialization.Xml, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+          <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\System.Runtime.Serialization.Xml.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+          <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\UnityEngine.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+          <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine.ImageConversionModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+          <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\UnityEngine.ImageConversionModule.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine.IMGUIModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+          <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\UnityEngine.IMGUIModule.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine.InputLegacyModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+          <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\UnityEngine.InputLegacyModule.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine.JSONSerializeModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+          <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\UnityEngine.JSONSerializeModule.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine.Physics2DModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+          <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\UnityEngine.Physics2DModule.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine.TextRenderingModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+          <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\UnityEngine.TextRenderingModule.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine.UI, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
+          <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\UnityEngine.UI.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine.UIModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+          <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\UnityEngine.UIModule.dll</HintPath>
+        </Reference>
+    </ItemGroup>
+    <ItemGroup>
+        <Compile Include="BindableFunctions.cs" />
+        <Compile Include="BindableMethod.cs" />
+        <Compile Include="BossHandler.cs" />
+        <Compile Include="CanvasButton.cs" />
+        <Compile Include="CanvasImage.cs" />
+        <Compile Include="CanvasPanel.cs" />
+        <Compile Include="CanvasText.cs" />
+        <Compile Include="Console.cs" />
+        <Compile Include="DebugMod.cs" />
+        <Compile Include="DreamGate.cs" />
+        <Compile Include="EnemiesPanel.cs" />
+        <Compile Include="EnemyData.cs" />
+        <Compile Include="GUIController.cs" />
+        <Compile Include="Hitbox\Drawing.cs" />
+        <Compile Include="Hitbox\HitboxRender.cs" />
+        <Compile Include="Hitbox\HitboxViewer.cs" />
+        <Compile Include="InfoPanel.cs" />
+        <Compile Include="KeyBindPanel.cs" />
+        <Compile Include="Pair.cs" />
+        <Compile Include="PlayerDeathWatcher.cs" />
+        <Compile Include="Properties\AssemblyInfo.cs" />
+        <Compile Include="Settings.cs" />
+        <Compile Include="TopMenu.cs" />
+    </ItemGroup>
+    <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="@echo on" />
+    <Exec Command="echo Copying mod" />
+    <Exec Command="copy &quot;$(TargetPath)&quot; &quot;C:\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\Mods\&quot;" />
   </Target>
-  <ItemGroup>
-    <Compile Update="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Images\AddEntry.png" />
-    <EmbeddedResource Include="Images\BlueGlow.png" />
-    <EmbeddedResource Include="Images\ButtonDel.png" />
-    <EmbeddedResource Include="Images\ButtonInf.png" />
-    <EmbeddedResource Include="Images\ButtonPlus.png" />
-    <EmbeddedResource Include="Images\ButtonRect.png" />
-    <EmbeddedResource Include="Images\ButtonRectEmpty.png" />
-    <EmbeddedResource Include="Images\ButtonsMenuBG.png" />
-    <EmbeddedResource Include="Images\CityKey.png" />
-    <EmbeddedResource Include="Images\ConsoleBg.png" />
-    <EmbeddedResource Include="Images\CrystalHeart.png" />
-    <EmbeddedResource Include="Images\DreamGate.png" />
-    <EmbeddedResource Include="Images\DreamGateDropdownBG.png" />
-    <EmbeddedResource Include="Images\DreamNail1.png" />
-    <EmbeddedResource Include="Images\DreamNail2.png" />
-    <EmbeddedResource Include="Images\DropdownBG.png" />
-    <EmbeddedResource Include="Images\ElegantKey.png" />
-    <EmbeddedResource Include="Images\EnemiesBg.png" />
-    <EmbeddedResource Include="Images\EnemiesPBg.png" />
-    <EmbeddedResource Include="Images\Essence.png" />
-    <EmbeddedResource Include="Images\Essence2.png" />
-    <EmbeddedResource Include="Images\Flower.png" />
-    <EmbeddedResource Include="Images\Geo.png" />
-    <EmbeddedResource Include="Images\HelpBG.png" />
-    <EmbeddedResource Include="Images\IsmasTear.png" />
-    <EmbeddedResource Include="Images\Kingsbrand.png" />
-    <EmbeddedResource Include="Images\Lantern.png" />
-    <EmbeddedResource Include="Images\LoveKey.png" />
-    <EmbeddedResource Include="Images\MantisClaw.png" />
-    <EmbeddedResource Include="Images\MapQuill.png" />
-    <EmbeddedResource Include="Images\MonarchWings.png" />
-    <EmbeddedResource Include="Images\MothwingCloak.png" />
-    <EmbeddedResource Include="Images\NailArt_CycloneSlash.png" />
-    <EmbeddedResource Include="Images\NailArt_DashSlash.png" />
-    <EmbeddedResource Include="Images\NailArt_GreatSlash.png" />
-    <EmbeddedResource Include="Images\PaleOre.png" />
-    <EmbeddedResource Include="Images\RancidEgg.png" />
-    <EmbeddedResource Include="Images\ScrollBarArrowDown.png" />
-    <EmbeddedResource Include="Images\ScrollBarArrowUp.png" />
-    <EmbeddedResource Include="Images\scrollbar_mid.png" />
-    <EmbeddedResource Include="Images\Scrollbar_point.png" />
-    <EmbeddedResource Include="Images\ShadeCloak.png" />
-    <EmbeddedResource Include="Images\SimpleKey.png" />
-    <EmbeddedResource Include="Images\SlyKey.png" />
-    <EmbeddedResource Include="Images\StatusPanelBG.png" />
-    <EmbeddedResource Include="Images\TramPass.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Remove="Properties\Resources.Designer.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\..\..\References\Assembly-CSharp.dll</HintPath>
-    </Reference>
-    <Reference Include="PlayMaker, Version=1.6.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\..\..\References\PlayMaker.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\..\..\References\UnityEngine.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\..\..\References\UnityEngine.CoreModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.ImageConversionModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\..\..\References\UnityEngine.ImageConversionModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.JSONSerializeModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\..\..\References\UnityEngine.JSONSerializeModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.Physics2DModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\..\..\References\UnityEngine.Physics2DModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.PhysicsModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\..\..\References\UnityEngine.PhysicsModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.TextRenderingModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\..\..\References\UnityEngine.TextRenderingModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.UI, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\..\..\References\UnityEngine.UI.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.UIElementsModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\..\..\References\UnityEngine.UIElementsModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.UIModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\..\..\References\UnityEngine.UIModule.dll</HintPath>
-    </Reference>
-  </ItemGroup>
+
+
 </Project>
