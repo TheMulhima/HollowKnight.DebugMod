@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.UI;
+using DebugMod.Hitbox;
 
 namespace DebugMod
 {
@@ -16,6 +17,7 @@ namespace DebugMod
         public Dictionary<string, Texture2D> images = new Dictionary<string, Texture2D>();
         public Vector3 hazardLocation;
         public string respawnSceneWatch;
+        private static readonly HitboxViewer hitboxes = new();
 
         public GameObject canvas;
         private static GUIController _instance;
@@ -124,19 +126,21 @@ namespace DebugMod
             {
                 if (DebugMod.bindMethods.ContainsKey(bind.Key))
                 {
-                    if ((KeyCode)bind.Value == KeyCode.None)
+                    if ((KeyCode) bind.Value == KeyCode.None)
                     {
                         foreach (KeyCode kc in Enum.GetValues(typeof(KeyCode)))
                         {
-                            if (Input.GetKeyDown(kc))
+                            if (Input.GetKeyDown(kc) && kc != KeyCode.Mouse0)
                             {
+                                // Fix UX
                                 if (KeyBindPanel.keyWarning != kc)
                                 {
                                     foreach (KeyValuePair<string, int> kvp in DebugMod.settings.binds)
                                     {
-                                        if (kvp.Value == (int)kc)
+                                        if (kvp.Value == (int) kc)
                                         {
-                                            Console.AddLine(kc.ToString() + " already bound to " + kvp.Key + ", press again to confirm");
+                                            Console.AddLine(kc.ToString() + " already bound to " + kvp.Key +
+                                                            ", press again to confirm");
                                             KeyBindPanel.keyWarning = kc;
                                         }
                                     }
@@ -146,21 +150,49 @@ namespace DebugMod
 
                                 KeyBindPanel.keyWarning = KeyCode.None;
 
-                                DebugMod.settings.binds[bind.Key] = (int)kc;
+                                //remove bind
+                                if (kc == KeyCode.Escape)
+                                {
+                                    DebugMod.settings.binds.Remove(bind.Key);
+                                    DebugMod.instance.LogWarn($"The key {Enum.GetName(typeof(KeyCode),kc)} has been unbound from {bind.Key}");
+                                }
+                                else if (kc != KeyCode.Escape)
+                                {
+                                    DebugMod.settings.binds[bind.Key] = (int) kc;
+                                }
+
                                 KeyBindPanel.UpdateHelpText();
                                 break;
                             }
                         }
                     }
-                    else if (Input.GetKeyDown((KeyCode)bind.Value))
+                    else if (Input.GetKeyDown((KeyCode) bind.Value))
                     {
-                        try
+                        //This makes sure atleast you can close the UI when the KeyBindLock is active.
+                        //Im sure theres a better way to do this but idk. 
+                        if (bind.Value == DebugMod.settings.binds["Toggle All UI"])
                         {
-                            ((MethodInfo)DebugMod.bindMethods[bind.Key].Second).Invoke(null, null);
+                            try
+                            {
+                                ((MethodInfo) DebugMod.bindMethods[bind.Key].Second).Invoke(null, null);
+                            }
+                            catch (Exception e)
+                            {
+                                DebugMod.instance.LogError("Error running keybind method " + bind.Key + ":\n" +
+                                                           e.ToString());
+                            }
                         }
-                        catch (Exception e)
+                        else if (!DebugMod.KeyBindLock)
                         {
-                            DebugMod.instance.LogError("Error running keybind method " + bind.Key + ":\n" + e.ToString());
+                            try
+                            {
+                                ((MethodInfo) DebugMod.bindMethods[bind.Key].Second).Invoke(null, null);
+                            }
+                            catch (Exception e)
+                            {
+                                DebugMod.instance.LogError("Error running keybind method " + bind.Key + ":\n" +
+                                                           e.ToString());
+                            }
                         }
                     }
                 }
@@ -246,6 +278,17 @@ namespace DebugMod
                     ", Respawn Marker: ",
                     PlayerData.instance.respawnMarkerName.ToString()
                 }));
+            }
+            if (HitboxViewer.State != DebugMod.settings.ShowHitBoxes)
+            {
+                if (DebugMod.settings.ShowHitBoxes != 0)
+                {
+                    hitboxes.Load();
+                }
+                else if (HitboxViewer.State != 0 && DebugMod.settings.ShowHitBoxes == 0)
+                {
+                    hitboxes.Unload();
+                }
             }
         }
 
