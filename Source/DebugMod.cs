@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Reflection;
@@ -11,7 +11,7 @@ using Object = UnityEngine.Object;
 
 namespace DebugMod
 {
-    public class DebugMod : Mod<SaveSettings, GlobalSettings>
+    public class DebugMod : Mod,IGlobalSettings<GlobalSettings>
     {
         private static GameManager _gm;
         private static InputHandler _ih;
@@ -30,8 +30,12 @@ namespace DebugMod
         internal static PlayMakerFSM RefDreamNail => _refDreamNail != null ? _refDreamNail : (_refDreamNail = FSMUtility.LocateFSM(RefKnight, "Dream Nail"));
 
         internal static DebugMod instance;
-        internal static GlobalSettings settings;
-
+        //internal static GlobalSettings settings;
+        internal static GlobalSettings settings { get; set; }
+        public void OnLoadGlobal(GlobalSettings s) => DebugMod.settings = s;
+        // This method gets called when the mod loader needs to save the global settings.
+        public GlobalSettings OnSaveGlobal() => DebugMod.settings;
+        
         private static float _loadTime;
         private static float _unloadTime;
         private static bool _loadingChar;
@@ -42,10 +46,20 @@ namespace DebugMod
         internal static bool noclip;
         internal static Vector3 noclipPos;
         internal static bool cameraFollow;
+        internal static bool KeyBindLock;
 
         internal static Dictionary<string, Pair> bindMethods = new Dictionary<string, Pair>();
 
-        public override void Initialize()
+        public static readonly Dictionary<string, GameObject> PreloadedObjects = new Dictionary<string, GameObject>();
+        public override List<(string, string)> GetPreloadNames()
+        {
+            return new List<(string, string)>
+            {
+                ("Tutorial_01", "_Enemies/Buzzer")
+            };
+        }
+        
+        public override void Initialize(Dictionary<string, Dictionary<string, GameObject>> preloadedObjects)
         {
             instance = this;
 
@@ -68,10 +82,9 @@ namespace DebugMod
                     bindMethods.Add(name, new Pair(cat, method));
                 }
             }
-
+            PreloadedObjects.Add("Enemy", preloadedObjects["Tutorial_01"]["_Enemies/Buzzer"]);
             instance.Log("Done! Time taken: " + (Time.realtimeSinceStartup - startTime) + "s. Found " + bindMethods.Count + " methods");
-
-            settings = GlobalSettings;
+            
 
             if (settings.FirstRun)
             {
@@ -109,24 +122,26 @@ namespace DebugMod
             UIObj.AddComponent<GUIController>();
             Object.DontDestroyOnLoad(UIObj);
 
-            ModHooks.Instance.SavegameLoadHook += LoadCharacter;
-            ModHooks.Instance.NewGameHook += NewCharacter;
-            ModHooks.Instance.BeforeSceneLoadHook += OnLevelUnload;
-            ModHooks.Instance.TakeHealthHook += PlayerDamaged;
-            ModHooks.Instance.ApplicationQuitHook += SaveSettings;
+            ModHooks.SavegameLoadHook += LoadCharacter;
+            ModHooks.NewGameHook += NewCharacter;
+            ModHooks.BeforeSceneLoadHook += OnLevelUnload;
+            ModHooks.TakeHealthHook += PlayerDamaged;
+            ModHooks.ApplicationQuitHook += SaveSettings;
 
             BossHandler.PopulateBossLists();
             GUIController.Instance.BuildMenus();
+
+            KeyBindLock = false;
 
             Console.AddLine("New session started " + DateTime.Now);
         }
         
         public override string GetVersion()
         {
-            return "1.3.6";
+            return "1.3.7";
         }
 
-        public override bool IsCurrent() => true;
+        //public override bool IsCurrent() => true;
 
         private void SaveSettings()
         {
@@ -187,7 +202,7 @@ namespace DebugMod
 
         public static bool GrimmTroupe()
         {
-            return ModHooks.Instance.version.gameVersion.minor >= 2;
+            return ModHooks.version.gameVersion.minor >= 2;
         }
 
         public static string GetSceneName()
