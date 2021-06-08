@@ -432,6 +432,32 @@ namespace DebugMod
 
             Console.AddLine("Attempting self damage");
         }
+	    
+	[BindableMethod(name = "Add a mask", category = "Enemy Panel")]
+        public static void AddMask()
+        {
+            if (PlayerData.instance.health <= 0 || HeroController.instance.cState.dead || !GameManager.instance.IsGameplayScene())
+            {
+                Console.AddLine("Unacceptable conditions for adding masks" + PlayerData.instance.health + "," + DebugMod.HC.cState.dead + "," + DebugMod.GM.IsGameplayScene() + "," + DebugMod.HC.cState.recoiling + "," + DebugMod.GM.IsGamePaused() + "," + DebugMod.HC.cState.invulnerable + ")." + " Pressed too many times at once?");
+                return;
+            }
+            HeroController.instance.AddHealth(1);
+
+            Console.AddLine("Attempting to add mask");
+        }
+	    
+        [BindableMethod(name = "Remove a mask", category = "Enemy Panel")]
+        public static void RemoveMask()
+        {
+            if (PlayerData.instance.health <= 0 || HeroController.instance.cState.dead || !GameManager.instance.IsGameplayScene())
+            {
+                Console.AddLine("Unacceptable conditions for removing masks" + PlayerData.instance.health + "," + DebugMod.HC.cState.dead + "," + DebugMod.GM.IsGameplayScene() + "," + DebugMod.HC.cState.recoiling + "," + DebugMod.GM.IsGamePaused() + "," + DebugMod.HC.cState.invulnerable + ")." + " Pressed too many times at once?");
+                return;
+            }
+            HeroController.instance.TakeHealth(1);
+
+            Console.AddLine("Attempting to remove mask");
+        }
 
         #endregion
 
