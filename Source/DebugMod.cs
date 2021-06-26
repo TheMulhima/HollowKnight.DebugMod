@@ -30,10 +30,8 @@ namespace DebugMod
         internal static PlayMakerFSM RefDreamNail => _refDreamNail != null ? _refDreamNail : (_refDreamNail = FSMUtility.LocateFSM(RefKnight, "Dream Nail"));
 
         internal static DebugMod instance;
-        //internal static GlobalSettings settings;
-        internal static GlobalSettings settings { get; set; }
+        internal static GlobalSettings settings { get; set; } = new GlobalSettings();
         public void OnLoadGlobal(GlobalSettings s) => DebugMod.settings = s;
-        // This method gets called when the mod loader needs to save the global settings.
         public GlobalSettings OnSaveGlobal() => DebugMod.settings;
         
         private static float _loadTime;
@@ -46,7 +44,10 @@ namespace DebugMod
         internal static bool noclip;
         internal static Vector3 noclipPos;
         internal static bool cameraFollow;
+        internal static SaveStateManager saveStateManager;
         internal static bool KeyBindLock;
+        internal static bool TimeScaleActive;
+        internal static float CurrentTimeScale;
 
         internal static Dictionary<string, Pair> bindMethods = new Dictionary<string, Pair>();
 
@@ -58,6 +59,11 @@ namespace DebugMod
                 ("Tutorial_01", "_Enemies/Buzzer")
             };
         }
+        
+        internal static Dictionary<KeyCode, int> alphaKeyDict = new Dictionary<KeyCode, int>();
+
+        static int alphaStart;
+        static int alphaEnd;
         
         public override void Initialize(Dictionary<string, Dictionary<string, GameObject>> preloadedObjects)
         {
@@ -84,7 +90,7 @@ namespace DebugMod
             }
             PreloadedObjects.Add("Enemy", preloadedObjects["Tutorial_01"]["_Enemies/Buzzer"]);
             instance.Log("Done! Time taken: " + (Time.realtimeSinceStartup - startTime) + "s. Found " + bindMethods.Count + " methods");
-            
+
 
             if (settings.FirstRun)
             {
@@ -93,35 +99,56 @@ namespace DebugMod
                 settings.FirstRun = false;
                 settings.binds.Clear();
 
-                settings.binds.Add("Toggle All UI", (int)KeyCode.F1);
-                settings.binds.Add("Toggle Info", (int)KeyCode.F2);
-                settings.binds.Add("Toggle Menu", (int)KeyCode.F3);
-                settings.binds.Add("Toggle Console", (int)KeyCode.F4);
-                settings.binds.Add("Force Pause", (int)KeyCode.F5);
-                settings.binds.Add("Hazard Respawn", (int)KeyCode.F6);
-                settings.binds.Add("Set Respawn", (int)KeyCode.F7);
-                settings.binds.Add("Force Camera Follow", (int)KeyCode.F8);
-                settings.binds.Add("Toggle Enemy Panel", (int)KeyCode.F9);
-                settings.binds.Add("Self Damage", (int)KeyCode.F10);
-                settings.binds.Add("Toggle Binds", (int)KeyCode.BackQuote);
-                settings.binds.Add("Nail Damage +4", (int)KeyCode.Equals);
-                settings.binds.Add("Nail Damage -4", (int)KeyCode.Minus);
-                settings.binds.Add("Increase Timescale", (int)KeyCode.KeypadPlus);
-                settings.binds.Add("Decrease Timescale", (int)KeyCode.KeypadMinus);
-                settings.binds.Add("Toggle Hero Light", (int)KeyCode.Home);
-                settings.binds.Add("Toggle Vignette", (int)KeyCode.Insert);
-                settings.binds.Add("Zoom In", (int)KeyCode.PageUp);
-                settings.binds.Add("Zoom Out", (int)KeyCode.PageDown);
-                settings.binds.Add("Reset Camera Zoom", (int)KeyCode.End);
-                settings.binds.Add("Toggle HUD", (int)KeyCode.Delete);
-                settings.binds.Add("Hide Hero", (int)KeyCode.Backspace);
+                settings.binds.Add("Toggle All UI", (int) KeyCode.F1);
+                settings.binds.Add("Toggle Info", (int) KeyCode.F2);
+                settings.binds.Add("Toggle Menu", (int) KeyCode.F3);
+                settings.binds.Add("Toggle Console", (int) KeyCode.F4);
+                settings.binds.Add("Full/Min Info Switch", (int) KeyCode.F6);
+                settings.binds.Add("Force Camera Follow", (int) KeyCode.F8);
+                settings.binds.Add("Toggle Enemy Panel", (int) KeyCode.F9);
+                settings.binds.Add("Self Damage", (int) KeyCode.F10);
+                settings.binds.Add("Toggle Binds", (int) KeyCode.BackQuote);
+                settings.binds.Add("Nail Damage +4", (int) KeyCode.Equals);
+                settings.binds.Add("Nail Damage -4", (int) KeyCode.Minus);
+                settings.binds.Add("Increase Timescale", (int) KeyCode.KeypadPlus);
+                settings.binds.Add("Decrease Timescale", (int) KeyCode.KeypadMinus);
+                settings.binds.Add("Toggle Hero Light", (int) KeyCode.Home);
+                settings.binds.Add("Toggle Vignette", (int) KeyCode.Insert);
+                settings.binds.Add("Zoom In", (int) KeyCode.PageUp);
+                settings.binds.Add("Zoom Out", (int) KeyCode.PageDown);
+                settings.binds.Add("Reset Camera Zoom", (int) KeyCode.End);
+                settings.binds.Add("Toggle HUD", (int) KeyCode.Delete);
+                settings.binds.Add("Hide Hero", (int) KeyCode.Backspace);
             }
+            
+
+            if (settings.NumPadForSaveStates)
+            {
+                alphaStart = (int)KeyCode.Keypad0;
+                alphaEnd = (int)KeyCode.Keypad9;
+            }
+            else
+            {
+                alphaStart = (int)KeyCode.Alpha0;
+                alphaEnd = (int)KeyCode.Alpha9;
+            }
+
+            int alphaInt = 0;
+            alphaKeyDict.Clear();
+                
+            for (int i = alphaStart; i <= alphaEnd; i++)
+            {
+                KeyCode tmpKeyCode = (KeyCode)i;
+                alphaKeyDict.Add(tmpKeyCode, alphaInt++);
+            }
+            
 
             UnityEngine.SceneManagement.SceneManager.activeSceneChanged += LevelActivated;
             GameObject UIObj = new GameObject();
             UIObj.AddComponent<GUIController>();
             Object.DontDestroyOnLoad(UIObj);
-
+            
+            saveStateManager = new SaveStateManager();
             ModHooks.SavegameLoadHook += LoadCharacter;
             ModHooks.NewGameHook += NewCharacter;
             ModHooks.BeforeSceneLoadHook += OnLevelUnload;
@@ -132,13 +159,15 @@ namespace DebugMod
             GUIController.Instance.BuildMenus();
 
             KeyBindLock = false;
+            TimeScaleActive = false;
+            CurrentTimeScale = 1f;
 
             Console.AddLine("New session started " + DateTime.Now);
         }
         
         public override string GetVersion()
         {
-            return "1.3.7";
+            return "1.4.0";
         }
 
         //public override bool IsCurrent() => true;
