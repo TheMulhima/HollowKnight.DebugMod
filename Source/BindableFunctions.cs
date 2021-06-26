@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using GlobalEnums;
@@ -8,6 +9,7 @@ using Modding;
 using UnityEngine;
 using Random = System.Random;
 using USceneManager = UnityEngine.SceneManagement.SceneManager;
+using On;
 
 namespace DebugMod
 {
@@ -15,19 +17,9 @@ namespace DebugMod
     {
         private static readonly FieldInfo TimeSlowed = typeof(GameManager).GetField("timeSlowed", BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Static);
         private static readonly FieldInfo IgnoreUnpause = typeof(UIManager).GetField("ignoreUnpause", BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Static);
-
+        
         internal static readonly FieldInfo cameraGameplayScene = typeof(CameraController).GetField("isGameplayScene", BindingFlags.Instance | BindingFlags.NonPublic);
         
-        private static string _saveScene;
-
-        private static PlayerData _savedPd;
-
-        private static object _lockArea;
-        
-        private static SceneData _savedSd;
-
-        private static Vector3 _savePos;
-
         private static FieldInfo cameraLockArea = typeof(CameraController).GetField("currentLockArea", BindingFlags.Instance | BindingFlags.NonPublic);
 
         #region Misc
@@ -140,35 +132,153 @@ namespace DebugMod
         [BindableMethod(name = "Decrease Timescale", category = "Misc")]
         public static void TimescaleDown()
         {
-            float timeScale = Time.timeScale;
-            float num3 = timeScale - 0.1f;
-            if (num3 > 0f)
+            float oldScale = Time.timeScale;
+            bool wasTimeScaleActive = DebugMod.TimeScaleActive;
+            Time.timeScale -= 0.1f;
+            DebugMod.CurrentTimeScale = Time.timeScale;
+
+            DebugMod.TimeScaleActive = DebugMod.CurrentTimeScale != 1f;
+
+            switch (DebugMod.TimeScaleActive)
             {
-                Time.timeScale = num3;
-                Console.AddLine("New TimeScale value: " + num3 + " Old value: " + timeScale);
+                case true when wasTimeScaleActive == false:
+                    EnableTimeScale();
+                    break;
+                case false when wasTimeScaleActive == true:
+                    DisableTimeScale();
+                    break;
             }
-            else
-            {
-                Console.AddLine("Cannot set TimeScale equal or lower than 0");
-            }
+            Console.AddLine("New TimeScale value: " + oldScale + " Old value: " + DebugMod.CurrentTimeScale);
+
         }
 
         [BindableMethod(name = "Increase Timescale", category = "Misc")]
         public static void TimescaleUp()
         {
-            float timeScale2 = Time.timeScale;
-            float num4 = timeScale2 + 0.1f;
-            if (num4 < 2f)
+            float oldScale = Time.timeScale;
+            bool wasTimeScaleActive = DebugMod.TimeScaleActive;
+            Time.timeScale += 0.1f;
+            DebugMod.CurrentTimeScale = Time.timeScale;
+
+            DebugMod.TimeScaleActive = DebugMod.CurrentTimeScale != 1f;
+
+            switch (DebugMod.TimeScaleActive)
             {
-                Time.timeScale = num4;
-                Console.AddLine("New TimeScale value: " + num4 + " Old value: " + timeScale2);
+                case true when wasTimeScaleActive == false:
+                    EnableTimeScale();
+                    break;
+                case false when wasTimeScaleActive == true:
+                    DisableTimeScale();
+                    break;
             }
-            else
-            {
-                Console.AddLine("Cannot set TimeScale greater than 2.0");
-            }
+            Console.AddLine("New TimeScale value: " + oldScale + " Old value: " + DebugMod.CurrentTimeScale);
+        }
+
+        private static void EnableTimeScale()
+        {
+            DebugMod.TimeScaleActive = true;
+            On.GameManager.SetTimeScale_float += GameManager_SetTimeScale_1;
+            On.GameManager.FreezeMoment_float_float_float_float += GameManager_FreezeMoment_1;
+            On.QuitToMenu.Start += Quit_To_Menu;
         }
         
+        private static void DisableTimeScale()
+        {
+            Time.timeScale = 1f;
+            DebugMod.CurrentTimeScale = 1f;
+            DebugMod.TimeScaleActive = false;
+            On.GameManager.SetTimeScale_float -= GameManager_SetTimeScale_1;
+            On.GameManager.FreezeMoment_float_float_float_float -= GameManager_FreezeMoment_1;
+            On.QuitToMenu.Start -= Quit_To_Menu;
+        }
+        private static IEnumerator Quit_To_Menu(On.QuitToMenu.orig_Start orig, QuitToMenu self)
+        {
+            yield return null;
+            UIManager ui = UIManager.instance;
+            bool flag = ui != null;
+            if (flag)
+            {
+                UIManager.instance.AudioGoToGameplay(0f);
+                UnityEngine.Object.Destroy(ui.gameObject);
+            }
+            HeroController heroController = HeroController.instance;
+            bool flag2 = heroController != null;
+            if (flag2)
+            {
+                UnityEngine.Object.Destroy(heroController.gameObject);
+            }
+            GameCameras gameCameras = GameCameras.instance;
+            bool flag3 = gameCameras != null;
+            if (flag3)
+            {
+                UnityEngine.Object.Destroy(gameCameras.gameObject);
+            }
+            GameManager gameManager = GameManager.instance;
+            bool flag4 = gameManager != null;
+            if (flag4)
+            {
+                try
+                {
+                    ObjectPool.RecycleAll();
+                }
+                catch (Exception ex)
+                {
+                    Exception exception = ex;
+                    Debug.LogErrorFormat("Error while recycling all as part of quit, attempting to continue regardless.", new object[0]);
+                    Debug.LogException(exception);
+                }
+                gameManager.playerData.Reset();
+                gameManager.sceneData.Reset();
+                UnityEngine.Object.Destroy(gameManager.gameObject);
+            }
+            Time.timeScale = DebugMod.CurrentTimeScale;
+            yield return null;
+            GCManager.Collect();
+            UnityEngine.SceneManagement.SceneManager.LoadSceneAsync("Menu_Title", 0);
+            DisableTimeScale();
+        }
+        private static IEnumerator GameManager_FreezeMoment_1(On.GameManager.orig_FreezeMoment_float_float_float_float orig, GameManager self, float rampDownTime, float waitTime, float rampUpTime, float targetSpeed)
+        {
+            FieldInfo timeSlowedField = typeof(GameManager).GetField("TimeSlowed", BindingFlags.Instance | BindingFlags.Public);
+            bool flag = self.TimeSlowed;
+            if (flag)
+            {
+                yield break;
+            }
+            timeSlowedField.SetValue(self,true);
+            yield return self.StartCoroutine(SetTimeScale(targetSpeed, rampDownTime));
+            for (float timer = 0f; timer < waitTime; timer += Time.unscaledDeltaTime * DebugMod.CurrentTimeScale)
+            {
+                yield return null;
+            }
+            yield return self.StartCoroutine(SetTimeScale(1f, rampUpTime));
+            timeSlowedField.SetValue(self,false);
+            yield break;
+        }
+
+        private static IEnumerator SetTimeScale(float newTimeScale, float duration)
+        {
+            float lastTimeScale = Time.timeScale;
+            for (float timer = 0f; timer < duration; timer += Time.unscaledDeltaTime)
+            {
+                float val = Mathf.Clamp01(timer / duration);
+                SetTimeScale(Mathf.Lerp(lastTimeScale, newTimeScale, val));
+                yield return null;
+            }
+            SetTimeScale(newTimeScale);
+            yield break;
+        }
+
+        private static void SetTimeScale(float newTimeScale)
+        {
+            Time.timeScale = ((newTimeScale <= 0.01f) ? 0f : newTimeScale) * DebugMod.CurrentTimeScale;
+        }
+
+        private static void GameManager_SetTimeScale_1(On.GameManager.orig_SetTimeScale_float orig, GameManager self, float newTimeScale)
+        {
+            Time.timeScale = ((newTimeScale <= 0.01f) ? 0f : newTimeScale) * DebugMod.CurrentTimeScale;
+        }
+
         [BindableMethod(name = "Reset settings", category = "Misc")]
         public static void Reset()
         {
@@ -177,7 +287,7 @@ namespace DebugMod
             var GC = GameCameras.instance;
             
             //nail damage
-            pd.nailDamage = 5+ pd.nailSmithUpgrades * 4;
+            pd.nailDamage = 5 + pd.nailSmithUpgrades * 4;
             PlayMakerFSM.BroadcastEvent("UPDATE NAIL DAMAGE");
 
             //Hero Light
@@ -187,8 +297,8 @@ namespace DebugMod
             gameObject.GetComponent<SpriteRenderer>().color = color;
             
             //HUD
-            if (!GC.hudCanvas.gameObject.activeInHierarchy) 
-                GC.hudCanvas.gameObject.SetActive(true);
+            //if (!GC.hudCanvas.gameObject.activeInHierarchy) 
+                //GC.hudCanvas.gameObject.SetActive(true);
             
             //Hide Hero
             tk2dSprite component = DebugMod.RefKnight.GetComponent<tk2dSprite>();
@@ -196,11 +306,11 @@ namespace DebugMod
             component.color = color;
 
             //rest all is self explanatory
-            Time.timeScale = 1f;
+            DisableTimeScale();
             GC.tk2dCam.ZoomFactor = 1f;
             HC.vignette.enabled = false;
             EnemiesPanel.hitboxes = false;
-            EnemiesPanel.hpBars = false;
+            //EnemiesPanel.hpBars = false;
             EnemiesPanel.autoUpdate = false;
             pd.infiniteAirJump=false;
             DebugMod.infiniteSoul = false;
@@ -210,6 +320,62 @@ namespace DebugMod
         }
 
         #endregion
+        
+        #region SaveStates 
+
+        [BindableMethod(name = "Quickslot (save)", category = "Savestates")]
+        public static void SaveState()
+        {
+            DebugMod.saveStateManager.SaveState(SaveStateType.Memory);
+        }
+
+        [BindableMethod(name = "Quickslot (load)", category = "Savestates")]
+        public static void LoadState()
+        {
+            DebugMod.saveStateManager.LoadState(SaveStateType.Memory);
+        }
+
+        [BindableMethod(name = "Quickslot save to file", category = "Savestates")]
+        public static void CurrentSaveStateToFile()
+        {
+            DebugMod.saveStateManager.SaveState(SaveStateType.File);
+        }
+
+        [BindableMethod(name = "Load file to quickslot", category = "Savestates")]
+        public static void CurrentSlotToSaveMemory()
+        {
+            DebugMod.saveStateManager.LoadState(SaveStateType.File);
+        }
+
+        [BindableMethod(name = "Save new state to file", category = "Savestates")]
+        public static void NewSaveStateToFile()
+        {
+            DebugMod.saveStateManager.SaveState(SaveStateType.SkipOne);
+
+        }
+        [BindableMethod(name = "Load new state from file", category = "Savestates")]
+        public static void LoadFromFile()
+        {
+            DebugMod.saveStateManager.LoadState(SaveStateType.SkipOne);
+        }
+
+        /*
+        [BindableMethod(name = "Toggle auto slot", category = "Savestates")]
+        public static void ToggleAutoSlot()
+        {
+            DebugMod.saveStateManager.ToggleAutoSlot();
+        }
+        
+        
+        [BindableMethod(name = "Refresh state menu", category = "Savestates")]
+        public static void RefreshSaveStates()
+        {
+            DebugMod.saveStateManager.RefreshStateMenu();
+        }
+        */
+
+        #endregion
+        
         #region Visual
 
         [BindableMethod(name = "Show Hitboxes", category = "Visual")]
@@ -316,10 +482,26 @@ namespace DebugMod
         [BindableMethod(name = "Toggle All UI", category = "Mod UI")]
         public static void ToggleAllPanels()
         {
-            bool active = !(DebugMod.settings.HelpPanelVisible || DebugMod.settings.InfoPanelVisible || DebugMod.settings.EnemiesPanelVisible || DebugMod.settings.TopMenuVisible || DebugMod.settings.ConsoleVisible);
+            bool active = !(
+                DebugMod.settings.HelpPanelVisible ||
+                DebugMod.settings.InfoPanelVisible ||
+                DebugMod.settings.EnemiesPanelVisible ||
+                DebugMod.settings.TopMenuVisible ||
+                DebugMod.settings.ConsoleVisible ||
+                DebugMod.settings.MinInfoPanelVisible
+                );
 
+            if (MinimalInfoPanel.minInfo)
+            {
+                DebugMod.settings.InfoPanelVisible = false;
+                DebugMod.settings.MinInfoPanelVisible = active;
+            }
+            else
+            {
+                DebugMod.settings.InfoPanelVisible = active;
+                DebugMod.settings.MinInfoPanelVisible = false;
+            }
             DebugMod.settings.TopMenuVisible = active;
-            DebugMod.settings.InfoPanelVisible = active;
             DebugMod.settings.EnemiesPanelVisible = active;
             DebugMod.settings.ConsoleVisible = active;
             DebugMod.settings.HelpPanelVisible = active;
@@ -339,10 +521,19 @@ namespace DebugMod
         [BindableMethod(name = "Toggle Info", category = "Mod UI")]
         public static void ToggleInfoPanel()
         {
-            DebugMod.settings.InfoPanelVisible = !DebugMod.settings.InfoPanelVisible;
+            if (MinimalInfoPanel.minInfo)
+            {
+                DebugMod.settings.InfoPanelVisible = false;
+                DebugMod.settings.MinInfoPanelVisible = !DebugMod.settings.MinInfoPanelVisible;
+            }
+            else
+            {
+                DebugMod.settings.InfoPanelVisible = !DebugMod.settings.InfoPanelVisible;
+                DebugMod.settings.MinInfoPanelVisible = false;
+            }
         }
 
-        [BindableMethod(name = "Toggle Menu", category = "Mod UI")]
+        [BindableMethod(name = "Toggle Top Menu", category = "Mod UI")]
         public static void ToggleTopRightPanel()
         {
             DebugMod.settings.TopMenuVisible = !DebugMod.settings.TopMenuVisible;
@@ -364,11 +555,44 @@ namespace DebugMod
             }
         }
 
+        [BindableMethod(name = "Toggle SaveState Panel", category = "Mod UI")]
+        public static void ToggleSaveStatesPanel()
+        {
+            DebugMod.settings.SaveStatePanelVisible = !DebugMod.settings.SaveStatePanelVisible;
+        }
+
+        // A variant of info panel. View handled in the two InfoPanel classes
+        //  TODO: stop not knowing how to use xor in c#
+        [BindableMethod(name = "Alt. Info Switch", category = "Mod UI")]
+        public static void ToggleFullInfo()
+        {
+            MinimalInfoPanel.minInfo = !MinimalInfoPanel.minInfo;
+            
+            if (MinimalInfoPanel.minInfo) 
+            {
+                if (DebugMod.settings.InfoPanelVisible)
+                {
+                    DebugMod.settings.InfoPanelVisible = false;
+                    DebugMod.settings.MinInfoPanelVisible = true;
+                }
+            }
+            else
+            {
+                if (DebugMod.settings.MinInfoPanelVisible)
+                {
+                    DebugMod.settings.MinInfoPanelVisible = false;
+                    DebugMod.settings.InfoPanelVisible = true;
+                }
+            }
+            
+        }
+
         #endregion
 
         #region Enemies
 
-        [BindableMethod(name = "Toggle Hitboxes", category = "Enemy Panel")]
+        //probably should delete this as it has become obsolete becuase of the new Show Hitboxes in the visuals page
+        [BindableMethod(name = "Toggle Enemy Hitboxes", category = "Enemy Panel")]
         public static void ToggleEnemyCollision()
         {
             EnemiesPanel.hitboxes = !EnemiesPanel.hitboxes;
@@ -432,8 +656,7 @@ namespace DebugMod
 
             Console.AddLine("Attempting self damage");
         }
-	    
-	[BindableMethod(name = "Add a mask", category = "Enemy Panel")]
+        [BindableMethod(name = "Add a mask", category = "Enemy Panel")]
         public static void AddMask()
         {
             if (PlayerData.instance.health <= 0 || HeroController.instance.cState.dead || !GameManager.instance.IsGameplayScene())
@@ -445,7 +668,6 @@ namespace DebugMod
 
             Console.AddLine("Attempting to add mask");
         }
-	    
         [BindableMethod(name = "Remove a mask", category = "Enemy Panel")]
         public static void RemoveMask()
         {
@@ -532,96 +754,13 @@ namespace DebugMod
         {
             if (DebugMod.GM.isPaused) UIManager.instance.TogglePauseGame();
             HeroController.instance.TakeHealth(9999);
+            
             HeroController.instance.heroDeathPrefab.SetActive(true);
             DebugMod.GM.ReadyForRespawn(false);
             GameCameras.instance.hudCanvas.gameObject.SetActive(false);
             GameCameras.instance.hudCanvas.gameObject.SetActive(true);
         }
         
-        
-		[BindableMethod(name = "Make Savestate", category = "Misc")]
-		public static void SaveState()
-		{
-			_savedPd = JsonUtility.FromJson<PlayerData>(JsonUtility.ToJson(PlayerData.instance));
-			_savedSd = JsonUtility.FromJson<SceneData>(JsonUtility.ToJson(SceneData.instance));
-			_savePos = HeroController.instance.gameObject.transform.position;
-			_saveScene = GameManager.instance.GetSceneNameString();
-			_lockArea = cameraLockArea.GetValue(GameManager.instance.cameraCtrl);
-		}
-
-		[BindableMethod(name = "Load SaveState", category = "Misc")]
-        [UsedImplicitly]
-		public static void LoadState()
-		{
-			GameManager.instance.StartCoroutine(LoadStateCoro());
-        }
-
-        private static IEnumerator LoadStateCoro()
-        {
-            if (_savedPd == null || string.IsNullOrEmpty(_saveScene)) yield break;
-            
-            GameManager.instance.entryGateName = "dreamGate";
-            GameManager.instance.startedOnThisScene = true;
-
-            USceneManager.LoadScene("Room_Sly_Storeroom");
-
-            yield return new WaitUntil(() => USceneManager.GetActiveScene().name == "Room_Sly_Storeroom");
-
-            GameManager.instance.sceneData = SceneData.instance = JsonUtility.FromJson<SceneData>(JsonUtility.ToJson(_savedSd));
-            GameManager.instance.ResetSemiPersistentItems();
-
-            yield return null;
-
-            PlayerData.instance = GameManager.instance.playerData = HeroController.instance.playerData = JsonUtility.FromJson<PlayerData>(JsonUtility.ToJson(_savedPd));
-
-            GameManager.instance.BeginSceneTransition
-            (
-                new GameManager.SceneLoadInfo
-                {
-                    SceneName = _saveScene,
-                    HeroLeaveDirection = GatePosition.unknown,
-                    EntryGateName = "dreamGate",
-                    EntryDelay = 0f,
-                    WaitForSceneTransitionCameraFade = false,
-                    Visualization = 0,
-                    AlwaysUnloadUnusedAssets = true
-                }
-            );
-
-            ReflectionHelper.SetAttr(GameManager.instance.cameraCtrl, "isGameplayScene", true);
-
-            GameManager.instance.cameraCtrl.PositionToHero(false);
-
-            if (_lockArea != null)
-            {
-                GameManager.instance.cameraCtrl.LockToArea(_lockArea as CameraLockArea);
-            }
-
-            yield return new WaitUntil(() => USceneManager.GetActiveScene().name == _saveScene);
-            
-            GameManager.instance.cameraCtrl.FadeSceneIn();
-
-			HeroController.instance.TakeMP(1);
-			HeroController.instance.AddMPChargeSpa(1);
-			HeroController.instance.TakeHealth(1);
-			HeroController.instance.AddHealth(1);
-            
-            HeroController.instance.geoCounter.geoTextMesh.text = _savedPd.geo.ToString();
-			
-			GameCameras.instance.hudCanvas.gameObject.SetActive(true);
-            
-            cameraGameplayScene.SetValue(GameManager.instance.cameraCtrl, true);
-
-            yield return null;
-
-            HeroController.instance.gameObject.transform.position = _savePos;
-            HeroController.instance.transitionState = HeroTransitionState.WAITING_TO_TRANSITION;
-            
-            typeof(HeroController)
-                .GetMethod("FinishedEnteringScene", BindingFlags.NonPublic | BindingFlags.Instance)?
-                .Invoke(HeroController.instance, new object[] {true, false});
-        }
-
         #endregion
 
         #region Charms
@@ -1357,6 +1496,33 @@ namespace DebugMod
             Console.AddLine("Made player face right");
         }
         
+        #endregion
+        
+        #region ExportData
+        
+        [BindableMethod(name = "SceneData to file", category = "ExportData")]
+        public static void SceneDataToFile()
+        {
+            File.WriteAllText(string.Concat(
+                    new object[] { Application.persistentDataPath, "/SceneData.json" }),
+                JsonUtility.ToJson(
+                    SceneData.instance,
+                    prettyPrint: true
+                )
+            );
+        }
+
+        [BindableMethod(name = "PlayerData to file", category = "ExportData")]
+        public static void PlayerDataToFile()
+        {
+            File.WriteAllText(string.Concat(
+                    new object[] { Application.persistentDataPath, "/PlayerData.json" }),
+                JsonUtility.ToJson(
+                    PlayerData.instance,
+                    prettyPrint: true
+                )
+            );
+        }
         #endregion
     }
 
