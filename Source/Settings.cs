@@ -19,10 +19,19 @@ namespace DebugMod
 
         public bool InfoPanelVisible = true;
 
+        public bool MinInfoPanelVisible = true;
+
+        public bool SaveStatePanelVisible = true;
+        
         public bool TopMenuVisible = true;
 
         public bool FirstRun = true;
+
+        public bool NumPadForSaveStates = false;
+        
         public int ShowHitBoxes;
+
+        public int MaxSaveStates = 6;
 
         public float AmountToMove = 0.1f;
     }
