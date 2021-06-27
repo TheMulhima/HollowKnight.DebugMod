@@ -48,7 +48,7 @@ namespace DebugMod
             Console.BuildMenu(canvas);
             KeyBindPanel.BuildMenu(canvas);
 
-            GameObject.DontDestroyOnLoad(canvas);
+            DontDestroyOnLoad(canvas);
         }
 
         private void LoadResources()
@@ -115,6 +115,8 @@ namespace DebugMod
 
         public void Update()
         {
+            if (DebugMod.GM == null) return;
+            
             SaveStatesPanel.Update();
             TopMenu.Update();
             EnemiesPanel.Update();
@@ -122,208 +124,210 @@ namespace DebugMod
             KeyBindPanel.Update();
             MinimalInfoPanel.Update();
             InfoPanel.Update();
+            if (DebugMod.GetSceneName() == "Menu_Title") return;
 
-            if (DebugMod.GetSceneName() != "Menu_Title")
+            //Handle keybinds
+            foreach (KeyValuePair<string, int> bind in DebugMod.settings.binds)
             {
-                //Handle keybinds
-                foreach (KeyValuePair<string, int> bind in DebugMod.settings.binds)
+                if (DebugMod.bindMethods.ContainsKey(bind.Key))
                 {
-                    if (DebugMod.bindMethods.ContainsKey(bind.Key))
+                    if ((KeyCode) bind.Value == KeyCode.None)
                     {
-                        if ((KeyCode)bind.Value == KeyCode.None)
+                        foreach (KeyCode kc in Enum.GetValues(typeof(KeyCode)))
                         {
-                            foreach (KeyCode kc in Enum.GetValues(typeof(KeyCode)))
+                            if (Input.GetKeyDown(kc) && kc != KeyCode.Mouse0)
                             {
-                                if (Input.GetKeyDown(kc) && kc != KeyCode.Mouse0)
+                                // Fix UX
+                                if (KeyBindPanel.keyWarning != kc)
                                 {
-                                    // Fix UX
-                                    if (KeyBindPanel.keyWarning != kc)
+                                    foreach (KeyValuePair<string, int> kvp in DebugMod.settings.binds)
                                     {
-                                        foreach (KeyValuePair<string, int> kvp in DebugMod.settings.binds)
+                                        if (kvp.Value == (int) kc)
                                         {
-                                            if (kvp.Value == (int)kc)
-                                            {
-                                                Console.AddLine(kc.ToString() + " already bound to " + kvp.Key + ", press again to confirm");
-                                                KeyBindPanel.keyWarning = kc;
-                                            }
+                                            Console.AddLine(kc.ToString() + " already bound to " + kvp.Key +
+                                                            ", press again to confirm");
+                                            KeyBindPanel.keyWarning = kc;
                                         }
-
-                                        if (KeyBindPanel.keyWarning == kc) break;
                                     }
 
-                                    KeyBindPanel.keyWarning = KeyCode.None;
+                                    if (KeyBindPanel.keyWarning == kc) break;
+                                }
 
-                                    //remove bind
-                                    if (kc == KeyCode.Escape)
-                                    {
-                                        DebugMod.settings.binds.Remove(bind.Key);
-                                    }
-                                    else if (kc != KeyCode.Escape)
-                                    {
-                                        DebugMod.settings.binds[bind.Key] = (int) kc;
-                                    }
-                                    KeyBindPanel.UpdateHelpText();
-                                    break;
-                                }
-                            }
-                        }
-                        else if (Input.GetKeyDown((KeyCode)bind.Value))
-                        {
-                            //This makes sure atleast you can close the UI when the KeyBindLock is active.
-                            //Im sure theres a better way to do this but idk. 
-                            if (bind.Value == DebugMod.settings.binds["Toggle All UI"])
-                            {
-                                try
+                                KeyBindPanel.keyWarning = KeyCode.None;
+
+                                //remove bind
+                                if (kc == KeyCode.Escape)
                                 {
-                                    ((MethodInfo)DebugMod.bindMethods[bind.Key].Second).Invoke(null, null);
+                                    DebugMod.settings.binds.Remove(bind.Key);
+                                    DebugMod.instance.LogWarn($"The key {Enum.GetName(typeof(KeyCode),kc)} has been unbound from {bind.Key}");
                                 }
-                                catch (Exception e)
+                                else if (kc != KeyCode.Escape)
                                 {
-                                    DebugMod.instance.LogError("Error running keybind method " + bind.Key + ":\n" + e.ToString());
+                                    DebugMod.settings.binds[bind.Key] = (int) kc;
                                 }
-                            }
-                            else if  (!DebugMod.KeyBindLock)
-                            {
-                                try
-                                {
-                                    ((MethodInfo)DebugMod.bindMethods[bind.Key].Second).Invoke(null, null);
-                                }
-                                catch (Exception e)
-                                {
-                                    DebugMod.instance.LogError("Error running keybind method " + bind.Key + ":\n" + e.ToString());
-                                }
+
+                                KeyBindPanel.UpdateHelpText();
+                                break;
                             }
                         }
                     }
-                    else
+                    else if (Input.GetKeyDown((KeyCode) bind.Value))
                     {
-                        DebugMod.instance.LogWarn("Bind found without matching method, removing from binds: " + bind.Key);
-                        DebugMod.settings.binds.Remove(bind.Key);
+                        //This makes sure atleast you can close the UI when the KeyBindLock is active.
+                        //Im sure theres a better way to do this but idk. 
+                        if (bind.Value == DebugMod.settings.binds["Toggle All UI"])
+                        {
+                            try
+                            {
+                                ((MethodInfo) DebugMod.bindMethods[bind.Key].Second).Invoke(null, null);
+                            }
+                            catch (Exception e)
+                            {
+                                DebugMod.instance.LogError("Error running keybind method " + bind.Key + ":\n" +
+                                                           e.ToString());
+                            }
+                        }
+                        else if (!DebugMod.KeyBindLock)
+                        {
+                            try
+                            {
+                                ((MethodInfo) DebugMod.bindMethods[bind.Key].Second).Invoke(null, null);
+                            }
+                            catch (Exception e)
+                            {
+                                DebugMod.instance.LogError("Error running keybind method " + bind.Key + ":\n" +
+                                                           e.ToString());
+                            }
+                        }
                     }
                 }
-
-                if (SaveStateManager.inSelectSlotState && DebugMod.settings.SaveStatePanelVisible)
+                else
                 {
-                    foreach (KeyValuePair<KeyCode, int> entry in DebugMod.alphaKeyDict)
-                    {
+                    DebugMod.instance.LogWarn("Bind found without matching method, removing from binds: " + bind.Key);
+                    DebugMod.settings.binds.Remove(bind.Key);
+                }
+            }
+            if (SaveStateManager.inSelectSlotState && DebugMod.settings.SaveStatePanelVisible)
+            {
+                foreach (KeyValuePair<KeyCode, int> entry in DebugMod.alphaKeyDict)
+                {
                     
-                        if (Input.GetKeyDown(entry.Key))
+                    if (Input.GetKeyDown(entry.Key))
+                    {
+                        if (DebugMod.alphaKeyDict.TryGetValue(entry.Key, out int keyInt))
                         {
-                            if (DebugMod.alphaKeyDict.TryGetValue(entry.Key, out int keyInt))
-                            {
-                                // keyInt should be between 0-9
-                                SaveStateManager.currentStateSlot = keyInt;
-                                didInput = true;
-                                break;
-                            }
-                            else
-                            {
-                                didInput = inputEsc = true;
-                                break;
-                            }
+                            // keyInt should be between 0-9
+                            SaveStateManager.currentStateSlot = keyInt;
+                            didInput = true;
+                            break;
+                        }
+                        else
+                        {
+                            didInput = inputEsc = true;
+                            break;
                         }
                     }
                 }
+            }
 
-                if (DebugMod.infiniteSoul && PlayerData.instance.MPCharge < PlayerData.instance.maxMP && PlayerData.instance.health > 0 && !HeroController.instance.cState.dead && GameManager.instance.IsGameplayScene())
+            if (DebugMod.infiniteSoul && PlayerData.instance.MPCharge < PlayerData.instance.maxMP && PlayerData.instance.health > 0 && !HeroController.instance.cState.dead && GameManager.instance.IsGameplayScene())
+            {
+                PlayerData.instance.MPCharge = PlayerData.instance.maxMP - 1;
+                if (PlayerData.instance.MPReserveMax > 0)
                 {
-                    PlayerData.instance.MPCharge = PlayerData.instance.maxMP - 1;
-                    if (PlayerData.instance.MPReserveMax > 0)
-                    {
-                        PlayerData.instance.MPReserve = PlayerData.instance.MPReserveMax - 1;
-                        HeroController.instance.TakeReserveMP(1);
-                        HeroController.instance.AddMPChargeSpa(2);
-                    }
-                    //HeroController.instance.TakeReserveMP(1);
-                    HeroController.instance.AddMPChargeSpa(1);
+                    PlayerData.instance.MPReserve = PlayerData.instance.MPReserveMax - 1;
+                    HeroController.instance.TakeReserveMP(1);
+                    HeroController.instance.AddMPChargeSpa(2);
+                }
+                //HeroController.instance.TakeReserveMP(1);
+                HeroController.instance.AddMPChargeSpa(1);
+            }
+
+            if (DebugMod.playerInvincible && PlayerData.instance != null)
+            {
+                PlayerData.instance.isInvincible = true;
+            }
+
+            if (DebugMod.noclip)
+            {
+                if (DebugMod.IH.inputActions.left.IsPressed)
+                {
+                    DebugMod.noclipPos = new Vector3(DebugMod.noclipPos.x - Time.deltaTime * 20f, DebugMod.noclipPos.y, DebugMod.noclipPos.z);
                 }
 
-                if (DebugMod.playerInvincible && PlayerData.instance != null)
+                if (DebugMod.IH.inputActions.right.IsPressed)
                 {
-                    PlayerData.instance.isInvincible = true;
+                    DebugMod.noclipPos = new Vector3(DebugMod.noclipPos.x + Time.deltaTime * 20f, DebugMod.noclipPos.y, DebugMod.noclipPos.z);
                 }
 
-                if (DebugMod.noclip)
+                if (DebugMod.IH.inputActions.up.IsPressed)
                 {
-                    if (DebugMod.IH.inputActions.left.IsPressed)
-                    {
-                        DebugMod.noclipPos = new Vector3(DebugMod.noclipPos.x - Time.deltaTime * 20f, DebugMod.noclipPos.y, DebugMod.noclipPos.z);
-                    }
-
-                    if (DebugMod.IH.inputActions.right.IsPressed)
-                    {
-                        DebugMod.noclipPos = new Vector3(DebugMod.noclipPos.x + Time.deltaTime * 20f, DebugMod.noclipPos.y, DebugMod.noclipPos.z);
-                    }
-
-                    if (DebugMod.IH.inputActions.up.IsPressed)
-                    {
-                        DebugMod.noclipPos = new Vector3(DebugMod.noclipPos.x, DebugMod.noclipPos.y + Time.deltaTime * 20f, DebugMod.noclipPos.z);
-                    }
-
-                    if (DebugMod.IH.inputActions.down.IsPressed)
-                    {
-                        DebugMod.noclipPos = new Vector3(DebugMod.noclipPos.x, DebugMod.noclipPos.y - Time.deltaTime * 20f, DebugMod.noclipPos.z);
-                    }
-
-                    if (HeroController.instance.transitionState.ToString() == "WAITING_TO_TRANSITION")
-                    {
-                        DebugMod.RefKnight.transform.position = DebugMod.noclipPos;
-                    }
-                    else
-                    {
-                        DebugMod.noclipPos = DebugMod.RefKnight.transform.position;
-                    }
+                    DebugMod.noclipPos = new Vector3(DebugMod.noclipPos.x, DebugMod.noclipPos.y + Time.deltaTime * 20f, DebugMod.noclipPos.z);
                 }
 
-                if (DebugMod.IH.inputActions.pause.WasPressed && DebugMod.GM.IsGamePaused())
+                if (DebugMod.IH.inputActions.down.IsPressed)
                 {
-                    UIManager.instance.TogglePauseGame();
+                    DebugMod.noclipPos = new Vector3(DebugMod.noclipPos.x, DebugMod.noclipPos.y - Time.deltaTime * 20f, DebugMod.noclipPos.z);
                 }
 
-                if (DebugMod.cameraFollow)
+                if (HeroController.instance.transitionState.ToString() == "WAITING_TO_TRANSITION")
                 {
-                    BindableFunctions.cameraGameplayScene.SetValue(DebugMod.RefCamera, false);
-                    DebugMod.RefCamera.SnapTo(DebugMod.RefKnight.transform.position.x, DebugMod.RefKnight.transform.position.y);
+                    DebugMod.RefKnight.transform.position = DebugMod.noclipPos;
                 }
+                else
+                {
+                    DebugMod.noclipPos = DebugMod.RefKnight.transform.position;
+                }
+            }
 
-                if (PlayerDeathWatcher.PlayerDied())
-                {
-                    PlayerDeathWatcher.LogDeathDetails();
-                }
+            /*if (DebugMod.IH.inputActions.pause.WasPressed && DebugMod.GM.IsGamePaused())
+            {
+                UIManager.instance.TogglePauseGame();
+            }*/
 
-                if (PlayerData.instance.hazardRespawnLocation != hazardLocation)
-                {
-                    hazardLocation = PlayerData.instance.hazardRespawnLocation;
-                    Console.AddLine("Hazard Respawn location updated: " + hazardLocation.ToString());
+            if (DebugMod.cameraFollow)
+            {
+                BindableFunctions.cameraGameplayScene.SetValue(DebugMod.RefCamera, false);
+                DebugMod.RefCamera.SnapTo(DebugMod.RefKnight.transform.position.x, DebugMod.RefKnight.transform.position.y);
+            }
 
-                    if (DebugMod.settings.EnemiesPanelVisible)
-                    {
-                        EnemiesPanel.EnemyUpdate(200f);
-                    }
-                }
-                if (!string.IsNullOrEmpty(respawnSceneWatch) && respawnSceneWatch != PlayerData.instance.respawnScene)
+            if (PlayerDeathWatcher.PlayerDied())
+            {
+                PlayerDeathWatcher.LogDeathDetails();
+            }
+
+            if (PlayerData.instance.hazardRespawnLocation != hazardLocation)
+            {
+                hazardLocation = PlayerData.instance.hazardRespawnLocation;
+                Console.AddLine("Hazard Respawn location updated: " + hazardLocation.ToString());
+
+                if (DebugMod.settings.EnemiesPanelVisible)
                 {
-                    respawnSceneWatch = PlayerData.instance.respawnScene;
-                    Console.AddLine(string.Concat(new string[]
-                    {
-                        "Save Respawn updated, new scene: ",
-                        PlayerData.instance.respawnScene.ToString(),
-                        ", Map Zone: ",
-                        GameManager.instance.GetCurrentMapZone(),
-                        ", Respawn Marker: ",
-                        PlayerData.instance.respawnMarkerName.ToString()
-                    }));
+                    EnemiesPanel.EnemyUpdate(200f);
                 }
-                if (HitboxViewer.State != DebugMod.settings.ShowHitBoxes)
+            }
+            if (!string.IsNullOrEmpty(respawnSceneWatch) && respawnSceneWatch != PlayerData.instance.respawnScene)
+            {
+                respawnSceneWatch = PlayerData.instance.respawnScene;
+                Console.AddLine(string.Concat(new string[]
                 {
-                    if (DebugMod.settings.ShowHitBoxes != 0)
-                    {
-                        hitboxes.Load();
-                    }
-                    else if (HitboxViewer.State != 0 && DebugMod.settings.ShowHitBoxes == 0)
-                    {
-                        hitboxes.Unload();
-                    }
+                    "Save Respawn updated, new scene: ",
+                    PlayerData.instance.respawnScene.ToString(),
+                    ", Map Zone: ",
+                    GameManager.instance.GetCurrentMapZone(),
+                    ", Respawn Marker: ",
+                    PlayerData.instance.respawnMarkerName.ToString()
+                }));
+            }
+            if (HitboxViewer.State != DebugMod.settings.ShowHitBoxes)
+            {
+                if (DebugMod.settings.ShowHitBoxes != 0)
+                {
+                    hitboxes.Load();
+                }
+                else if (HitboxViewer.State != 0 && DebugMod.settings.ShowHitBoxes == 0)
+                {
+                    hitboxes.Unload();
                 }
             }
         }
@@ -341,7 +345,7 @@ namespace DebugMod
 
                         GameObject GUIObj = new GameObject();
                         _instance = GUIObj.AddComponent<GUIController>();
-                        GameObject.DontDestroyOnLoad(GUIObj);
+                        DontDestroyOnLoad(GUIObj);
                     }
                 }
                 return _instance;
