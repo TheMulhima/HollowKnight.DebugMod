@@ -162,6 +162,11 @@ namespace DebugMod
         [BindableMethod(name = "Increase Timescale", category = "Misc")]
         public static void TimescaleUp()
         {
+            if (DebugMod.GM.IsGamePaused())
+            {
+                Console.AddLine("Cannot change timescale when paused");
+                return;
+            }
             float oldScale = Time.timeScale;
             bool wasTimeScaleActive = DebugMod.TimeScaleActive;
             Time.timeScale += 0.1f;
