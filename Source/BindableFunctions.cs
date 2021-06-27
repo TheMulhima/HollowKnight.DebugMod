@@ -132,6 +132,13 @@ namespace DebugMod
         [BindableMethod(name = "Decrease Timescale", category = "Misc")]
         public static void TimescaleDown()
         {
+            //This needs to be added because the game sets timescale to 0 when paused to pause the game if this is changed to a 
+            //non-zero value, the game continues to play even tho the pause menu is up which is scuffed so this makes it less skuffed
+            if (DebugMod.GM.IsGamePaused())
+            {
+                Console.AddLine("Cannot change timescale when paused");
+                return;
+            }
             float oldScale = Time.timeScale;
             bool wasTimeScaleActive = DebugMod.TimeScaleActive;
             Time.timeScale -= 0.1f;
