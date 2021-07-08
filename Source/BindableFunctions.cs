@@ -141,7 +141,7 @@ namespace DebugMod
             }
             float oldScale = Time.timeScale;
             bool wasTimeScaleActive = DebugMod.TimeScaleActive;
-            Time.timeScale -= 0.1f;
+            Time.timeScale = Time.timeScale = Mathf.Round(Time.timeScale * 10 - 1f) / 10f;
             DebugMod.CurrentTimeScale = Time.timeScale;
 
             DebugMod.TimeScaleActive = DebugMod.CurrentTimeScale != 1f;
@@ -169,7 +169,7 @@ namespace DebugMod
             }
             float oldScale = Time.timeScale;
             bool wasTimeScaleActive = DebugMod.TimeScaleActive;
-            Time.timeScale += 0.1f;
+            Time.timeScale = Time.timeScale = Mathf.Round(Time.timeScale * 10 + 1f) / 10f;
             DebugMod.CurrentTimeScale = Time.timeScale;
 
             DebugMod.TimeScaleActive = DebugMod.CurrentTimeScale != 1f;
@@ -668,30 +668,6 @@ namespace DebugMod
 
             Console.AddLine("Attempting self damage");
         }
-        [BindableMethod(name = "Add a mask", category = "Enemy Panel")]
-        public static void AddMask()
-        {
-            if (PlayerData.instance.health <= 0 || HeroController.instance.cState.dead || !GameManager.instance.IsGameplayScene())
-            {
-                Console.AddLine("Unacceptable conditions for adding masks" + PlayerData.instance.health + "," + DebugMod.HC.cState.dead + "," + DebugMod.GM.IsGameplayScene() + "," + DebugMod.HC.cState.recoiling + "," + DebugMod.GM.IsGamePaused() + "," + DebugMod.HC.cState.invulnerable + ")." + " Pressed too many times at once?");
-                return;
-            }
-            HeroController.instance.AddHealth(1);
-
-            Console.AddLine("Attempting to add mask");
-        }
-        [BindableMethod(name = "Remove a mask", category = "Enemy Panel")]
-        public static void RemoveMask()
-        {
-            if (PlayerData.instance.health <= 0 || HeroController.instance.cState.dead || !GameManager.instance.IsGameplayScene())
-            {
-                Console.AddLine("Unacceptable conditions for removing masks" + PlayerData.instance.health + "," + DebugMod.HC.cState.dead + "," + DebugMod.GM.IsGameplayScene() + "," + DebugMod.HC.cState.recoiling + "," + DebugMod.GM.IsGamePaused() + "," + DebugMod.HC.cState.invulnerable + ")." + " Pressed too many times at once?");
-                return;
-            }
-            HeroController.instance.TakeHealth(1);
-
-            Console.AddLine("Attempting to remove mask");
-        }
 
         #endregion
 
@@ -816,6 +792,42 @@ namespace DebugMod
             }
 
             Console.AddLine("Added all charms to inventory");
+        }
+
+        [BindableMethod(name = "Remove All Charms", category = "Charms")]
+        public static void RemoveAllCharms()
+        {
+            for (int i = 1; i <= 40; i++)
+            {
+                PlayerData.instance.SetBoolInternal("gotCharm_" + i, false);
+                PlayerData.instance.SetBoolInternal("equippedCharm_" + i, false);
+            }
+
+            PlayerData.instance.charmSlots = 3;
+            PlayerData.instance.hasCharm = false;
+            PlayerData.instance.charmsOwned = 0;
+            PlayerData.instance.royalCharmState = 0;
+            PlayerData.instance.gotShadeCharm = false;
+            PlayerData.instance.gotKingFragment = false;
+            PlayerData.instance.gotQueenFragment = false;
+            PlayerData.instance.notchShroomOgres = false;
+            PlayerData.instance.notchFogCanyon = false;
+            PlayerData.instance.colosseumBronzeOpened = false;
+            PlayerData.instance.colosseumBronzeCompleted = false;
+            PlayerData.instance.salubraNotch1 = false;
+            PlayerData.instance.salubraNotch2 = false;
+            PlayerData.instance.salubraNotch3 = false;
+            PlayerData.instance.salubraNotch4 = false;
+            
+            PlayerData.instance.SetBoolInternal("fragileGreed_unbreakable", false);
+            PlayerData.instance.SetBoolInternal("fragileHealth_unbreakable", false);
+            PlayerData.instance.SetBoolInternal("fragileStrength_unbreakable", false);
+            PlayerData.instance.SetIntInternal("grimmChildLevel", 0);
+            PlayerData.instance.charmSlots = 3;
+            
+
+
+            Console.AddLine("Removed all charms from inventory");
         }
 
         [BindableMethod(name = "Increment Kingsoul", category = "Charms")]
@@ -1376,6 +1388,145 @@ namespace DebugMod
             }
         }
 
+        [BindableMethod(name = "Open All Stags", category = "Items")]
+        public static void AllStags()
+        {
+            PlayerData playerData = PlayerData.instance;
+            playerData.SetBool("openedTown",true);
+            playerData.SetBool("openedTownBuilding", true);
+            playerData.SetBool("openedCrossroads", true);
+            playerData.SetBool("openedGreenpath", true);
+            playerData.SetBool("openedRuins1", true);
+            playerData.SetBool("openedRuins2", true);
+            playerData.SetBool("openedFungalWastes", true);
+            playerData.SetBool("openedRoyalGardens", true);
+            playerData.SetBool("openedRestingGrounds", true);
+            playerData.SetBool("openedDeepnest", true);
+            playerData.SetBool("openedStagNest", true);
+            playerData.SetBool("openedHiddenStation", true);
+            playerData.SetBool("gladeDoorOpened", true);
+            playerData.SetBool("troupeInTown", true);
+            
+            Console.AddLine("Unlocked all stags");
+        }
+        
+        #endregion
+
+        #region Masks & Vessels
+        
+        [BindableMethod(name = "Give Mask", category = "Mask & Vessels")]
+        public static void GiveMask()
+        {
+            if (PlayerData.instance.maxHealthBase < 9)
+            {
+                HeroController.instance.AddToMaxHealth(1);
+                PlayMakerFSM.BroadcastEvent("MAX HP UP");
+                Console.AddLine("Added Mask");
+            }
+            else
+            {
+                Console.AddLine("You have the maximum number of masks");
+            }
+        }
+        
+        [BindableMethod(name = "Give Vessel", category = "Mask & Vessels")]
+        public static void GiveVessel()
+        {
+            if (PlayerData.instance.MPReserveMax < 99)
+            {
+                HeroController.instance.AddToMaxMPReserve(33);
+                PlayMakerFSM.BroadcastEvent("NEW SOUL ORB");
+                Console.AddLine("Added Vessel");
+            }
+            else
+            {
+                Console.AddLine("You have the maximum number of vessels");
+            }
+        }
+        
+        [BindableMethod(name = "Take Away Mask", category = "Mask & Vessels")]
+        public static void TakeAwayMask()
+        {
+            if (PlayerData.instance.maxHealthBase > 1)
+            {
+                PlayerData.instance.maxHealth -= 1;
+                PlayerData.instance.maxHealthBase -= 1;
+                if (!GameCameras.instance.hudCanvas.gameObject.activeInHierarchy)
+                    GameCameras.instance.hudCanvas.gameObject.SetActive(true);
+                else
+                {
+                    GameCameras.instance.hudCanvas.gameObject.SetActive(false);
+                    GameCameras.instance.hudCanvas.gameObject.SetActive(true);
+                }
+                Console.AddLine("Took Away Mask");
+            }
+            else
+            {
+                Console.AddLine("You have the minimum number of masks");
+            }
+        }
+        
+        [BindableMethod(name = "Take Away Vessel", category = "Mask & Vessels")]
+        public static void TakeAwayVessel()
+        {
+            if (PlayerData.instance.MPReserveMax > 0)
+            {
+                PlayerData.instance.MPReserveMax -= 33;
+                if (!GameCameras.instance.hudCanvas.gameObject.activeInHierarchy)
+                    GameCameras.instance.hudCanvas.gameObject.SetActive(true);
+                else
+                {
+                    GameCameras.instance.hudCanvas.gameObject.SetActive(false);
+                    GameCameras.instance.hudCanvas.gameObject.SetActive(true);
+                }
+                Console.AddLine("Removed Vessel");
+            }
+            else
+            {
+                Console.AddLine("You have the minimum number of vessels");
+            }
+        }
+
+        
+        [BindableMethod(name = "Add Health", category = "Mask & Vessels")]
+        public static void AddHealth()
+        {
+            if (PlayerData.instance.health <= 0 || HeroController.instance.cState.dead || !GameManager.instance.IsGameplayScene())
+            {
+                Console.AddLine("Unacceptable conditions for adding health" + PlayerData.instance.health + "," + DebugMod.HC.cState.dead + "," + DebugMod.GM.IsGameplayScene() + "," + DebugMod.HC.cState.recoiling + "," + DebugMod.GM.IsGamePaused() + "," + DebugMod.HC.cState.invulnerable + ")." + " Pressed too many times at once?");
+                return;
+            }
+            HeroController.instance.AddHealth(1);
+
+            Console.AddLine("Added Heaalth");
+        }
+        [BindableMethod(name = "Take Health", category = "Mask & Vessels")]
+        public static void TakeHealth()
+        {
+            if (PlayerData.instance.health <= 0 || HeroController.instance.cState.dead || !GameManager.instance.IsGameplayScene())
+            {
+                Console.AddLine("Unacceptable conditions for taking health" + PlayerData.instance.health + "," + DebugMod.HC.cState.dead + "," + DebugMod.GM.IsGameplayScene() + "," + DebugMod.HC.cState.recoiling + "," + DebugMod.GM.IsGamePaused() + "," + DebugMod.HC.cState.invulnerable + ")." + " Pressed too many times at once?");
+                return;
+            }
+            HeroController.instance.TakeHealth(1);
+
+            Console.AddLine("Attempting to take health");
+        }
+        
+        [BindableMethod(name = "Add Soul", category = "Mask & Vessels")]
+        public static void AddSoul()
+        {
+            HeroController.instance.AddMPCharge(33);
+
+            Console.AddLine("Added Heaalth");
+        }
+        [BindableMethod(name = "Take Soul", category = "Mask & Vessels")]
+        public static void TakeSoul()
+        {
+            HeroController.instance.TakeMP(33);
+
+            Console.AddLine("Attempting to take health");
+        }
         #endregion
 
         #region Consumables
@@ -1413,6 +1564,77 @@ namespace DebugMod
         {
             PlayerData.instance.dreamOrbs += 100;
             Console.AddLine("Giving player 100 essence");
+        }
+        
+        //yes i added dreamers here because its funny
+        [BindableMethod(name = "Give Lurien", category = "Consumables")]
+        public static void GiveLurien()
+        {
+            if (!PlayerData.instance.lurienDefeated)
+            {
+                PlayerData.instance.lurienDefeated = true;
+                MakeDreamersWork("WATCHER");
+                
+            }
+            Console.AddLine("Giving Lurien");
+        }
+        
+        [BindableMethod(name = "Give Monomon", category = "Consumables")]
+        public static void GiveMonomon()
+        {
+            if (!PlayerData.instance.monomonDefeated)
+            {
+                PlayerData.instance.monomonDefeated = true;
+                MakeDreamersWork("TEACHER");
+            }
+            Console.AddLine("Giving Monomon");
+        }
+        
+        [BindableMethod(name = "Give Herrah", category = "Consumables")]
+        public static void GiveHerrah()
+        {
+            if (!PlayerData.instance.hegemolDefeated)
+            {
+                PlayerData.instance.hegemolDefeated = true;
+                MakeDreamersWork("BEAST");
+            }
+            Console.AddLine("Giving Herrah");
+        }
+
+        private static void MakeDreamersWork(string AchievementToGive)
+        {
+            var pd = PlayerData.instance;
+            
+            pd.guardiansDefeated += 1;
+            if (!pd.crossroadsInfected)
+            {
+                pd.crossroadsInfected = true;
+                pd.visitedCrossroads = false;
+            }
+
+            if (pd.guardiansDefeated == 3)
+            {
+                pd.brettaState += 1;
+                pd.mrMushroomState = 1;
+                pd.corniferAtHome = true;
+                pd.iseldaConvo1 = true;
+                pd.dungDefenderSleeping = true;
+                pd.corn_crossroadsLeft = true;
+                
+                pd.corn_fogCanyonLeft = true;
+                pd.corn_fungalWastesLeft = true;
+                pd.corn_cityLeft = true;
+                pd.corn_waterwaysLeft = true;
+                pd.corn_minesLeft = true;
+                pd.corn_cliffsLeft = true;
+                pd.corn_deepnestLeft = true;
+                pd.corn_outskirtsLeft = true;
+                pd.corn_royalGardensLeft = true;
+                pd.corn_abyssLeft = true;
+                pd.metIselda = true;
+            }
+            
+            GameManager.instance.AwardAchievement(AchievementToGive);
         }
 
 
