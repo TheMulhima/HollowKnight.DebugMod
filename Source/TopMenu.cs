@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Modding;
 using UnityEngine;
 using UnityEngine.UI;
+using Mask = IL.ToJ.Mask;
 
 namespace DebugMod
 {
@@ -14,7 +15,7 @@ namespace DebugMod
         public static void BuildMenu(GameObject canvas)
         {
             panel = new CanvasPanel(canvas, GUIController.Instance.images["ButtonsMenuBG"], new Vector2(1092f, 25f), Vector2.zero, new Rect(0f, 0f, GUIController.Instance.images["ButtonsMenuBG"].width, GUIController.Instance.images["ButtonsMenuBG"].height));
-
+            
             Rect buttonRect = new Rect(0, 0, GUIController.Instance.images["ButtonRect"].width, GUIController.Instance.images["ButtonRect"].height);
             
             //Main buttons
@@ -32,7 +33,7 @@ namespace DebugMod
 
             //Dropdown panels
             panel.AddPanel("Cheats Panel", GUIController.Instance.images["DropdownBG"], new Vector2(45f, 75f), Vector2.zero, new Rect(0, 0, GUIController.Instance.images["DropdownBG"].width, 240f));
-            panel.AddPanel("Charms Panel", GUIController.Instance.images["DropdownBG"], new Vector2(145f, 75f), Vector2.zero, new Rect(0, 0, GUIController.Instance.images["DropdownBG"].width, 240f));
+            panel.AddPanel("Charms Panel", GUIController.Instance.images["DropdownBG"], new Vector2(145f, 75f), Vector2.zero, new Rect(0, 0, GUIController.Instance.images["DropdownBG"].width, 270f));
             panel.AddPanel("Skills Panel", GUIController.Instance.images["DropdownBG"], new Vector2(245f, 75f), Vector2.zero, new Rect(0, 0, GUIController.Instance.images["DropdownBG"].width, GUIController.Instance.images["DropdownBG"].height));
             panel.AddPanel("Items Panel", GUIController.Instance.images["DropdownBG"], new Vector2(345f, 75f), Vector2.zero, new Rect(0, 0, GUIController.Instance.images["DropdownBG"].width, GUIController.Instance.images["DropdownBG"].height));
             panel.AddPanel("Bosses Panel", GUIController.Instance.images["DropdownBG"], new Vector2(445f, 75f), Vector2.zero, new Rect(0, 0, GUIController.Instance.images["DropdownBG"].width, 200f));
@@ -56,7 +57,9 @@ namespace DebugMod
             panel.GetPanel("Charms Panel").AddButton("fGreed fix", GUIController.Instance.images["ButtonRectEmpty"], new Vector2(5f, 150f), Vector2.zero, FragileGreedFixClicked, new Rect(0f, 0f, 80f, 20f), GUIController.Instance.trajanNormal, "fGreed fix", 10);
             panel.GetPanel("Charms Panel").AddButton("fStrength fix", GUIController.Instance.images["ButtonRectEmpty"], new Vector2(5f, 180f), Vector2.zero, FragileStrengthFixClicked, new Rect(0f, 0f, 80f, 20f), GUIController.Instance.trajanNormal, "fStrength fix", 10);
             panel.GetPanel("Charms Panel").AddButton("Overcharm", GUIController.Instance.images["ButtonRectEmpty"], new Vector2(5f, 210f), Vector2.zero, OvercharmClicked, new Rect(0f, 0f, 80f, 20f), GUIController.Instance.trajanNormal, "Overcharm", 10);
+            panel.GetPanel("Charms Panel").AddButton("Remove All Charms", GUIController.Instance.images["ButtonRectEmpty"], new Vector2(5f, 240f), Vector2.zero, RemoveAllCharmsClicked, new Rect(0f, 0f, 80f, 20f), GUIController.Instance.trajanNormal, "Remove All Charms", 10);
 
+            
             //Skills panel buttons
             panel.GetPanel("Skills Panel").AddButton("All Skills", GUIController.Instance.images["ButtonRectEmpty"], new Vector2(5f, 30f), Vector2.zero, AllSkillsClicked, new Rect(0f, 0f, 80f, 20f), GUIController.Instance.trajanNormal, "All Skills", 10);
             panel.GetPanel("Skills Panel").AddButton("Scream", GUIController.Instance.images["ButtonRectEmpty"], new Vector2(5f, 60f), Vector2.zero, ScreamClicked, new Rect(0f, 0f, 80f, 20f), GUIController.Instance.trajanNormal, "Scream: " + PlayerData.instance.screamLevel, 10);
@@ -100,6 +103,10 @@ namespace DebugMod
             panel.GetPanel("Items Panel").AddButton("Love Key", GUIController.Instance.images["LoveKey"], new Vector2(5f, 256f), new Vector2(37f, 36f), LoveKeyClicked, new Rect(0, 0, GUIController.Instance.images["LoveKey"].width, GUIController.Instance.images["LoveKey"].height));
             panel.GetPanel("Items Panel").AddButton("King's Brand", GUIController.Instance.images["Kingsbrand"], new Vector2(43f, 256f), new Vector2(37f, 35f), KingsbrandClicked, new Rect(0, 0, GUIController.Instance.images["Kingsbrand"].width, GUIController.Instance.images["Kingsbrand"].height));
             panel.GetPanel("Items Panel").AddButton("Bullshit Flower", GUIController.Instance.images["Flower"], new Vector2(5f, 302f), new Vector2(37f, 35f), FlowerClicked, new Rect(0, 0, GUIController.Instance.images["Flower"].width, GUIController.Instance.images["Flower"].height));
+            panel.GetPanel("Items Panel").AddButton("Stags", GUIController.Instance.images["LastStagFace"], new Vector2(43f, 302f), new Vector2(37f, 35f), StagsClicked, new Rect(0, 0, GUIController.Instance.images["LastStagFace"].width, GUIController.Instance.images["LastStagFace"].height));
+            panel.GetPanel("Items Panel").AddButton("Mask", GUIController.Instance.images["Mask"], new Vector2(5f, 351f), new Vector2(37f, 35f), MaskClicked, new Rect(0, 0, GUIController.Instance.images["Mask"].width, GUIController.Instance.images["Mask"].height));
+            panel.GetPanel("Items Panel").AddButton("Vessel", GUIController.Instance.images["Vessel"], new Vector2(43f, 351f), new Vector2(37f, 35f), VesselClicked, new Rect(0, 0, GUIController.Instance.images["Vessel"].width, GUIController.Instance.images["Vessel"].height));
+
             
             //Items panel button glow
             panel.GetPanel("Items Panel").AddImage("Lantern Glow", GUIController.Instance.images["BlueGlow"], new Vector2(0f, 91f), new Vector2(47f, 51f), new Rect(0f, 0f, GUIController.Instance.images["BlueGlow"].width, GUIController.Instance.images["BlueGlow"].height));
@@ -396,6 +403,11 @@ namespace DebugMod
         {
             BindableFunctions.GiveAllCharms();
         }
+        
+        private static void RemoveAllCharmsClicked(string buttonName)
+        {
+            BindableFunctions.RemoveAllCharms();
+        }
 
         private static void KingsoulClicked(string buttonName)
         {
@@ -595,6 +607,20 @@ namespace DebugMod
         private static void FlowerClicked(string buttonName)
         {
             BindableFunctions.ToggleXunFlower();
+        }
+        
+        private static void StagsClicked(string buttonName)
+        {
+            BindableFunctions.AllStags();
+        }
+        
+        private static void MaskClicked(string buttonName)
+        {
+            BindableFunctions.GiveMask();
+        }
+        private static void VesselClicked(string buttonName)
+        {
+            BindableFunctions.GiveVessel();
         }
 
         private static void ReadDataClicked(string buttonName)
