@@ -13,6 +13,12 @@ namespace DebugMod
 {
     public class DebugMod : Mod,IGlobalSettings<GlobalSettings>
     {
+        
+        public override string GetVersion()
+        {
+            return "1.4.3 - 1";
+        }
+        
         private static GameManager _gm;
         private static InputHandler _ih;
         private static HeroController _hc;
@@ -163,11 +169,6 @@ namespace DebugMod
             CurrentTimeScale = 1f;
 
             Console.AddLine("New session started " + DateTime.Now);
-        }
-        
-        public override string GetVersion()
-        {
-            return "1.4.1";
         }
 
         //public override bool IsCurrent() => true;
