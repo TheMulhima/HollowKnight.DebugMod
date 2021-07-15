@@ -1,13 +1,10 @@
 using System;
 using System.Collections;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using GlobalEnums;
-using JetBrains.Annotations;
 using Modding;
 using UnityEngine;
-using Random = System.Random;
 using USceneManager = UnityEngine.SceneManagement.SceneManager;
 using On;
 
@@ -144,7 +141,7 @@ namespace DebugMod
             Time.timeScale = Time.timeScale = Mathf.Round(Time.timeScale * 10 - 1f) / 10f;
             DebugMod.CurrentTimeScale = Time.timeScale;
 
-            DebugMod.TimeScaleActive = DebugMod.CurrentTimeScale != 1f;
+            DebugMod.TimeScaleActive = Math.Abs(DebugMod.CurrentTimeScale - 1f) > Mathf.Epsilon;
 
             switch (DebugMod.TimeScaleActive)
             {
@@ -172,7 +169,7 @@ namespace DebugMod
             Time.timeScale = Time.timeScale = Mathf.Round(Time.timeScale * 10 + 1f) / 10f;
             DebugMod.CurrentTimeScale = Time.timeScale;
 
-            DebugMod.TimeScaleActive = DebugMod.CurrentTimeScale != 1f;
+            DebugMod.TimeScaleActive = Math.Abs(DebugMod.CurrentTimeScale - 1f) > Mathf.Epsilon;
 
             switch (DebugMod.TimeScaleActive)
             {
@@ -330,7 +327,6 @@ namespace DebugMod
             pd.isInvincible=false; 
             DebugMod.noclip=false;
         }
-
         #endregion
         
         #region SaveStates 
@@ -623,6 +619,8 @@ namespace DebugMod
         public static void ToggleEnemyHPBars()
         {
             EnemiesPanel.hpBars = !EnemiesPanel.hpBars;
+
+            if (EnemiesPanel.hpBars) EnemiesPanel.autoUpdate = true;
 
             if (EnemiesPanel.hpBars)
             {
@@ -1756,6 +1754,15 @@ namespace DebugMod
                     prettyPrint: true
                 )
             );
+        }
+        
+        [BindableMethod(name = "Name of all GameObjects in Scene", category = "ExportData")]
+        public static void Dump()
+        {
+            foreach (GameObject go in UnityEngine.GameObject.FindObjectsOfType<GameObject>())
+            {
+                DebugMod.instance.Log(go.name);
+            }
         }
         #endregion
     }
