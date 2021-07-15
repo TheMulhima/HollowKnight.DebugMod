@@ -1,22 +1,25 @@
 using System;
+using System.Collections;
 using System.IO;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Linq;
+using System.Text;
 using Modding;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using GlobalEnums;
+using UnityEngine.UI;
 using Object = UnityEngine.Object;
+using Random = UnityEngine.Random;
 
 namespace DebugMod
 {
     public class DebugMod : Mod,IGlobalSettings<GlobalSettings>
     {
-        
         public override string GetVersion()
         {
-            return "1.4.3 - 1";
+            return "1.4.3 - 2";
         }
         
         private static GameManager _gm;
@@ -97,7 +100,6 @@ namespace DebugMod
             PreloadedObjects.Add("Enemy", preloadedObjects["Tutorial_01"]["_Enemies/Buzzer"]);
             instance.Log("Done! Time taken: " + (Time.realtimeSinceStartup - startTime) + "s. Found " + bindMethods.Count + " methods");
 
-
             if (settings.FirstRun)
             {
                 instance.Log("First run detected, setting default binds");
@@ -169,8 +171,52 @@ namespace DebugMod
             CurrentTimeScale = 1f;
 
             Console.AddLine("New session started " + DateTime.Now);
+
+            #region Troll Menu
+            if (chooser == 1) GameManager.instance.StartCoroutine(FixMenuTitle());
         }
 
+        public static int chooser;
+        private bool OpenedSave;
+        public DebugMod()
+        {
+            chooser = Random.Range(1, 100);
+            //chooser = 1;
+            OpenedSave = false;
+            if (chooser == 1)
+            {
+                var DebugEasterEgg = new GameObject("DebugEasterEgg");
+                GameObject.DontDestroyOnLoad(DebugEasterEgg);
+                On.SetVersionNumber.Start += ChangeVersionNumber;
+            }
+        }
+        
+        private void ChangeVersionNumber(On.SetVersionNumber.orig_Start orig, SetVersionNumber self)
+        {
+            Text textUi =  ReflectionHelper.GetField<SetVersionNumber, Text>(self, "textUi");
+            if (!((Object) textUi != (Object) null))
+                return;
+            string VersionNumber = OpenedSave ? Constants.GAME_VERSION : "1.2.2.1";
+            StringBuilder stringBuilder = new StringBuilder(VersionNumber);
+            if (CheatManager.IsCheatsEnabled)
+                stringBuilder.Append("\n(CHEATS ENABLED)");
+            textUi.text = stringBuilder.ToString();
+        }
+
+        private IEnumerator FixMenuTitle()
+        {
+            yield return null;
+            
+            if (chooser != 1) yield break;
+
+            Sprite RealTitle = Sprite.Create(GUIController.Instance.images["SilkNever"], new Rect(0f, 0f, GUIController.Instance.images["SilkNever"].width, GUIController.Instance.images["SilkNever"].height), new Vector2(0.5f,0.5f), 64);
+            yield return new WaitUntil(() => GameObject.Find("LogoTitle"));
+            
+            if (GameObject.Find("DebugEasterEgg") == null) yield break;
+            
+            GameObject.Find("LogoTitle").GetComponent<SpriteRenderer>().sprite = RealTitle;
+        }
+        #endregion
         //public override bool IsCurrent() => true;
 
         private void SaveSettings()
@@ -185,6 +231,11 @@ namespace DebugMod
 
         private void LoadCharacter(int saveId)
         {
+            OpenedSave = true;
+            var DebugEasterEggChecker = GameObject.Find("DebugEasterEgg");
+            if (DebugEasterEggChecker != null) GameObject.Destroy(DebugEasterEggChecker);
+            
+            
             Console.Reset();
             EnemiesPanel.Reset();
             DreamGate.Reset();
