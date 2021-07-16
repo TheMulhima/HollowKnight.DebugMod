@@ -193,7 +193,7 @@ namespace DebugMod
                 }
             );
 
-            ReflectionHelper.SetField(GameManager.instance.cameraCtrl, "isGameplayScene", true);
+            ReflectionHelper.SetAttr(GameManager.instance.cameraCtrl, "isGameplayScene", true);
 
             GameManager.instance.cameraCtrl.PositionToHero(false);
 

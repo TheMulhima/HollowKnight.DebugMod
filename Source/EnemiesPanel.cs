@@ -136,12 +136,12 @@ namespace DebugMod
                 panel.GetPanel("Play").SetActive(false, true);
             }
 
-            if ((!panel.active && enemyPool.Count > 0))
+            if (!panel.active && enemyPool.Count > 0)
             {
-                if (hpBars == false) Reset();
+                Reset();
             }
 
-            if (panel.active || hpBars)
+            if (panel.active)
             {
                 CheckForAutoUpdate();
 
@@ -347,7 +347,7 @@ namespace DebugMod
 
         public static void RefreshEnemyList()
         {
-            if (DebugMod.settings.EnemiesPanelVisible || hpBars)
+            if (DebugMod.settings.EnemiesPanelVisible)
             {
                 GameObject[] rootGameObjects = UnityEngine.SceneManagement.SceneManager.GetSceneByName(DebugMod.GetSceneName()).GetRootGameObjects();
                 if (rootGameObjects != null)
@@ -428,9 +428,7 @@ namespace DebugMod
                     Console.AddLine("EnemyList updated: +" + (enemyPool.Count - count));
                 }
             }
-            else if (autoUpdate && (
-                //!DebugMod.settings.EnemiesPanelVisible ||
-                !GameManager.instance.IsGameplayScene() || HeroController.instance == null))
+            else if (autoUpdate && (!DebugMod.settings.EnemiesPanelVisible || !GameManager.instance.IsGameplayScene() || HeroController.instance == null))
             {
                 autoUpdate = false;
                 Console.AddLine("Cancelling enemy auto-scan due to weird conditions");

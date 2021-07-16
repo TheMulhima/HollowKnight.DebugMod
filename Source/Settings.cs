@@ -3,10 +3,7 @@ using Modding;
 
 namespace DebugMod
 {
-    //Empty class required for DebugMod class definition
-    public class SaveSettings { }
-
-    public class GlobalSettings
+    public class GlobalSettings: ModSettings
     {
         //Save members
         public Dictionary<string, int> binds = new Dictionary<string, int>();
