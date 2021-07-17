@@ -11,7 +11,7 @@ using Object = UnityEngine.Object;
 
 namespace DebugMod
 {
-    public class DebugMod : Mod<GlobalSettings>
+    public class DebugMod : Mod<SaveSettings, GlobalSettings>
     {
         private static GameManager _gm;
         private static InputHandler _ih;
@@ -30,9 +30,10 @@ namespace DebugMod
         internal static PlayMakerFSM RefDreamNail => _refDreamNail != null ? _refDreamNail : (_refDreamNail = FSMUtility.LocateFSM(RefKnight, "Dream Nail"));
 
         internal static DebugMod instance;
-        internal static GlobalSettings settings { get; set; } = new GlobalSettings();
+        /*internal static GlobalSettings settings { get; set; } = new GlobalSettings();
         public void OnLoadGlobal(GlobalSettings s) => DebugMod.settings = s;
-        public GlobalSettings OnSaveGlobal() => DebugMod.settings;
+        public GlobalSettings OnSaveGlobal() => DebugMod.settings;*/
+        internal static GlobalSettings settings;
         
         private static float _loadTime;
         private static float _unloadTime;
@@ -91,7 +92,8 @@ namespace DebugMod
             PreloadedObjects.Add("Enemy", preloadedObjects["Tutorial_01"]["_Enemies/Buzzer"]);
             instance.Log("Done! Time taken: " + (Time.realtimeSinceStartup - startTime) + "s. Found " + bindMethods.Count + " methods");
 
-
+            settings = GlobalSettings;
+            
             if (settings.FirstRun)
             {
                 instance.Log("First run detected, setting default binds");
@@ -167,7 +169,7 @@ namespace DebugMod
         
         public override string GetVersion()
         {
-            return "1.4.2 - v0003a";
+            return "1.4.2 - 4";
         }
 
         //public override bool IsCurrent() => true;

@@ -31,7 +31,7 @@ namespace DebugMod
         public static SaveState quickState;
         public static bool inSelectSlotState = false;   // a mutex, in practice?
         public static int currentStateSlot = -1;
-        public static string path = Application.persistentDataPath + "/Savestates 1.4.3.2/";
+        public static string path = Application.persistentDataPath + "/Savestates Current Patch/";
         public static string currentStateOperation = null;
 
         private static string[] stateStrings =
