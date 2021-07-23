@@ -2,11 +2,10 @@ using System;
 using System.Collections;
 using System.IO;
 using System.Reflection;
+using DebugMod.Hitbox;
 using GlobalEnums;
-using Modding;
 using UnityEngine;
 using USceneManager = UnityEngine.SceneManagement.SceneManager;
-using On;
 
 namespace DebugMod
 {
@@ -17,8 +16,6 @@ namespace DebugMod
         
         internal static readonly FieldInfo cameraGameplayScene = typeof(CameraController).GetField("isGameplayScene", BindingFlags.Instance | BindingFlags.NonPublic);
         
-        private static FieldInfo cameraLockArea = typeof(CameraController).GetField("currentLockArea", BindingFlags.Instance | BindingFlags.NonPublic);
-
         #region Misc
 
         [BindableMethod(name = "Nail Damage +4", category = "Misc")]
@@ -306,8 +303,8 @@ namespace DebugMod
             gameObject.GetComponent<SpriteRenderer>().color = color;
             
             //HUD
-            //if (!GC.hudCanvas.gameObject.activeInHierarchy) 
-                //GC.hudCanvas.gameObject.SetActive(true);
+            if (!GC.hudCanvas.gameObject.activeInHierarchy) 
+                GC.hudCanvas.gameObject.SetActive(true);
             
             //Hide Hero
             tk2dSprite component = DebugMod.RefKnight.GetComponent<tk2dSprite>();
@@ -319,7 +316,7 @@ namespace DebugMod
             GC.tk2dCam.ZoomFactor = 1f;
             HC.vignette.enabled = false;
             EnemiesPanel.hitboxes = false;
-            //EnemiesPanel.hpBars = false;
+            EnemiesPanel.hpBars = false;
             EnemiesPanel.autoUpdate = false;
             pd.infiniteAirJump=false;
             DebugMod.infiniteSoul = false;
@@ -327,6 +324,7 @@ namespace DebugMod
             pd.isInvincible=false; 
             DebugMod.noclip=false;
         }
+
         #endregion
         
         #region SaveStates 
@@ -391,6 +389,47 @@ namespace DebugMod
         {
             if (++DebugMod.settings.ShowHitBoxes > 2) DebugMod.settings.ShowHitBoxes = 0;
             Console.AddLine("Toggled show hitboxes: " + DebugMod.settings.ShowHitBoxes);
+        }
+        
+        [BindableMethod(name = "Shade Spawn Points", category = "Visual")]
+        public static void ShadeSpawnPoint()
+        {
+            if (DebugMod.HC == null)
+            {
+                Console.AddLine("Player isn't in scene. How did you reach here?");
+                return;
+            }
+            
+            var component = HeroController.instance.gameObject.GetComponent<ShadeSpawnLocation>();
+            if (component == null) HeroController.instance.gameObject.AddComponent<ShadeSpawnLocation>();
+            //not gonna delete component if disabled to not break something if someone spams
+
+            ShadeSpawnLocation.EnabledCompass = !ShadeSpawnLocation.EnabledCompass;
+            Console.AddLine("Shade spawn point toggled " +  (ShadeSpawnLocation.EnabledCompass ? "On" : "Off"));
+        }
+        
+        [BindableMethod(name = "Shade Retreat Border", category = "Visual")]
+        public static void ShowShadeRetreatBorder()
+        {
+            if (DebugMod.HC == null)
+            {
+                Console.AddLine("Player isn't in scene. How did you reach here?");
+                return;
+            }
+            
+            var component = HeroController.instance.gameObject.GetComponent<ShadeSpawnLocation>();
+            if (component == null) HeroController.instance.gameObject.AddComponent<ShadeSpawnLocation>();
+            //not gonna delete component if disabled to not break something if someone spams
+
+            if (++ShadeSpawnLocation.ShowShadeRetreatBorder > 2) ShadeSpawnLocation.ShowShadeRetreatBorder = 0;
+
+            string displaytext = ShadeSpawnLocation.ShowShadeRetreatBorder switch
+            {
+                1 => "Closest",
+                2 => "All",
+                _ => "None"
+            };
+            Console.AddLine($"Shade Reach Showing {displaytext}");
         }
         
         [BindableMethod(name = "Toggle Vignette", category = "Visual")]
@@ -1417,6 +1456,7 @@ namespace DebugMod
         {
             if (PlayerData.instance.maxHealthBase < 9)
             {
+                HeroController.instance.MaxHealth();
                 HeroController.instance.AddToMaxHealth(1);
                 PlayMakerFSM.BroadcastEvent("MAX HP UP");
                 Console.AddLine("Added Mask");
@@ -1756,13 +1796,19 @@ namespace DebugMod
             );
         }
         
-        [BindableMethod(name = "Name of all GameObjects in Scene", category = "ExportData")]
+        [BindableMethod(name = "List all GameObjects in Scene", category = "ExportData")]
         public static void Dump()
         {
             foreach (GameObject go in UnityEngine.GameObject.FindObjectsOfType<GameObject>())
             {
                 DebugMod.instance.Log(go.name);
             }
+        }
+        
+        [BindableMethod(name = "Save Key Binds To File", category = "ExportData")]
+        public static void GenerateKeyBindToFile()
+        {
+            
         }
         #endregion
     }

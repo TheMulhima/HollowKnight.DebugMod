@@ -9,19 +9,20 @@ using Modding;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using GlobalEnums;
+using JetBrains.Annotations;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
 
 namespace DebugMod
 {
-    public class DebugMod : Mod,IGlobalSettings<GlobalSettings>
+    public class DebugMod : Mod, IGlobalSettings<GlobalSettings>, ILocalSettings<SaveSettings>
     {
         public override string GetVersion()
         {
-            return "1.4.3 - 2";
+            return "1.4.4";
         }
-        
+
         private static GameManager _gm;
         private static InputHandler _ih;
         private static HeroController _hc;
@@ -39,9 +40,12 @@ namespace DebugMod
         internal static PlayMakerFSM RefDreamNail => _refDreamNail != null ? _refDreamNail : (_refDreamNail = FSMUtility.LocateFSM(RefKnight, "Dream Nail"));
 
         internal static DebugMod instance;
-        internal static GlobalSettings settings { get; set; } = new GlobalSettings();
+        public static GlobalSettings settings { get; set; } = new GlobalSettings();
         public void OnLoadGlobal(GlobalSettings s) => DebugMod.settings = s;
         public GlobalSettings OnSaveGlobal() => DebugMod.settings;
+        public SaveSettings LocalSaveData { get; set; } = new SaveSettings();
+        public void OnLoadLocal(SaveSettings s) => this.LocalSaveData = s;
+        public SaveSettings OnSaveLocal() => this.LocalSaveData;
         
         private static float _loadTime;
         private static float _unloadTime;
@@ -82,7 +86,7 @@ namespace DebugMod
 
             float startTime = Time.realtimeSinceStartup;
             instance.Log("Building MethodInfo dict...");
-
+            
             bindMethods.Clear();
             foreach (MethodInfo method in typeof(BindableFunctions).GetMethods(BindingFlags.Public | BindingFlags.Static))
             {
@@ -176,12 +180,12 @@ namespace DebugMod
             if (chooser == 1) GameManager.instance.StartCoroutine(FixMenuTitle());
         }
 
+        [UsedImplicitly]
         public static int chooser;
         private bool OpenedSave;
         public DebugMod()
         {
             chooser = Random.Range(1, 100);
-            //chooser = 1;
             OpenedSave = false;
             if (chooser == 1)
             {

@@ -125,7 +125,7 @@ namespace DebugMod
             MinimalInfoPanel.Update();
             InfoPanel.Update();
             if (DebugMod.GetSceneName() == "Menu_Title") return;
-
+            
             //Handle keybinds
             foreach (KeyValuePair<string, int> bind in DebugMod.settings.binds)
             {
@@ -279,11 +279,6 @@ namespace DebugMod
                     DebugMod.noclipPos = DebugMod.RefKnight.transform.position;
                 }
             }
-
-            /*if (DebugMod.IH.inputActions.pause.WasPressed && DebugMod.GM.IsGamePaused())
-            {
-                UIManager.instance.TogglePauseGame();
-            }*/
 
             if (DebugMod.cameraFollow)
             {

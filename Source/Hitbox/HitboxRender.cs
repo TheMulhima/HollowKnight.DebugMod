@@ -10,12 +10,12 @@ namespace DebugMod.Hitbox
         // ReSharper disable once StructCanBeMadeReadOnly
         private struct HitboxType: IComparable<HitboxType>
         {
-            public static readonly HitboxType Knight = new(Color.yellow, 0);
-            public static readonly HitboxType Enemy = new(new Color(0.8f, 0, 0), 1);
-            public static readonly HitboxType Attack = new(Color.cyan, 2);
-            public static readonly HitboxType Terrain = new(new Color(0, 0.8f, 0), 3);
-            public static readonly HitboxType Trigger = new(new Color(0.5f, 0.5f, 1f), 4);
-            public static readonly HitboxType Other = new(new Color(0.9f, 0.6f, 0.4f), 5);
+            public static readonly HitboxType Knight = new(Color.yellow, 0);                     // yellow
+            public static readonly HitboxType Enemy = new(new Color(0.8f, 0, 0), 1);       // red      
+            public static readonly HitboxType Attack = new(Color.cyan, 2);                       // cyan
+            public static readonly HitboxType Terrain = new(new Color(0, 0.8f, 0), 3);     // green
+            public static readonly HitboxType Trigger = new(new Color(0.5f, 0.5f, 1f), 4); // blue
+            public static readonly HitboxType Other = new(new Color(0.9f, 0.6f, 0.4f), 5); // orange
 
             public readonly Color Color;
             public readonly int Depth;
@@ -42,7 +42,7 @@ namespace DebugMod.Hitbox
             {HitboxType.Other, new HashSet<Collider2D>()},
         };
 
-        private float LineWidth => Math.Max(0.7f, Screen.width / 960f * GameCameras.instance.tk2dCam.ZoomFactor);
+        public static float LineWidth => Math.Max(0.7f, Screen.width / 960f * GameCameras.instance.tk2dCam.ZoomFactor);
 
         private void Start()
         {

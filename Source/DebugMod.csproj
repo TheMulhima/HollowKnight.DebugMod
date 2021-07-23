@@ -12,6 +12,7 @@
         <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
         <FileAlignment>512</FileAlignment>
         <LangVersion>latest</LangVersion>
+        <ModsDirectory>C:\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\Mods</ModsDirectory>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
         <PlatformTarget>AnyCPU</PlatformTarget>
@@ -83,6 +84,10 @@
         <EmbeddedResource Include="Images\BlankVertical.png" />
         <EmbeddedResource Include="Images\ScrollBarArrowLeft.png" />
         <EmbeddedResource Include="Images\ScrollBarArrowRight.png" />
+        <EmbeddedResource Include="Images\LastStagFace.png" />
+        <EmbeddedResource Include="Images\Mask.png" />
+        <EmbeddedResource Include="Images\Vessel.png" />
+        <EmbeddedResource Include="Images\SilkNever.png" />
     </ItemGroup>
     <ItemGroup>
         <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
@@ -93,6 +98,9 @@
         </Reference>
         <Reference Include="PlayMaker, Version=1.6.0.0, Culture=neutral, PublicKeyToken=null">
           <HintPath>..\..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\PlayMaker.dll</HintPath>
+        </Reference>
+        <Reference Include="SFCore, Version=1.5.0.0, Culture=neutral, PublicKeyToken=723094b6adc0e8b9">
+          <HintPath>..\..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\Mods\SFCore.dll</HintPath>
         </Reference>
         <Reference Include="System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e">
           <HintPath>..\..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\System.dll</HintPath>
@@ -151,6 +159,7 @@
         <Compile Include="EnemiesPanel.cs" />
         <Compile Include="EnemyData.cs" />
         <Compile Include="GUIController.cs" />
+        <Compile Include="Hitbox\ShadeSpawnLocation.cs" />
         <Compile Include="Hitbox\Drawing.cs" />
         <Compile Include="Hitbox\HitboxRender.cs" />
         <Compile Include="Hitbox\HitboxViewer.cs" />
@@ -166,4 +175,7 @@
         <Compile Include="TopMenu.cs" />
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+    <Target Name="CopyMod" AfterTargets="PostBuildEvent">
+        <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(ModsDirectory)" SkipUnchangedFiles="true" />
+    </Target>
 </Project>
