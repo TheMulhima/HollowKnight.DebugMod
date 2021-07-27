@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using DebugMod.Hitbox;
@@ -107,22 +108,6 @@ namespace DebugMod
             Console.AddLine("Manual respawn point on this map set to" + manualRespawn);
         }
 
-        [BindableMethod(name = "Force Camera Follow", category = "Misc")]
-        public static void ForceCameraFollow()
-        {
-            if (!DebugMod.cameraFollow)
-            {
-                Console.AddLine("Forcing camera follow");
-                DebugMod.cameraFollow = true;
-            }
-            else
-            {
-                DebugMod.cameraFollow = false;
-                cameraGameplayScene.SetValue(DebugMod.RefCamera, true);
-                Console.AddLine("Returning camera to normal settings");
-            }
-        }
-        
         [BindableMethod(name = "Decrease Timescale", category = "Misc")]
         public static void TimescaleDown()
         {
@@ -143,10 +128,10 @@ namespace DebugMod
             switch (DebugMod.TimeScaleActive)
             {
                 case true when wasTimeScaleActive == false:
-                    EnableTimeScale();
+                    TimeScale.EnableTimeScale();
                     break;
                 case false when wasTimeScaleActive == true:
-                    DisableTimeScale();
+                    TimeScale.DisableTimeScale();
                     break;
             }
             Console.AddLine("New TimeScale value: " + oldScale + " Old value: " + DebugMod.CurrentTimeScale);
@@ -171,120 +156,59 @@ namespace DebugMod
             switch (DebugMod.TimeScaleActive)
             {
                 case true when wasTimeScaleActive == false:
-                    EnableTimeScale();
+                    TimeScale.EnableTimeScale();
                     break;
                 case false when wasTimeScaleActive == true:
-                    DisableTimeScale();
+                    TimeScale.DisableTimeScale();
                     break;
             }
             Console.AddLine("New TimeScale value: " + oldScale + " Old value: " + DebugMod.CurrentTimeScale);
         }
 
-        private static void EnableTimeScale()
+        [BindableMethod(name = "Pause Game Without UI", category = "Misc")]
+        public static void PauseGameNoUI()
         {
-            DebugMod.TimeScaleActive = true;
-            On.GameManager.SetTimeScale_float += GameManager_SetTimeScale_1;
-            On.GameManager.FreezeMoment_float_float_float_float += GameManager_FreezeMoment_1;
-            On.QuitToMenu.Start += Quit_To_Menu;
+            DebugMod.PauseGameNoUIActive = !DebugMod.PauseGameNoUIActive;
+
+            if (DebugMod.PauseGameNoUIActive)
+            {
+                Time.timeScale = 0;
+                if (!GameManager.instance.TimeSlowed)
+                {
+                    if (!GameManager.instance.playerData.disablePause && GameManager.instance.gameState == GameState.PLAYING)
+                    {
+                        GameCameras.instance.StopCameraShake();
+                        GameManager.instance.inputHandler.PreventPause();
+                        GameManager.instance.inputHandler.StopUIInput();
+                        GameManager.instance.actorSnapshotPaused.TransitionTo(0.0f);
+                        if (HeroController.instance != null)  HeroController.instance.Pause();
+                        GameCameras.instance.MoveMenuToHUDCamera();
+                        Time.timeScale = 0;
+                        GameManager.instance.inputHandler.AllowPause();
+
+                        var component = GameManager.instance.gameObject.GetComponent<MyCursor>();
+                        if (component == null) GameManager.instance.gameObject.AddComponent<MyCursor>();
+                    }
+                }
+            }
+            else
+            {
+                GameCameras.instance.ResumeCameraShake();
+                GameManager.instance.inputHandler.PreventPause();
+                GameManager.instance.actorSnapshotUnpaused.TransitionTo(0.0f);
+                GameManager.instance.isPaused = false;
+                GameManager.instance.ui.AudioGoToGameplay(0.2f);
+                GameManager.instance.ui.SetState(UIState.PLAYING);
+                GameManager.instance.SetState(GameState.PLAYING);
+                if (HeroController.instance != null) HeroController.instance.UnPause();
+                MenuButtonList.ClearAllLastSelected();
+                Time.timeScale = DebugMod.CurrentTimeScale;
+                GameManager.instance.inputHandler.AllowPause();
+                var component = GameManager.instance.gameObject.GetComponent<MyCursor>();
+                if (component != null) UnityEngine.Object.Destroy(component);
+            }
         }
         
-        private static void DisableTimeScale()
-        {
-            Time.timeScale = 1f;
-            DebugMod.CurrentTimeScale = 1f;
-            DebugMod.TimeScaleActive = false;
-            On.GameManager.SetTimeScale_float -= GameManager_SetTimeScale_1;
-            On.GameManager.FreezeMoment_float_float_float_float -= GameManager_FreezeMoment_1;
-            On.QuitToMenu.Start -= Quit_To_Menu;
-        }
-        private static IEnumerator Quit_To_Menu(On.QuitToMenu.orig_Start orig, QuitToMenu self)
-        {
-            yield return null;
-            UIManager ui = UIManager.instance;
-            bool flag = ui != null;
-            if (flag)
-            {
-                UIManager.instance.AudioGoToGameplay(0f);
-                UnityEngine.Object.Destroy(ui.gameObject);
-            }
-            HeroController heroController = HeroController.instance;
-            bool flag2 = heroController != null;
-            if (flag2)
-            {
-                UnityEngine.Object.Destroy(heroController.gameObject);
-            }
-            GameCameras gameCameras = GameCameras.instance;
-            bool flag3 = gameCameras != null;
-            if (flag3)
-            {
-                UnityEngine.Object.Destroy(gameCameras.gameObject);
-            }
-            GameManager gameManager = GameManager.instance;
-            bool flag4 = gameManager != null;
-            if (flag4)
-            {
-                try
-                {
-                    ObjectPool.RecycleAll();
-                }
-                catch (Exception ex)
-                {
-                    Exception exception = ex;
-                    Debug.LogErrorFormat("Error while recycling all as part of quit, attempting to continue regardless.", new object[0]);
-                    Debug.LogException(exception);
-                }
-                gameManager.playerData.Reset();
-                gameManager.sceneData.Reset();
-                UnityEngine.Object.Destroy(gameManager.gameObject);
-            }
-            Time.timeScale = DebugMod.CurrentTimeScale;
-            yield return null;
-            GCManager.Collect();
-            UnityEngine.SceneManagement.SceneManager.LoadSceneAsync("Menu_Title", 0);
-            DisableTimeScale();
-        }
-        private static IEnumerator GameManager_FreezeMoment_1(On.GameManager.orig_FreezeMoment_float_float_float_float orig, GameManager self, float rampDownTime, float waitTime, float rampUpTime, float targetSpeed)
-        {
-            FieldInfo timeSlowedField = typeof(GameManager).GetField("TimeSlowed", BindingFlags.Instance | BindingFlags.Public);
-            bool flag = self.TimeSlowed;
-            if (flag)
-            {
-                yield break;
-            }
-            timeSlowedField.SetValue(self,true);
-            yield return self.StartCoroutine(SetTimeScale(targetSpeed, rampDownTime));
-            for (float timer = 0f; timer < waitTime; timer += Time.unscaledDeltaTime * DebugMod.CurrentTimeScale)
-            {
-                yield return null;
-            }
-            yield return self.StartCoroutine(SetTimeScale(1f, rampUpTime));
-            timeSlowedField.SetValue(self,false);
-            yield break;
-        }
-
-        private static IEnumerator SetTimeScale(float newTimeScale, float duration)
-        {
-            float lastTimeScale = Time.timeScale;
-            for (float timer = 0f; timer < duration; timer += Time.unscaledDeltaTime)
-            {
-                float val = Mathf.Clamp01(timer / duration);
-                SetTimeScale(Mathf.Lerp(lastTimeScale, newTimeScale, val));
-                yield return null;
-            }
-            SetTimeScale(newTimeScale);
-            yield break;
-        }
-
-        private static void SetTimeScale(float newTimeScale)
-        {
-            Time.timeScale = ((newTimeScale <= 0.01f) ? 0f : newTimeScale) * DebugMod.CurrentTimeScale;
-        }
-
-        private static void GameManager_SetTimeScale_1(On.GameManager.orig_SetTimeScale_float orig, GameManager self, float newTimeScale)
-        {
-            Time.timeScale = ((newTimeScale <= 0.01f) ? 0f : newTimeScale) * DebugMod.CurrentTimeScale;
-        }
-
         [BindableMethod(name = "Reset settings", category = "Misc")]
         public static void Reset()
         {
@@ -312,7 +236,7 @@ namespace DebugMod
             component.color = color;
 
             //rest all is self explanatory
-            DisableTimeScale();
+            TimeScale.DisableTimeScale();
             GC.tk2dCam.ZoomFactor = 1f;
             HC.vignette.enabled = false;
             EnemiesPanel.hitboxes = false;
@@ -324,7 +248,6 @@ namespace DebugMod
             pd.isInvincible=false; 
             DebugMod.noclip=false;
         }
-
         #endregion
         
         #region SaveStates 
@@ -437,7 +360,6 @@ namespace DebugMod
         {
             HeroController.instance.vignette.enabled = !HeroController.instance.vignette.enabled;
         }
-        //
 
         [BindableMethod(name = "Toggle Hero Light", category = "Visual")]
         public static void ToggleHeroLight()
@@ -514,12 +436,29 @@ namespace DebugMod
                 Console.AddLine("Rendering Hero sprite visible...");
             }
         }
+        
         [BindableMethod(name = "Toggle Camera Shake", category = "Visual")]
         public static void ToggleCameraShake()
         {
             bool newValue = !GameCameras.instance.cameraShakeFSM.enabled;
             GameCameras.instance.cameraShakeFSM.enabled = newValue;
             Console.AddLine($"{(newValue ? "Enabling" : "Disabling")} Camera Shake...");
+        }
+        
+        [BindableMethod(name = "Force Camera Follow", category = "Misc")]
+        public static void ForceCameraFollow()
+        {
+            if (!DebugMod.cameraFollow)
+            {
+                Console.AddLine("Forcing camera follow");
+                DebugMod.cameraFollow = true;
+            }
+            else
+            {
+                DebugMod.cameraFollow = false;
+                cameraGameplayScene.SetValue(DebugMod.RefCamera, true);
+                Console.AddLine("Returning camera to normal settings");
+            }
         }
 
         #endregion
@@ -1808,28 +1747,87 @@ namespace DebugMod
         [BindableMethod(name = "Save Key Binds To File", category = "ExportData")]
         public static void GenerateKeyBindToFile()
         {
+            var DictToSave = new KeyBinds
+            {
+                binds_to_file = Convert_Int_To_String_Dict(DebugMod.settings.binds)
+            };
+
+            File.WriteAllText(SaveStateManager.path + "Keybinds.json",Newtonsoft.Json.JsonConvert.SerializeObject(DictToSave));
             
+            Console.AddLine("Keybind File Created");
+        }
+        
+        [BindableMethod(name = "Load Key Binds From File", category = "ExportData")]
+        public static void LoadKeyBindFromFile()
+        {
+            if (!File.Exists(SaveStateManager.path + "Keybinds.json"))
+            {
+                Console.AddLine("Keybind file not found. Please generate one first");
+                return;
+            }
+            var NewDict = Newtonsoft.Json.JsonConvert.DeserializeObject<KeyBinds>(File.ReadAllText(SaveStateManager.path + "Keybinds.json"))?.binds_to_file;
+
+            DebugMod.settings.binds = Convert_String_To_Int_Dict(NewDict);
+            
+            KeyBindPanel.UpdateHelpText();
+
+
+            Console.AddLine("New Keybinds loaded");
+        }
+
+        private static Dictionary<string,string> Convert_Int_To_String_Dict(Dictionary<string,int> IntDict)
+        {
+            var NewDict = new Dictionary<string, string>();
+            foreach (var bind in IntDict)
+            {
+                KeyCode Newvalue = (KeyCode) bind.Value;
+                NewDict.Add(bind.Key, Newvalue.ToString());
+            }
+            return NewDict;
+        }
+        private static Dictionary<string,int> Convert_String_To_Int_Dict(Dictionary<string,string> StringDict)
+        {
+            var NewDict = new Dictionary<string, int>();
+            foreach (var bind in StringDict)
+            {
+                if (Enum.TryParse(bind.Value, true, out KeyCode newBind))
+                {
+                    NewDict.Add(bind.Key, (int)newBind);
+                }
+            }
+            return NewDict;
         }
         #endregion
     }
 
     public class SelfDamage : MonoBehaviour
     {
-        public void Start()
-        {
-            GameObject Enemyprefab = DebugMod.PreloadedObjects["Enemy"];
-            GameObject Enemy = Instantiate(Enemyprefab);
-            Enemy.SetActive(false);
-            
-            CollisionSide side = HeroController.instance.cState.facingRight ? CollisionSide.right : CollisionSide.left;
-            int damageAmount = 1;
-            int hazardType = (int)HazardType.NON_HAZARD;
+        private GameObject Enemy;
+        private const int damageAmount = 1;
+        private const int hazardType = (int) HazardType.NON_HAZARD;
 
+        private void Awake()
+        {
+            Enemy = Instantiate(DebugMod.PreloadedObjects["Enemy"]);
+            Enemy.SetActive(false);
+        }
+
+        private void Start()
+        {
+            CollisionSide side = HeroController.instance.cState.facingRight ? CollisionSide.right : CollisionSide.left;
             HeroController.instance.TakeDamage(Enemy,side,damageAmount,hazardType);
 
             var MyMonoBehaviour = GameManager.instance.gameObject.GetComponent<SelfDamage>();
-            if (MyMonoBehaviour != null) Destroy(GameManager.instance.gameObject.GetComponent<SelfDamage>());
+            if (MyMonoBehaviour != null) Destroy(MyMonoBehaviour);
         }
+    }
+    
+    //taken from Decoration Master Mod
+    public class MyCursor : MonoBehaviour
+    {
+        private static Texture2D Cursor;
+        private void Awake() => Cursor = GUIController.Instance.images["Cursor"];
         
+        private void OnGUI() => GUI.DrawTexture(new Rect(Input.mousePosition.x, Screen.height - Input.mousePosition.y, Cursor.width, Cursor.height), Cursor);
     }
 }

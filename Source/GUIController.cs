@@ -124,6 +124,7 @@ namespace DebugMod
             KeyBindPanel.Update();
             MinimalInfoPanel.Update();
             InfoPanel.Update();
+            
             if (DebugMod.GetSceneName() == "Menu_Title") return;
             
             //Handle keybinds

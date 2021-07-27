@@ -1,10 +1,16 @@
+using System;
 using System.Collections.Generic;
-using Modding;
 
 namespace DebugMod
 {
     //Empty class required for DebugMod class definition
     public class SaveSettings { }
+
+    [Serializable]
+    public class KeyBinds
+    {
+        public Dictionary<string, string> binds_to_file = new Dictionary<string, string>();
+    }
 
     public class GlobalSettings
     {

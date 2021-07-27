@@ -20,7 +20,7 @@ namespace DebugMod
     {
         public override string GetVersion()
         {
-            return "1.4.4";
+            return "1.4.4 - 1";
         }
 
         private static GameManager _gm;
@@ -61,6 +61,7 @@ namespace DebugMod
         internal static bool KeyBindLock;
         internal static bool TimeScaleActive;
         internal static float CurrentTimeScale;
+        internal static bool PauseGameNoUIActive = false;
 
         internal static Dictionary<string, Pair> bindMethods = new Dictionary<string, Pair>();
 
@@ -118,19 +119,13 @@ namespace DebugMod
                 settings.binds.Add("Full/Min Info Switch", (int) KeyCode.F6);
                 settings.binds.Add("Force Camera Follow", (int) KeyCode.F8);
                 settings.binds.Add("Toggle Enemy Panel", (int) KeyCode.F9);
-                settings.binds.Add("Self Damage", (int) KeyCode.F10);
                 settings.binds.Add("Toggle Binds", (int) KeyCode.BackQuote);
                 settings.binds.Add("Nail Damage +4", (int) KeyCode.Equals);
                 settings.binds.Add("Nail Damage -4", (int) KeyCode.Minus);
                 settings.binds.Add("Increase Timescale", (int) KeyCode.KeypadPlus);
                 settings.binds.Add("Decrease Timescale", (int) KeyCode.KeypadMinus);
-                settings.binds.Add("Toggle Hero Light", (int) KeyCode.Home);
-                settings.binds.Add("Toggle Vignette", (int) KeyCode.Insert);
                 settings.binds.Add("Zoom In", (int) KeyCode.PageUp);
                 settings.binds.Add("Zoom Out", (int) KeyCode.PageDown);
-                settings.binds.Add("Reset Camera Zoom", (int) KeyCode.End);
-                settings.binds.Add("Toggle HUD", (int) KeyCode.Delete);
-                settings.binds.Add("Hide Hero", (int) KeyCode.Backspace);
             }
             
 
