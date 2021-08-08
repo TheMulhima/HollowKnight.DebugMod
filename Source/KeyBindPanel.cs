@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Modding;
 using UnityEngine;
 
 namespace DebugMod
@@ -71,6 +72,42 @@ namespace DebugMod
             panel.GetText("Category").UpdateText(pageKeys[page]);
             panel.GetButton("Page").UpdateText((page + 1) + " / " + pageKeys.Count);
             UpdateHelpText();
+
+            UnHook_AddAdditionalKeys();
+            Hook_AddAdditionalKeys(); 
+        }
+
+        private static void UnHook_AddAdditionalKeys()
+        {
+            ModHooks.SavegameLoadHook -= AddAdditionalKeys_();
+            ModHooks.NewGameHook -= AddAdditionalKeys;
+        }
+
+        private static Action<int> AddAdditionalKeys_() => delegate { AddAdditionalKeys(); };
+        
+        private static void Hook_AddAdditionalKeys()
+        {
+            ModHooks.SavegameLoadHook += AddAdditionalKeys_();
+            ModHooks.NewGameHook += AddAdditionalKeys;
+        }
+
+        private static void AddAdditionalKeys()
+        {
+            foreach (KeyValuePair<string, Pair> bindable in DebugMod.AdditionalBindMenthods)
+            {
+                string name = bindable.Key;
+                string cat = (string)bindable.Value.First;
+
+                if (!bindPages.ContainsKey(cat)) bindPages.Add(cat, new List<string>());
+                bindPages[cat].Add(name);
+                if (!pageKeys.Contains(cat)) pageKeys.Add(cat);
+            }
+
+            panel.GetText("Category").UpdateText(pageKeys[page]);
+            panel.GetButton("Page").UpdateText((page + 1) + " / " + pageKeys.Count);
+            UpdateHelpText();
+
+            UnHook_AddAdditionalKeys();
         }
 
         public static void UpdateHelpText()

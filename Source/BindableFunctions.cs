@@ -1,11 +1,13 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using DebugMod.Hitbox;
+using DebugMod.MonoBehaviours;
 using GlobalEnums;
+using Newtonsoft.Json;
 using UnityEngine;
+using Object = UnityEngine.Object;
 using USceneManager = UnityEngine.SceneManagement.SceneManager;
 
 namespace DebugMod
@@ -130,7 +132,7 @@ namespace DebugMod
                 case true when wasTimeScaleActive == false:
                     TimeScale.EnableTimeScale();
                     break;
-                case false when wasTimeScaleActive == true:
+                case false when wasTimeScaleActive:
                     TimeScale.DisableTimeScale();
                     break;
             }
@@ -158,7 +160,7 @@ namespace DebugMod
                 case true when wasTimeScaleActive == false:
                     TimeScale.EnableTimeScale();
                     break;
-                case false when wasTimeScaleActive == true:
+                case false when wasTimeScaleActive:
                     TimeScale.DisableTimeScale();
                     break;
             }
@@ -184,7 +186,7 @@ namespace DebugMod
                         if (HeroController.instance != null)  HeroController.instance.Pause();
                         GameCameras.instance.MoveMenuToHUDCamera();
                         Time.timeScale = 0;
-                        GameManager.instance.inputHandler.AllowPause();
+                        //GameManager.instance.inputHandler.AllowPause();
 
                         var component = GameManager.instance.gameObject.GetComponent<MyCursor>();
                         if (component == null) GameManager.instance.gameObject.AddComponent<MyCursor>();
@@ -194,10 +196,10 @@ namespace DebugMod
             else
             {
                 GameCameras.instance.ResumeCameraShake();
-                GameManager.instance.inputHandler.PreventPause();
-                GameManager.instance.actorSnapshotUnpaused.TransitionTo(0.0f);
+                //GameManager.instance.inputHandler.PreventPause();
+                //GameManager.instance.actorSnapshotUnpaused.TransitionTo(0.0f);
                 GameManager.instance.isPaused = false;
-                GameManager.instance.ui.AudioGoToGameplay(0.2f);
+                //GameManager.instance.ui.AudioGoToGameplay(0.2f);
                 GameManager.instance.ui.SetState(UIState.PLAYING);
                 GameManager.instance.SetState(GameState.PLAYING);
                 if (HeroController.instance != null) HeroController.instance.UnPause();
@@ -205,7 +207,7 @@ namespace DebugMod
                 Time.timeScale = DebugMod.CurrentTimeScale;
                 GameManager.instance.inputHandler.AllowPause();
                 var component = GameManager.instance.gameObject.GetComponent<MyCursor>();
-                if (component != null) UnityEngine.Object.Destroy(component);
+                if (component != null) Object.Destroy(component);
             }
         }
         
@@ -640,7 +642,18 @@ namespace DebugMod
                 Console.AddLine("Unacceptable conditions for selfDamage(" + PlayerData.instance.health + "," + DebugMod.HC.cState.dead + "," + DebugMod.GM.IsGameplayScene() + "," + DebugMod.HC.cState.recoiling + "," + DebugMod.GM.IsGamePaused() + "," + DebugMod.HC.cState.invulnerable + ")." + " Pressed too many times at once?");
                 return;
             }
-            GameManager.instance.gameObject.AddComponent<SelfDamage>();
+            //GameManager.instance.gameObject.AddComponent<SelfDamage>();
+            var go = new GameObject("death", typeof(BoxCollider2D), typeof(DamageHero));
+            go.layer = 8;
+            var bc2d = go.GetComponent<BoxCollider2D>();
+            bc2d.size = new Vector2(4, 4);
+            bc2d.isTrigger = true;
+            var dh = go.GetComponent<DamageHero>();
+            dh.hazardType = 1;
+            dh.damageDealt = (PlayerData.instance.GetInt("health") + PlayerData.instance.GetInt("healthBlue") +
+                              PlayerData.instance.GetInt("joniHealth")) * 1; // maybe 2
+            go.transform.position = DebugMod.RefKnight.gameObject.transform.position;
+            go.SetActive(true);
 
             Console.AddLine("Attempting self damage");
         }
@@ -1738,7 +1751,7 @@ namespace DebugMod
         [BindableMethod(name = "List all GameObjects in Scene", category = "ExportData")]
         public static void Dump()
         {
-            foreach (GameObject go in UnityEngine.GameObject.FindObjectsOfType<GameObject>())
+            foreach (GameObject go in GameObject.FindObjectsOfType<GameObject>())
             {
                 DebugMod.instance.Log(go.name);
             }
@@ -1752,7 +1765,7 @@ namespace DebugMod
                 binds_to_file = Convert_Int_To_String_Dict(DebugMod.settings.binds)
             };
 
-            File.WriteAllText(SaveStateManager.path + "Keybinds.json",Newtonsoft.Json.JsonConvert.SerializeObject(DictToSave));
+            File.WriteAllText(SaveStateManager.path + "Keybinds.json",JsonConvert.SerializeObject(DictToSave));
             
             Console.AddLine("Keybind File Created");
         }
@@ -1765,7 +1778,7 @@ namespace DebugMod
                 Console.AddLine("Keybind file not found. Please generate one first");
                 return;
             }
-            var NewDict = Newtonsoft.Json.JsonConvert.DeserializeObject<KeyBinds>(File.ReadAllText(SaveStateManager.path + "Keybinds.json"))?.binds_to_file;
+            var NewDict = JsonConvert.DeserializeObject<KeyBinds>(File.ReadAllText(SaveStateManager.path + "Keybinds.json"))?.binds_to_file;
 
             DebugMod.settings.binds = Convert_String_To_Int_Dict(NewDict);
             
@@ -1797,37 +1810,23 @@ namespace DebugMod
             }
             return NewDict;
         }
+
+        [BindableMethod(name = "Turn Off Vsync", category = "ExportData")]
+        public static void Vsync()
+        {
+            GameManager.instance.gameSettings.vSync = 0;
+            GameManager.instance.gameSettings.SaveVideoSettings();
+            Platform.Current.AdjustGraphicsSettings(GameManager.instance.gameSettings);
+            var settings = new GameSettings()
+            {
+                vSync = 0,
+            };
+            settings.SaveVideoSettings();
+            Platform.Current.AdjustGraphicsSettings(settings);
+            Console.AddLine("No more vsync");
+
+        }
+
         #endregion
-    }
-
-    public class SelfDamage : MonoBehaviour
-    {
-        private GameObject Enemy;
-        private const int damageAmount = 1;
-        private const int hazardType = (int) HazardType.NON_HAZARD;
-
-        private void Awake()
-        {
-            Enemy = Instantiate(DebugMod.PreloadedObjects["Enemy"]);
-            Enemy.SetActive(false);
-        }
-
-        private void Start()
-        {
-            CollisionSide side = HeroController.instance.cState.facingRight ? CollisionSide.right : CollisionSide.left;
-            HeroController.instance.TakeDamage(Enemy,side,damageAmount,hazardType);
-
-            var MyMonoBehaviour = GameManager.instance.gameObject.GetComponent<SelfDamage>();
-            if (MyMonoBehaviour != null) Destroy(MyMonoBehaviour);
-        }
-    }
-    
-    //taken from Decoration Master Mod
-    public class MyCursor : MonoBehaviour
-    {
-        private static Texture2D Cursor;
-        private void Awake() => Cursor = GUIController.Instance.images["Cursor"];
-        
-        private void OnGUI() => GUI.DrawTexture(new Rect(Input.mousePosition.x, Screen.height - Input.mousePosition.y, Cursor.width, Cursor.height), Cursor);
     }
 }

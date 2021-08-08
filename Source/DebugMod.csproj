@@ -9,30 +9,18 @@
         <AppDesignerFolder>Properties</AppDesignerFolder>
         <RootNamespace>DebugMod</RootNamespace>
         <AssemblyName>DebugMod</AssemblyName>
-        <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
         <FileAlignment>512</FileAlignment>
+        <TargetFramework>v4.7.2</TargetFramework>
         <LangVersion>latest</LangVersion>
         <HollowKnightFolder>..\..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\</HollowKnightFolder>
         <ModsDirectory>C:\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\Mods\DebugMod</ModsDirectory>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-        <PlatformTarget>AnyCPU</PlatformTarget>
-        <DebugSymbols>true</DebugSymbols>
-        <DebugType>full</DebugType>
-        <Optimize>false</Optimize>
-        <OutputPath>bin\Debug\</OutputPath>
-        <DefineConstants>DEBUG;TRACE</DefineConstants>
-        <ErrorReport>prompt</ErrorReport>
-        <WarningLevel>4</WarningLevel>
+      <OutputPath>bin\Debug\</OutputPath>
+      <DocumentationFile></DocumentationFile>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-        <PlatformTarget>AnyCPU</PlatformTarget>
-        <DebugType>pdbonly</DebugType>
-        <Optimize>true</Optimize>
-        <OutputPath>bin\Release\</OutputPath>
-        <DefineConstants>TRACE</DefineConstants>
-        <ErrorReport>prompt</ErrorReport>
-        <WarningLevel>4</WarningLevel>
+      <OutputPath>bin\Release\</OutputPath>
     </PropertyGroup>
     <ItemGroup>
         <EmbeddedResource Include="Images\AddEntry.png" />
@@ -98,14 +86,20 @@
         <Reference Include="MMHOOK_Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
           <HintPath>$(HollowKnightFolder)\MMHOOK_Assembly-CSharp.dll</HintPath>
         </Reference>
+        <Reference Include="mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+          <HintPath>..\..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\mscorlib.dll</HintPath>
+        </Reference>
+        <Reference Include="netstandard, Version=2.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51">
+          <HintPath>..\..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\netstandard.dll</HintPath>
+        </Reference>
         <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=null">
           <HintPath>$(HollowKnightFolder)\Newtonsoft.Json.dll</HintPath>
         </Reference>
         <Reference Include="PlayMaker, Version=1.6.0.0, Culture=neutral, PublicKeyToken=null">
           <HintPath>$(HollowKnightFolder)\PlayMaker.dll</HintPath>
         </Reference>
-        <Reference Include="SFCore, Version=1.5.0.0, Culture=neutral, PublicKeyToken=723094b6adc0e8b9">
-          <HintPath>$(HollowKnightFolder)\Mods\SFCore.dll</HintPath>
+        <Reference Include="SFCore, Version=1.5.1.0, Culture=neutral, PublicKeyToken=723094b6adc0e8b9">
+          <HintPath>$(HollowKnightFolder)\Mods\SFCore\SFCore.dll</HintPath>
         </Reference>
         <Reference Include="System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e">
           <HintPath>$(HollowKnightFolder)\System.dll</HintPath>
@@ -157,10 +151,10 @@
         <Compile Include="BindableFunctions.cs" />
         <Compile Include="BindableMethod.cs" />
         <Compile Include="BossHandler.cs" />
-        <Compile Include="CanvasButton.cs" />
-        <Compile Include="CanvasImage.cs" />
-        <Compile Include="CanvasPanel.cs" />
-        <Compile Include="CanvasText.cs" />
+        <Compile Include="Canvas\CanvasButton.cs" />
+        <Compile Include="Canvas\CanvasImage.cs" />
+        <Compile Include="Canvas\CanvasPanel.cs" />
+        <Compile Include="Canvas\CanvasText.cs" />
         <Compile Include="Console.cs" />
         <Compile Include="DebugMod.cs" />
         <Compile Include="DreamGate.cs" />
@@ -174,11 +168,12 @@
         <Compile Include="InfoPanel.cs" />
         <Compile Include="KeyBindPanel.cs" />
         <Compile Include="MinimalInfoPanel.cs" />
+        <Compile Include="MonoBehaviours\Cursor.cs" />
         <Compile Include="Pair.cs" />
         <Compile Include="PlayerDeathWatcher.cs" />
-        <Compile Include="SaveState.cs" />
-        <Compile Include="SaveStateManager.cs" />
-        <Compile Include="SaveStatePanel.cs" />
+        <Compile Include="SaveStates\SaveState.cs" />
+        <Compile Include="SaveStates\SaveStateManager.cs" />
+        <Compile Include="SaveStates\SaveStatePanel.cs" />
         <Compile Include="Settings.cs" />
         <Compile Include="TimeScale.cs" />
         <Compile Include="TopMenu.cs" />

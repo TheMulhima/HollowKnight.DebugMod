@@ -130,7 +130,7 @@ namespace DebugMod
             //Handle keybinds
             foreach (KeyValuePair<string, int> bind in DebugMod.settings.binds)
             {
-                if (DebugMod.bindMethods.ContainsKey(bind.Key))
+                if (DebugMod.bindMethods.ContainsKey(bind.Key) ||DebugMod.AdditionalBindMenthods.ContainsKey(bind.Key) )
                 {
                     if ((KeyCode) bind.Value == KeyCode.None)
                     {
@@ -180,7 +180,11 @@ namespace DebugMod
                         {
                             try
                             {
-                                ((MethodInfo) DebugMod.bindMethods[bind.Key].Second).Invoke(null, null);
+                                if (DebugMod.bindMethods.ContainsKey(bind.Key))
+                                    ((MethodInfo) DebugMod.bindMethods[bind.Key].Second).Invoke(null, null);
+                                if (DebugMod.AdditionalBindMenthods.ContainsKey(bind.Key))
+                                    ((MethodInfo) DebugMod.AdditionalBindMenthods[bind.Key].Second).Invoke(null, null);
+
                             }
                             catch (Exception e)
                             {
@@ -192,7 +196,11 @@ namespace DebugMod
                         {
                             try
                             {
-                                ((MethodInfo) DebugMod.bindMethods[bind.Key].Second).Invoke(null, null);
+                                if (DebugMod.bindMethods.ContainsKey(bind.Key))
+                                    ((MethodInfo) DebugMod.bindMethods[bind.Key].Second).Invoke(null, null);
+                                if (DebugMod.AdditionalBindMenthods.ContainsKey(bind.Key))
+                                    ((MethodInfo) DebugMod.AdditionalBindMenthods[bind.Key].Second).Invoke(null, null);
+
                             }
                             catch (Exception e)
                             {

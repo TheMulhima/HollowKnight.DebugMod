@@ -349,7 +349,17 @@ namespace DebugMod
         {
             if (DebugMod.settings.EnemiesPanelVisible || hpBars)
             {
-                GameObject[] rootGameObjects = UnityEngine.SceneManagement.SceneManager.GetSceneByName(DebugMod.GetSceneName()).GetRootGameObjects();
+                GameObject[] rootGameObjects = null;
+                try
+                {
+                    rootGameObjects = UnityEngine.SceneManagement.SceneManager
+                        .GetSceneByName(DebugMod.GetSceneName()).GetRootGameObjects();
+                }
+                catch
+                {
+                    return;
+                }
+
                 if (rootGameObjects != null)
                 {
                     foreach (GameObject gameObject in rootGameObjects)

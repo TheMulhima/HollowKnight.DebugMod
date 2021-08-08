@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using JetBrains.Annotations;
 using Modding;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
-using Mask = IL.ToJ.Mask;
 
 namespace DebugMod
 {
@@ -12,10 +14,13 @@ namespace DebugMod
         private static CanvasPanel panel;
         private static List<float> PreviousBindChange = new List<float>();
 
+        private static List<Vector2> AllPossibleLocations = new();
+
         public static void BuildMenu(GameObject canvas)
         {
-            panel = new CanvasPanel(canvas, GUIController.Instance.images["ButtonsMenuBG"], new Vector2(1092f, 25f), Vector2.zero, new Rect(0f, 0f, GUIController.Instance.images["ButtonsMenuBG"].width, GUIController.Instance.images["ButtonsMenuBG"].height));
-            
+            MakeList();
+            panel = new CanvasPanel(canvas, GUIController.Instance.images["ButtonsMenuBG"], new Vector2(Screen.width - GUIController.Instance.images["ButtonsMenuBG"].width , 25f), Vector2.zero, new Rect(0f, 0f, GUIController.Instance.images["ButtonsMenuBG"].width, GUIController.Instance.images["ButtonsMenuBG"].height));
+
             Rect buttonRect = new Rect(0, 0, GUIController.Instance.images["ButtonRect"].width, GUIController.Instance.images["ButtonRect"].height);
             
             //Main buttons
@@ -30,7 +35,7 @@ namespace DebugMod
             panel.AddButton("Items", GUIController.Instance.images["ButtonRect"], new Vector2(346f, 68f), Vector2.zero, ItemsClicked, buttonRect, GUIController.Instance.trajanBold, "Items");
             panel.AddButton("Bosses", GUIController.Instance.images["ButtonRect"], new Vector2(446f, 68f), Vector2.zero, BossesClicked, buttonRect, GUIController.Instance.trajanBold, "Bosses");
             panel.AddButton("DreamGate", GUIController.Instance.images["ButtonRect"], new Vector2(546f, 68f), Vector2.zero, DreamGatePanelClicked, buttonRect, GUIController.Instance.trajanBold, "DreamGate");
-
+            
             //Dropdown panels
             panel.AddPanel("Cheats Panel", GUIController.Instance.images["DropdownBG"], new Vector2(45f, 75f), Vector2.zero, new Rect(0, 0, GUIController.Instance.images["DropdownBG"].width, 240f));
             panel.AddPanel("Charms Panel", GUIController.Instance.images["DropdownBG"], new Vector2(145f, 75f), Vector2.zero, new Rect(0, 0, GUIController.Instance.images["DropdownBG"].width, 270f));
@@ -38,7 +43,8 @@ namespace DebugMod
             panel.AddPanel("Items Panel", GUIController.Instance.images["DropdownBG"], new Vector2(345f, 75f), Vector2.zero, new Rect(0, 0, GUIController.Instance.images["DropdownBG"].width, GUIController.Instance.images["DropdownBG"].height));
             panel.AddPanel("Bosses Panel", GUIController.Instance.images["DropdownBG"], new Vector2(445f, 75f), Vector2.zero, new Rect(0, 0, GUIController.Instance.images["DropdownBG"].width, 200f));
             panel.AddPanel("DreamGate Panel", GUIController.Instance.images["DreamGateDropdownBG"], new Vector2(545f, 75f), Vector2.zero, new Rect(0, 0, GUIController.Instance.images["DreamGateDropdownBG"].width, GUIController.Instance.images["DreamGateDropdownBG"].height));
-
+            
+            
             //Cheats panel
             panel.GetPanel("Cheats Panel").AddButton("Infinite Jump", GUIController.Instance.images["ButtonRectEmpty"], new Vector2(5f, 30f), Vector2.zero, InfiniteJumpClicked, new Rect(0f, 0f, 80f, 20f), GUIController.Instance.trajanNormal, "Infinite Jump", 10);
             panel.GetPanel("Cheats Panel").AddButton("Infinite Soul", GUIController.Instance.images["ButtonRectEmpty"], new Vector2(5f, 60f), Vector2.zero, InfiniteSoulClicked, new Rect(0f, 0f, 80f, 20f), GUIController.Instance.trajanNormal, "Infinite Soul", 10);
@@ -47,8 +53,8 @@ namespace DebugMod
             panel.GetPanel("Cheats Panel").AddButton("Noclip", GUIController.Instance.images["ButtonRectEmpty"], new Vector2(5f, 150f), Vector2.zero, NoclipClicked, new Rect(0f, 0f, 80f, 20f), GUIController.Instance.trajanNormal, "Noclip", 10);
             panel.GetPanel("Cheats Panel").AddButton("Kill Self", GUIController.Instance.images["ButtonRectEmpty"], new Vector2(5f, 180f), Vector2.zero, KillSelfClicked, new Rect(0f, 0f, 80f, 20f), GUIController.Instance.trajanNormal, "Kill Self", 10);
             panel.GetPanel("Cheats Panel").AddButton("Lock KeyBinds", GUIController.Instance.images["ButtonRectEmpty"], new Vector2(5f, 210f), Vector2.zero, KeyBindLockClicked, new Rect(0f, 0f, 80f, 20f), GUIController.Instance.trajanNormal, "Lock KeyBinds", 10);
-
-
+            
+            
             //Charms panel
             panel.GetPanel("Charms Panel").AddButton("All Charms", GUIController.Instance.images["ButtonRectEmpty"], new Vector2(5f, 30f), Vector2.zero, AllCharmsClicked, new Rect(0f, 0f, 80f, 20f), GUIController.Instance.trajanNormal, "All Charms", 10);
             panel.GetPanel("Charms Panel").AddButton("Kingsoul", GUIController.Instance.images["ButtonRectEmpty"], new Vector2(5f, 60f), Vector2.zero, KingsoulClicked, new Rect(0f, 0f, 80f, 20f), GUIController.Instance.trajanNormal, "Kingsoul: " + PlayerData.instance.royalCharmState, 10);
@@ -147,6 +153,15 @@ namespace DebugMod
             panel.GetPanel("DreamGate Panel").AddButton("Scroll Down", GUIController.Instance.images["ScrollBarArrowDown"], new Vector2(180f, 130f), Vector2.zero, ScrollDownClicked, new Rect(0f, 0f, GUIController.Instance.images["ScrollBarArrowDown"].width, GUIController.Instance.images["ScrollBarArrowDown"].height));
 
             panel.FixRenderOrder();
+        }
+
+        private static void MakeList()
+        {
+            //currently only 4 slots available
+            AllPossibleLocations.Add(new Vector2(646,68f));
+            AllPossibleLocations.Add(new Vector2(646,28f));
+            AllPossibleLocations.Add(new Vector2(746,68f));
+            AllPossibleLocations.Add(new Vector2(746,28f));
         }
 
         public static void Update()
@@ -319,6 +334,7 @@ namespace DebugMod
             BindableFunctions.ToggleAllPanels();
         }
 
+        #region ClickedFunctions
         private static void KillAllClicked(string buttonName)
         {
             BindableFunctions.KillAll();
@@ -677,7 +693,49 @@ namespace DebugMod
             int listLength = PreviousBindChange.Count;
             if (listLength == 1) return;
             Console.AddLine($"Time since {(DebugMod.KeyBindLock ? "Unlock":"Lock")} was {currentTime - PreviousBindChange[listLength - 2]}");
+        }
+        #endregion
+
+        [PublicAPI(comment:"Hi")]
+        public static void AddNewMenuToTopMenu(string MenuName)
+        {
+            Rect buttonRect = new Rect(0, 0, GUIController.Instance.images["ButtonRect"].width, GUIController.Instance.images["ButtonRect"].height);
+
+            UnityAction<string> ClickedFunction = _ => panel.TogglePanel(MenuName);
+
+            Vector2 Pos = AllPossibleLocations.First();
+            AllPossibleLocations.Remove(Pos);
+
+            panel.AddButton(MenuName, GUIController.Instance.images["ButtonRect"], Pos, Vector2.zero, ClickedFunction, buttonRect, GUIController.Instance.trajanBold, MenuName);
             
+            panel.AddPanel(MenuName, GUIController.Instance.images["DropdownBG"], new Vector2(Pos.x, 75f), Vector2.zero, new Rect(0, 0, GUIController.Instance.images["DropdownBG"].width, GUIController.Instance.images["DropdownBG"].height));
+        }
+
+        [PublicAPI]
+        public static void AddTextToMenuButton(string MenuName, string ButtonText,
+            UnityAction<string> ClickedFunction, float Y_Position)
+        {
+            panel.GetPanel(MenuName).AddButton(ButtonText,
+                     GUIController.Instance.images["ButtonRectEmpty"],
+                    new Vector2(5f, Y_Position), 
+                    Vector2.zero, 
+                    ClickedFunction,
+                    new Rect(0f, 0f, 80f, 20f),
+                    GUIController.Instance.trajanNormal, 
+                    ButtonText,
+                    10);
+        }
+
+        [PublicAPI]
+        public static void AddImageToMenuButton(string MenuName, string ButtonText,Texture2D buttonImage,
+            Vector2 Position, Vector2 imageSizeOnPanel, UnityAction<string> ClickedFunction)
+        {
+            panel.GetPanel(MenuName).AddButton(ButtonText, 
+                buttonImage,
+                Position, 
+                imageSizeOnPanel, 
+                ClickedFunction,
+                new Rect(0, 0, buttonImage.width, buttonImage.height));
         }
     }
 }

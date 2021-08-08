@@ -20,7 +20,7 @@ namespace DebugMod
     {
         public override string GetVersion()
         {
-            return "1.4.4 - 1";
+            return "1.4.6 - 2";
         }
 
         private static GameManager _gm;
@@ -40,6 +40,7 @@ namespace DebugMod
         internal static PlayMakerFSM RefDreamNail => _refDreamNail != null ? _refDreamNail : (_refDreamNail = FSMUtility.LocateFSM(RefKnight, "Dream Nail"));
 
         internal static DebugMod instance;
+        
         public static GlobalSettings settings { get; set; } = new GlobalSettings();
         public void OnLoadGlobal(GlobalSettings s) => DebugMod.settings = s;
         public GlobalSettings OnSaveGlobal() => DebugMod.settings;
@@ -64,22 +65,14 @@ namespace DebugMod
         internal static bool PauseGameNoUIActive = false;
 
         internal static Dictionary<string, Pair> bindMethods = new Dictionary<string, Pair>();
+        internal static Dictionary<string, Pair> AdditionalBindMenthods = new Dictionary<string, Pair>();
 
-        public static readonly Dictionary<string, GameObject> PreloadedObjects = new Dictionary<string, GameObject>();
-        public override List<(string, string)> GetPreloadNames()
-        {
-            return new List<(string, string)>
-            {
-                ("Tutorial_01", "_Enemies/Buzzer")
-            };
-        }
-        
         internal static Dictionary<KeyCode, int> alphaKeyDict = new Dictionary<KeyCode, int>();
 
         static int alphaStart;
         static int alphaEnd;
         
-        public override void Initialize(Dictionary<string, Dictionary<string, GameObject>> preloadedObjects)
+        public override void Initialize()
         {
             instance = this;
 
@@ -102,7 +95,7 @@ namespace DebugMod
                     bindMethods.Add(name, new Pair(cat, method));
                 }
             }
-            PreloadedObjects.Add("Enemy", preloadedObjects["Tutorial_01"]["_Enemies/Buzzer"]);
+            
             instance.Log("Done! Time taken: " + (Time.realtimeSinceStartup - startTime) + "s. Found " + bindMethods.Count + " methods");
 
             if (settings.FirstRun)
@@ -170,54 +163,71 @@ namespace DebugMod
             CurrentTimeScale = 1f;
 
             Console.AddLine("New session started " + DateTime.Now);
-
-            #region Troll Menu
-            if (chooser == 1) GameManager.instance.StartCoroutine(FixMenuTitle());
         }
-
-        [UsedImplicitly]
-        public static int chooser;
-        private bool OpenedSave;
+        
+        #region Troll Menu
+        private static int chooser;
+        private static bool OpenedSave;
+        
         public DebugMod()
         {
             chooser = Random.Range(1, 100);
             OpenedSave = false;
-            if (chooser == 1)
+            if (chooser != 1) return;
+            GameObject DebugEasterEgg = new GameObject("DebugEasterEgg");
+            Object.DontDestroyOnLoad(DebugEasterEgg);
+            
+            On.SetVersionNumber.Start += ChangeVersionNumber;
+            On.MenuStyleTitle.SetTitle += FixMenuTitle;
+        }
+
+        private void FixMenuTitle(On.MenuStyleTitle.orig_SetTitle orig, MenuStyleTitle self, int index)
+        {
+            if (GameObject.Find("DebugEasterEgg") == null) orig(self, index);
+            else if (OpenedSave) orig(self, index);
+
+            else
             {
-                var DebugEasterEgg = new GameObject("DebugEasterEgg");
-                GameObject.DontDestroyOnLoad(DebugEasterEgg);
-                On.SetVersionNumber.Start += ChangeVersionNumber;
+                Log("Running");
+                MenuStyleTitle.TitleSpriteCollection spriteCollection =
+                    index < 0 || index >= self.TitleSprites.Length
+                        ? self.DefaultTitleSprite
+                        : self.TitleSprites[index];
+
+                Texture2D RealTitle_texture = new Texture2D(1, 1);
+                using (Stream stream = Assembly.GetExecutingAssembly()
+                    .GetManifestResourceStream("DebugMod.Images.SilkNever.png"))
+                {
+                    byte[] bytes = new byte[stream.Length];
+                    stream.Read(bytes, 0, bytes.Length);
+                    RealTitle_texture.LoadImage(bytes, false);
+                    RealTitle_texture.name = "SilkNever";
+                }
+
+                var RealTitle = Sprite.Create(RealTitle_texture,
+                    new Rect(0, 0, RealTitle_texture.width, RealTitle_texture.height),
+                    new Vector2(0.5f, 0.5f), spriteCollection.Default.pixelsPerUnit, 0, SpriteMeshType.FullRect);
+
+                self.Title.sprite = RealTitle;
             }
         }
-        
+
         private void ChangeVersionNumber(On.SetVersionNumber.orig_Start orig, SetVersionNumber self)
         {
             Text textUi =  ReflectionHelper.GetField<SetVersionNumber, Text>(self, "textUi");
-            if (!((Object) textUi != (Object) null))
-                return;
+            
+            if (!(textUi != null)) return;
+            
             string VersionNumber = OpenedSave ? Constants.GAME_VERSION : "1.2.2.1";
             StringBuilder stringBuilder = new StringBuilder(VersionNumber);
             if (CheatManager.IsCheatsEnabled)
+            {
                 stringBuilder.Append("\n(CHEATS ENABLED)");
+            }
             textUi.text = stringBuilder.ToString();
         }
 
-        private IEnumerator FixMenuTitle()
-        {
-            yield return null;
-            
-            if (chooser != 1) yield break;
-
-            Sprite RealTitle = Sprite.Create(GUIController.Instance.images["SilkNever"], new Rect(0f, 0f, GUIController.Instance.images["SilkNever"].width, GUIController.Instance.images["SilkNever"].height), new Vector2(0.5f,0.5f), 64);
-            yield return new WaitUntil(() => GameObject.Find("LogoTitle"));
-            
-            if (GameObject.Find("DebugEasterEgg") == null) yield break;
-            
-            GameObject.Find("LogoTitle").GetComponent<SpriteRenderer>().sprite = RealTitle;
-        }
         #endregion
-        //public override bool IsCurrent() => true;
-
         private void SaveSettings()
         {
             SaveGlobalSettings();
@@ -319,6 +329,24 @@ namespace DebugMod
             HC.ResetState();
 
             GM.LoadScene(scenename);
+        }
+        
+        [PublicAPI]
+        public static void AddToKeyBindList(Type BindableFunctionsClass)
+        {
+            foreach (MethodInfo method in BindableFunctionsClass.GetMethods(BindingFlags.Public | BindingFlags.Static))
+            {
+                object[] attributes = method.GetCustomAttributes(typeof(BindableMethod), false);
+
+                if (attributes.Any())
+                {
+                    BindableMethod attr = (BindableMethod)attributes[0];
+                    string name = attr.name;
+                    string cat = attr.category;
+
+                    AdditionalBindMenthods.Add(name, new Pair(cat, method));
+                } 
+            }
         }
     }
 }
