@@ -8,7 +8,7 @@ if (AppDomain.CurrentDomain.GetAssemblies().Select(theName => theName.GetName().
                 AddStuffToDebug();
             };
 ```
-3. In the `AddStuffToDebug` function, add the code to make stuff appear in Debug. This needs to be a different function, or else mod will fail to load if debug is present.
+3. In the `AddStuffToDebug` function, add the code to make stuff appear in Debug. 
 
 # How to add KeyBinds
 1) Construct a public class that has a `public static` function for each of the keys you wanna add. These functions must be annotated with `[BindableMethod(name = "name", category = "cat")]`.
