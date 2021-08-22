@@ -30,6 +30,7 @@ namespace DebugMod
             public Vector3 savePos;
             public FieldInfo cameraLockArea;
             public string filePath;
+            public bool isKinematized;
 
             internal SaveStateData() { }
             
@@ -43,6 +44,7 @@ namespace DebugMod
                 savedSd = _data.savedSd;
                 savePos = _data.savePos;
                 lockArea = _data.lockArea;
+                isKinematized = _data.isKinematized;
             }
         }
 
@@ -65,6 +67,7 @@ namespace DebugMod
             data.savePos = HeroController.instance.gameObject.transform.position;
             data.cameraLockArea = (data.cameraLockArea ?? typeof(CameraController).GetField("currentLockArea", BindingFlags.Instance | BindingFlags.NonPublic));
             data.lockArea = data.cameraLockArea.GetValue(GameManager.instance.cameraCtrl);
+            data.isKinematized = HeroController.instance.GetComponent<Rigidbody2D>().isKinematic;
         }
 
         public void NewSaveStateToFile(int paramSlot)
@@ -146,6 +149,7 @@ namespace DebugMod
                         data.savePos = tmpData.savePos;
                         data.saveScene = tmpData.saveScene;
                         data.lockArea = tmpData.lockArea;
+                        data.isKinematized = tmpData.isKinematized;
                         DebugMod.instance.Log("Load SaveState ready: " + data.saveStateIdentifier);
                     }
                     catch (Exception ex)
@@ -224,6 +228,7 @@ namespace DebugMod
 
             HeroController.instance.gameObject.transform.position = data.savePos;
             HeroController.instance.transitionState = HeroTransitionState.WAITING_TO_TRANSITION;
+            HeroController.instance.GetComponent<Rigidbody2D>().isKinematic = data.isKinematized;
             
             typeof(HeroController)
                 .GetMethod("FinishedEnteringScene", BindingFlags.NonPublic | BindingFlags.Instance)?
