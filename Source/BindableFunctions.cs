@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using DebugMod.Hitbox;
 using DebugMod.MonoBehaviours;
 using GlobalEnums;
+using HutongGames.PlayMaker.Actions;
 using Newtonsoft.Json;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -736,6 +738,31 @@ namespace DebugMod
             DebugMod.GM.ReadyForRespawn(false);
             GameCameras.instance.hudCanvas.gameObject.SetActive(false);
             GameCameras.instance.hudCanvas.gameObject.SetActive(true);
+        }
+
+        [BindableMethod(name = "Toggle Bench Storage", category = "Cheats")]
+        public static void ToggleBenchStorage()
+        {
+            PlayerData.instance.atBench = !PlayerData.instance.atBench;
+            Console.AddLine($"{(PlayerData.instance.atBench ? "Given" : "Taken away")} bench storage");
+        }
+
+        [BindableMethod(name = "Toggle Collision", category = "Cheats")]
+        public static void ToggleCollision()
+        {
+            var rb2d = HeroController.instance.GetComponent<Rigidbody2D>();
+            rb2d.isKinematic = !rb2d.isKinematic;
+            Console.AddLine($"{(rb2d.isKinematic ? "Enabled" : "Disabled")} collision");
+        }
+
+        [BindableMethod(name = "Dreamgate Invulnerability", category = "Cheats")]
+        public static void GiveDgateInvuln()
+        {
+            PlayerData.instance.isInvincible = true;
+            Object.FindObjectOfType<HeroBox>().gameObject.SetActive(false);
+            HeroController.instance.gameObject.LocateMyFSM("Roar Lock").FsmVariables.FindFsmBool("No Roar").Value =
+                true;
+            Console.AddLine("Given dreamgate invulnerability");
         }
         
         #endregion
