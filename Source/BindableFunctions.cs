@@ -252,6 +252,14 @@ namespace DebugMod
             pd.isInvincible=false; 
             DebugMod.noclip=false;
         }
+
+        [BindableMethod(name = "Clear White Screen", category = "Misc")]
+        public static void ClearWhiteScreen()
+        {
+            GameObject.Find("Blanker White").LocateMyFSM("Blanker Control").SendEvent("FADE OUT");
+            HeroController.instance.EnableRenderer();
+        }
+        
         #endregion
         
         #region SaveStates 
