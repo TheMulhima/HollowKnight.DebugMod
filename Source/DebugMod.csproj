@@ -10,17 +10,41 @@
         <RootNamespace>DebugMod</RootNamespace>
         <AssemblyName>DebugMod</AssemblyName>
         <FileAlignment>512</FileAlignment>
-        <TargetFramework>v4.7.2</TargetFramework>
         <LangVersion>latest</LangVersion>
+        </PropertyGroup>
+    <!-- 1.5 Builds -->
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+        <TargetFramework>v4.7.2</TargetFramework>
+        <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+        <DefineConstants>CURRENTVERSION</DefineConstants>
+        
+        <!-- Put your 1.5 Install Path Here -->
         <HollowKnightFolder>..\..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\</HollowKnightFolder>
         <ModsDirectory>C:\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\Mods\DebugMod</ModsDirectory>
-    </PropertyGroup>
-    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-      <OutputPath>bin\Debug\</OutputPath>
-      <DocumentationFile></DocumentationFile>
+        <OutputPath>bin\Debug\</OutputPath>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-      <OutputPath>bin\Release\</OutputPath>
+        <TargetFramework>v4.7.2</TargetFramework>
+        <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+        <DefineConstants>CURRENTVERSION</DefineConstants>
+        
+        <!-- Put your 1.5 Install Path Here -->
+        <HollowKnightFolder>..\..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\</HollowKnightFolder>
+        <ModsDirectory>C:\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\Mods\DebugMod</ModsDirectory>
+        <OutputPath>bin\Release\</OutputPath>
+    </PropertyGroup>
+    
+    
+    <!-- 1.4 Build -->
+    <!-- To get this build configuration, manually add a build config named "1.4"-->
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'oldversion|AnyCPU' ">
+      <TargetFramework>v3.5</TargetFramework>
+        <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+        <DefineConstants>OLDVERSION</DefineConstants>
+        
+      <HollowKnightFolder>..\..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Hollow Knight 1.4 Modded\hollow_knight_Data\Managed\</HollowKnightFolder>
+      <ModsDirectory>C:\Program Files (x86)\Steam\steamapps\common\Hollow Knight 1.4 Modded\hollow_knight_Data\Managed\Mods</ModsDirectory>
+      <OutputPath>bin\oldversion\</OutputPath>
     </PropertyGroup>
     <ItemGroup>
         <EmbeddedResource Include="Images\AddEntry.png" />
@@ -79,39 +103,14 @@
         <EmbeddedResource Include="Images\SilkNever.png" />
         <EmbeddedResource Include="Images\Cursor.png" />
     </ItemGroup>
+    
+    <!-- Same References -->
     <ItemGroup>
         <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
           <HintPath>$(HollowKnightFolder)\Assembly-CSharp.dll</HintPath>
         </Reference>
-        <Reference Include="MMHOOK_Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>$(HollowKnightFolder)\MMHOOK_Assembly-CSharp.dll</HintPath>
-        </Reference>
-        <Reference Include="mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-          <HintPath>..\..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\mscorlib.dll</HintPath>
-        </Reference>
-        <Reference Include="netstandard, Version=2.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51">
-          <HintPath>..\..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\netstandard.dll</HintPath>
-        </Reference>
-        <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>$(HollowKnightFolder)\Newtonsoft.Json.dll</HintPath>
-        </Reference>
         <Reference Include="PlayMaker, Version=1.6.0.0, Culture=neutral, PublicKeyToken=null">
           <HintPath>$(HollowKnightFolder)\PlayMaker.dll</HintPath>
-        </Reference>
-        <Reference Include="SFCore, Version=1.5.1.0, Culture=neutral, PublicKeyToken=723094b6adc0e8b9">
-          <HintPath>$(HollowKnightFolder)\Mods\SFCore\SFCore.dll</HintPath>
-        </Reference>
-        <Reference Include="System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e">
-          <HintPath>$(HollowKnightFolder)\System.dll</HintPath>
-        </Reference>
-        <Reference Include="System.IO.Compression, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-          <HintPath>$(HollowKnightFolder)\System.IO.Compression.dll</HintPath>
-        </Reference>
-        <Reference Include="System.Net.Http, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-          <HintPath>$(HollowKnightFolder)\System.Net.Http.dll</HintPath>
-        </Reference>
-        <Reference Include="System.Runtime.Serialization.Xml, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-          <HintPath>$(HollowKnightFolder)\System.Runtime.Serialization.Xml.dll</HintPath>
         </Reference>
         <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
           <HintPath>$(HollowKnightFolder)\UnityEngine.dll</HintPath>
@@ -127,9 +126,6 @@
         </Reference>
         <Reference Include="UnityEngine.IMGUIModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
           <HintPath>$(HollowKnightFolder)\UnityEngine.IMGUIModule.dll</HintPath>
-        </Reference>
-        <Reference Include="UnityEngine.InputLegacyModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>$(HollowKnightFolder)\UnityEngine.InputLegacyModule.dll</HintPath>
         </Reference>
         <Reference Include="UnityEngine.JSONSerializeModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
           <HintPath>$(HollowKnightFolder)\UnityEngine.JSONSerializeModule.dll</HintPath>
@@ -147,6 +143,48 @@
           <HintPath>$(HollowKnightFolder)\UnityEngine.UIModule.dll</HintPath>
         </Reference>
     </ItemGroup>
+
+    <!-- 1.5 Specific References -->
+    <ItemGroup Condition=" '$(TargetFramework)' == 'v4.7.2' ">
+        <Reference Include="System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e">
+            <HintPath>$(HollowKnightFolder)\System.dll</HintPath>
+        </Reference>
+        <Reference Include="MMHOOK_Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+            <HintPath>$(HollowKnightFolder)\MMHOOK_Assembly-CSharp.dll</HintPath>
+        </Reference>
+        <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=null">
+            <HintPath>$(HollowKnightFolder)\Newtonsoft.Json.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine.InputLegacyModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+            <HintPath>$(HollowKnightFolder)\UnityEngine.InputLegacyModule.dll</HintPath>
+        </Reference>
+        <Reference Include="System.IO.Compression, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+            <HintPath>$(HollowKnightFolder)\System.IO.Compression.dll</HintPath>
+        </Reference>
+        <Reference Include="System.Net.Http, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+            <HintPath>$(HollowKnightFolder)\System.Net.Http.dll</HintPath>
+        </Reference>
+        <Reference Include="System.Runtime.Serialization.Xml, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+            <HintPath>$(HollowKnightFolder)\System.Runtime.Serialization.Xml.dll</HintPath>
+        </Reference>
+        <Reference Include="netstandard, Version=2.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51">
+            <HintPath>$(HollowKnightFolder)\netstandard.dll</HintPath>
+        </Reference>
+        <Reference Include="mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+            <HintPath>$(HollowKnightFolder)\mscorlib.dll</HintPath>
+        </Reference>
+    </ItemGroup>
+
+    <!-- 1.4 Specific References -->
+    <ItemGroup Condition=" '$(TargetFramework)' == 'v3.5' ">
+        <Reference Include="System, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+            <HintPath>$(HollowKnightFolder)\System.dll</HintPath>
+        </Reference>
+        <Reference Include="mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+            <HintPath>$(HollowKnightFolder)\mscorlib.dll</HintPath>
+        </Reference>
+    </ItemGroup>
+    
     <ItemGroup>
         <Compile Include="BindableFunctions.cs" />
         <Compile Include="BindableMethod.cs" />
@@ -155,6 +193,8 @@
         <Compile Include="Canvas\CanvasImage.cs" />
         <Compile Include="Canvas\CanvasPanel.cs" />
         <Compile Include="Canvas\CanvasText.cs" />
+        <Compile Include="Compatibility\ModHooks.cs" />
+        <Compile Include="Compatibility\ReflectionHelper.cs" />
         <Compile Include="Console.cs" />
         <Compile Include="DebugMod.cs" />
         <Compile Include="DreamGate.cs" />

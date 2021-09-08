@@ -1,18 +1,27 @@
 using System;
 using System.Collections.Generic;
+using Modding;
 
 namespace DebugMod
 {
     //Empty class required for DebugMod class definition
-    public class SaveSettings { }
+    public class SaveSettings
+    #if OLDVERSION
+    : ModSettings
+    #endif
+    
+    { }
 
     [Serializable]
     public class KeyBinds
     {
         public Dictionary<string, string> binds_to_file = new Dictionary<string, string>();
     }
-
+    
     public class GlobalSettings
+    #if OLDVERSION
+    : ModSettings
+    #endif
     {
         //Save members
         public Dictionary<string, int> binds = new Dictionary<string, int>();
@@ -40,5 +49,7 @@ namespace DebugMod
         public int MaxSaveStates = 6;
 
         public float AmountToMove = 0.1f;
+
+        public float NoClipSpeedModifier = 1f;
     }
 }

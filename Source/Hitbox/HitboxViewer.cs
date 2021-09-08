@@ -15,7 +15,10 @@ namespace DebugMod.Hitbox
             State = DebugMod.settings.ShowHitBoxes;
             Unload();
             UnityEngine.SceneManagement.SceneManager.activeSceneChanged += CreateHitboxRender;
-            ModHooks.ColliderCreateHook += UpdateHitboxRender;
+            
+            
+            Compatibility.ModHooks.ColliderCreateHook += UpdateHitboxRender;
+
             CreateHitboxRender();
         }
 
@@ -23,7 +26,8 @@ namespace DebugMod.Hitbox
         {
             State = DebugMod.settings.ShowHitBoxes;
             UnityEngine.SceneManagement.SceneManager.activeSceneChanged -= CreateHitboxRender;
-            ModHooks.ColliderCreateHook -= UpdateHitboxRender;
+            
+            Compatibility.ModHooks.ColliderCreateHook -= UpdateHitboxRender;
             DestroyHitboxRender();
         }
 

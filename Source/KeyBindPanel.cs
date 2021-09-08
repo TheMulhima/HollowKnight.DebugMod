@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using DebugMod.Canvas;
 using Modding;
 using UnityEngine;
 
@@ -79,16 +80,19 @@ namespace DebugMod
 
         private static void UnHook_AddAdditionalKeys()
         {
-            ModHooks.SavegameLoadHook -= AddAdditionalKeys_();
-            ModHooks.NewGameHook -= AddAdditionalKeys;
+            Compatibility.ModHooks.SavegameLoadHook -= AddAdditionalKeys_;
+            Compatibility.ModHooks.NewGameHook -= AddAdditionalKeys;
         }
 
-        private static Action<int> AddAdditionalKeys_() => delegate { AddAdditionalKeys(); };
-        
         private static void Hook_AddAdditionalKeys()
         {
-            ModHooks.SavegameLoadHook += AddAdditionalKeys_();
-            ModHooks.NewGameHook += AddAdditionalKeys;
+            Compatibility.ModHooks.SavegameLoadHook += AddAdditionalKeys_;
+            Compatibility.ModHooks.NewGameHook += AddAdditionalKeys;
+        }
+
+        private static void AddAdditionalKeys_(int _ = 0)
+        {
+            AddAdditionalKeys();
         }
 
         private static void AddAdditionalKeys()

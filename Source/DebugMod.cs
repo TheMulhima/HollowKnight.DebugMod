@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.IO;
 using System.Collections.Generic;
 using System.Reflection;
@@ -9,18 +8,26 @@ using Modding;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using GlobalEnums;
+using HutongGames.PlayMaker;
 using JetBrains.Annotations;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
 
+
 namespace DebugMod
 {
-    public class DebugMod : Mod, IGlobalSettings<GlobalSettings>, ILocalSettings<SaveSettings>
+    public class DebugMod
+        #if CURRENTVERSION
+        : Mod, IGlobalSettings<GlobalSettings>, ILocalSettings<SaveSettings>
+
+        #elif OLDVERSION
+        : Mod<SaveSettings, GlobalSettings>
+        #endif
     {
         public override string GetVersion()
         {
-            return "1.4.7";
+            return "1.4.7 - 0";
         }
 
         private static GameManager _gm;
@@ -40,13 +47,20 @@ namespace DebugMod
         internal static PlayMakerFSM RefDreamNail => _refDreamNail != null ? _refDreamNail : (_refDreamNail = FSMUtility.LocateFSM(RefKnight, "Dream Nail"));
 
         internal static DebugMod instance;
+
+        //internal static int NailDamage;
         
+        #if CURRENTVERSION
         public static GlobalSettings settings { get; set; } = new GlobalSettings();
         public void OnLoadGlobal(GlobalSettings s) => DebugMod.settings = s;
         public GlobalSettings OnSaveGlobal() => DebugMod.settings;
         public SaveSettings LocalSaveData { get; set; } = new SaveSettings();
         public void OnLoadLocal(SaveSettings s) => this.LocalSaveData = s;
         public SaveSettings OnSaveLocal() => this.LocalSaveData;
+    
+        #elif OLDVERSION
+        internal static GlobalSettings settings;
+        #endif
         
         private static float _loadTime;
         private static float _unloadTime;
@@ -98,6 +112,10 @@ namespace DebugMod
             
             instance.Log("Done! Time taken: " + (Time.realtimeSinceStartup - startTime) + "s. Found " + bindMethods.Count + " methods");
 
+            #if OLDVERSION
+            settings = GlobalSettings;
+            #endif
+            
             if (settings.FirstRun)
             {
                 instance.Log("First run detected, setting default binds");
@@ -149,11 +167,15 @@ namespace DebugMod
             Object.DontDestroyOnLoad(UIObj);
             
             saveStateManager = new SaveStateManager();
-            ModHooks.SavegameLoadHook += LoadCharacter;
-            ModHooks.NewGameHook += NewCharacter;
-            ModHooks.BeforeSceneLoadHook += OnLevelUnload;
-            ModHooks.TakeHealthHook += PlayerDamaged;
-            ModHooks.ApplicationQuitHook += SaveSettings;
+            Compatibility.ModHooks.AfterSavegameLoadHook += LoadCharacter;
+
+            //ModHooks.HitInstanceHook += DoDamage;
+            
+            Compatibility.ModHooks.NewGameHook += NewCharacter;
+            Compatibility.ModHooks.BeforeSceneLoadHook += OnLevelUnload;
+            Compatibility.ModHooks.TakeHealthHook += PlayerDamaged;
+            Compatibility.ModHooks.ApplicationQuitHook += SaveSettings;
+
 
             BossHandler.PopulateBossLists();
             GUIController.Instance.BuildMenus();
@@ -164,7 +186,15 @@ namespace DebugMod
 
             Console.AddLine("New session started " + DateTime.Now);
         }
-        
+
+        /*private HitInstance DoDamage(Fsm owner, HitInstance hit)
+        {
+            int damagedealt = Mathf.CeilToInt(NailDamage * (PlayerData.instance.equippedCharm_25 ? 1.5f : 1f));
+            Log(damagedealt);
+            hit.DamageDealt = damagedealt;
+            return hit;
+        }*/
+
         #region Troll Menu
         private static int chooser;
         private static bool OpenedSave;
@@ -214,16 +244,12 @@ namespace DebugMod
 
         private void ChangeVersionNumber(On.SetVersionNumber.orig_Start orig, SetVersionNumber self)
         {
-            Text textUi =  ReflectionHelper.GetField<SetVersionNumber, Text>(self, "textUi");
-            
+            Text textUi = Compatibility.ReflectionHelper.GetField<SetVersionNumber, Text>(self, "textUi");
+
             if (!(textUi != null)) return;
             
             string VersionNumber = OpenedSave ? Constants.GAME_VERSION : "1.2.2.1";
             StringBuilder stringBuilder = new StringBuilder(VersionNumber);
-            if (CheatManager.IsCheatsEnabled)
-            {
-                stringBuilder.Append("\n(CHEATS ENABLED)");
-            }
             textUi.text = stringBuilder.ToString();
         }
 
@@ -236,14 +262,15 @@ namespace DebugMod
 
         private int PlayerDamaged(int damageAmount) => infiniteHP ? 0 : damageAmount;
 
-        private void NewCharacter() => LoadCharacter(0);
+        private void NewCharacter() => LoadCharacter(null);
 
-        private void LoadCharacter(int saveId)
+        private void LoadCharacter(SaveGameData saveGameData)
         {
             OpenedSave = true;
             var DebugEasterEggChecker = GameObject.Find("DebugEasterEgg");
             if (DebugEasterEggChecker != null) GameObject.Destroy(DebugEasterEggChecker);
-            
+
+            //NailDamage = saveGameData?.playerData.nailDamage ?? 5;
             
             Console.Reset();
             EnemiesPanel.Reset();
@@ -288,11 +315,6 @@ namespace DebugMod
             _unloadTime = Time.realtimeSinceStartup;
 
             return toScene;
-        }
-
-        public static bool GrimmTroupe()
-        {
-            return ModHooks.version.gameVersion.minor >= 2;
         }
 
         public static string GetSceneName()

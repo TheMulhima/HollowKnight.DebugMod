@@ -1,12 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using DebugMod.Hitbox;
 using DebugMod.MonoBehaviours;
 using GlobalEnums;
-using HutongGames.PlayMaker.Actions;
 using Newtonsoft.Json;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -20,10 +18,8 @@ namespace DebugMod
         private static readonly FieldInfo IgnoreUnpause = typeof(UIManager).GetField("ignoreUnpause", BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Static);
         
         internal static readonly FieldInfo cameraGameplayScene = typeof(CameraController).GetField("isGameplayScene", BindingFlags.Instance | BindingFlags.NonPublic);
-        
-        #region Misc
 
-        [BindableMethod(name = "Nail Damage +4", category = "Misc")]
+        [BindableMethod(name = "Nail Damage +4", category = "GamePlay Altering")]
         public static void IncreaseNailDamage()
         {
             int num = 4;
@@ -36,7 +32,7 @@ namespace DebugMod
             Console.AddLine("Increased base nailDamage by " + num);
         }
 
-        [BindableMethod(name = "Nail Damage -4", category = "Misc")]
+        [BindableMethod(name = "Nail Damage -4", category = "GamePlay Altering")]
         public static void DecreaseNailDamage()
         {
             int num2 = PlayerData.instance.nailDamage - 4;
@@ -53,66 +49,8 @@ namespace DebugMod
                 PlayMakerFSM.BroadcastEvent("UPDATE NAIL DAMAGE");
             }
         }
-
-        [BindableMethod(name = "Force Pause", category = "Misc")]
-        public static void ForcePause()
-        {
-            try
-            {
-                if ((PlayerData.instance.disablePause || (bool)TimeSlowed.GetValue(GameManager.instance) || (bool)IgnoreUnpause.GetValue(UIManager.instance)) && DebugMod.GetSceneName() != "Menu_Title" && DebugMod.GM.IsGameplayScene())
-                {
-                    TimeSlowed.SetValue(GameManager.instance, false);
-                    IgnoreUnpause.SetValue(UIManager.instance, false);
-                    PlayerData.instance.disablePause = false;
-                    UIManager.instance.TogglePauseGame();
-                    Console.AddLine("Forcing Pause Menu because pause is disabled");
-                }
-                else
-                {
-                    Console.AddLine("Game does not report that Pause is disabled, requesting it normally.");
-                    UIManager.instance.TogglePauseGame();
-                }
-            }
-            catch (Exception e)
-            {
-                Console.AddLine("Error while attempting to pause, check ModLog.txt");
-                DebugMod.instance.Log("Error while attempting force pause:\n" + e);
-            }
-        }
-
-        [BindableMethod(name = "Hazard Respawn", category = "Misc")]
-        public static void Respawn()
-        {
-            if (GameManager.instance.IsGameplayScene() && !HeroController.instance.cState.dead && PlayerData.instance.health > 0)
-            {
-                if (UIManager.instance.uiState.ToString() == "PAUSED")
-                {
-                    UIManager.instance.TogglePauseGame();
-                    GameManager.instance.HazardRespawn();
-                    Console.AddLine("Closing Pause Menu and respawning...");
-                    return;
-                }
-                if (UIManager.instance.uiState.ToString() == "PLAYING")
-                {
-                    HeroController.instance.RelinquishControl();
-                    GameManager.instance.HazardRespawn();
-                    HeroController.instance.RegainControl();
-                    Console.AddLine("Respawn signal sent");
-                    return;
-                }
-                Console.AddLine("Respawn requested in some weird conditions, abort, ABORT");
-            }
-        }
-
-        [BindableMethod(name = "Set Respawn", category = "Misc")]
-        public static void SetHazardRespawn()
-        {
-            Vector3 manualRespawn = DebugMod.RefKnight.transform.position;
-            HeroController.instance.SetHazardRespawn(manualRespawn, false);
-            Console.AddLine("Manual respawn point on this map set to" + manualRespawn);
-        }
-
-        [BindableMethod(name = "Decrease Timescale", category = "Misc")]
+        
+        [BindableMethod(name = "Decrease Timescale", category = "GamePlay Altering")]
         public static void TimescaleDown()
         {
             //This needs to be added because the game sets timescale to 0 when paused to pause the game if this is changed to a 
@@ -138,11 +76,11 @@ namespace DebugMod
                     TimeScale.DisableTimeScale();
                     break;
             }
-            Console.AddLine("New TimeScale value: " + oldScale + " Old value: " + DebugMod.CurrentTimeScale);
+            Console.AddLine("New TimeScale value: " + DebugMod.CurrentTimeScale + " Old value: " + oldScale);
 
         }
 
-        [BindableMethod(name = "Increase Timescale", category = "Misc")]
+        [BindableMethod(name = "Increase Timescale", category = "GamePlay Altering")]
         public static void TimescaleUp()
         {
             if (DebugMod.GM.IsGamePaused())
@@ -166,10 +104,10 @@ namespace DebugMod
                     TimeScale.DisableTimeScale();
                     break;
             }
-            Console.AddLine("New TimeScale value: " + oldScale + " Old value: " + DebugMod.CurrentTimeScale);
+            Console.AddLine("New TimeScale value: " + DebugMod.CurrentTimeScale + " Old value: " + oldScale);
         }
 
-        [BindableMethod(name = "Pause Game Without UI", category = "Misc")]
+        [BindableMethod(name = "Freeze Game", category = "GamePlay Altering")]
         public static void PauseGameNoUI()
         {
             DebugMod.PauseGameNoUIActive = !DebugMod.PauseGameNoUIActive;
@@ -177,43 +115,31 @@ namespace DebugMod
             if (DebugMod.PauseGameNoUIActive)
             {
                 Time.timeScale = 0;
-                if (!GameManager.instance.TimeSlowed)
-                {
-                    if (!GameManager.instance.playerData.disablePause && GameManager.instance.gameState == GameState.PLAYING)
-                    {
-                        GameCameras.instance.StopCameraShake();
-                        GameManager.instance.inputHandler.PreventPause();
-                        GameManager.instance.inputHandler.StopUIInput();
-                        GameManager.instance.actorSnapshotPaused.TransitionTo(0.0f);
-                        if (HeroController.instance != null)  HeroController.instance.Pause();
-                        GameCameras.instance.MoveMenuToHUDCamera();
-                        Time.timeScale = 0;
-                        //GameManager.instance.inputHandler.AllowPause();
+                GameCameras.instance.StopCameraShake();
 
-                        var component = GameManager.instance.gameObject.GetComponent<MyCursor>();
-                        if (component == null) GameManager.instance.gameObject.AddComponent<MyCursor>();
-                    }
-                }
+                var component = GameManager.instance.gameObject.GetComponent<MyCursor>();
+                if (component == null) GameManager.instance.gameObject.AddComponent<MyCursor>();
+
+                Console.AddLine("Game was Frozen");
+
             }
             else
             {
                 GameCameras.instance.ResumeCameraShake();
-                //GameManager.instance.inputHandler.PreventPause();
-                //GameManager.instance.actorSnapshotUnpaused.TransitionTo(0.0f);
                 GameManager.instance.isPaused = false;
-                //GameManager.instance.ui.AudioGoToGameplay(0.2f);
                 GameManager.instance.ui.SetState(UIState.PLAYING);
                 GameManager.instance.SetState(GameState.PLAYING);
                 if (HeroController.instance != null) HeroController.instance.UnPause();
-                MenuButtonList.ClearAllLastSelected();
                 Time.timeScale = DebugMod.CurrentTimeScale;
                 GameManager.instance.inputHandler.AllowPause();
                 var component = GameManager.instance.gameObject.GetComponent<MyCursor>();
                 if (component != null) Object.Destroy(component);
+                
+                Console.AddLine("Game was Unfrozen");
             }
         }
         
-        [BindableMethod(name = "Reset settings", category = "Misc")]
+        [BindableMethod(name = "Reset settings", category = "GamePlay Altering")]
         public static void Reset()
         {
             var pd = PlayerData.instance;
@@ -252,15 +178,6 @@ namespace DebugMod
             pd.isInvincible=false; 
             DebugMod.noclip=false;
         }
-
-        [BindableMethod(name = "Clear White Screen", category = "Misc")]
-        public static void ClearWhiteScreen()
-        {
-            GameObject.Find("Blanker White").LocateMyFSM("Blanker Control").SendEvent("FADE OUT");
-            HeroController.instance.EnableRenderer();
-        }
-        
-        #endregion
         
         #region SaveStates 
 
@@ -456,22 +373,6 @@ namespace DebugMod
             GameCameras.instance.cameraShakeFSM.enabled = newValue;
             Console.AddLine($"{(newValue ? "Enabling" : "Disabling")} Camera Shake...");
         }
-        
-        [BindableMethod(name = "Force Camera Follow", category = "Misc")]
-        public static void ForceCameraFollow()
-        {
-            if (!DebugMod.cameraFollow)
-            {
-                Console.AddLine("Forcing camera follow");
-                DebugMod.cameraFollow = true;
-            }
-            else
-            {
-                DebugMod.cameraFollow = false;
-                cameraGameplayScene.SetValue(DebugMod.RefCamera, true);
-                Console.AddLine("Returning camera to normal settings");
-            }
-        }
 
         #endregion
 
@@ -590,7 +491,7 @@ namespace DebugMod
         #region Enemies
 
         //probably should delete this as it has become obsolete becuase of the new Show Hitboxes in the visuals page
-        [BindableMethod(name = "Toggle Enemy Hitboxes", category = "Enemy Panel")]
+        [BindableMethod(name = "Toggle Enemy Hitboxes (Redundant)", category = "Enemy Panel")]
         public static void ToggleEnemyCollision()
         {
             EnemiesPanel.hitboxes = !EnemiesPanel.hitboxes;
@@ -653,17 +554,7 @@ namespace DebugMod
                 return;
             }
             //GameManager.instance.gameObject.AddComponent<SelfDamage>();
-            var go = new GameObject("death", typeof(BoxCollider2D), typeof(DamageHero));
-            go.layer = 8;
-            var bc2d = go.GetComponent<BoxCollider2D>();
-            bc2d.size = new Vector2(4, 4);
-            bc2d.isTrigger = true;
-            var dh = go.GetComponent<DamageHero>();
-            dh.hazardType = 1;
-            dh.damageDealt = (PlayerData.instance.GetInt("health") + PlayerData.instance.GetInt("healthBlue") +
-                              PlayerData.instance.GetInt("joniHealth")) * 1; // maybe 2
-            go.transform.position = DebugMod.RefKnight.gameObject.transform.position;
-            go.SetActive(true);
+            HeroController.instance.TakeDamage(new GameObject(),CollisionSide.left,1,(int)HazardType.NON_HAZARD);
 
             Console.AddLine("Attempting self damage");
         }
@@ -747,7 +638,7 @@ namespace DebugMod
             GameCameras.instance.hudCanvas.gameObject.SetActive(false);
             GameCameras.instance.hudCanvas.gameObject.SetActive(true);
         }
-
+        
         [BindableMethod(name = "Toggle Bench Storage", category = "Cheats")]
         public static void ToggleBenchStorage()
         {
@@ -783,11 +674,6 @@ namespace DebugMod
             for (int i = 1; i <= 40; i++)
             {
                 PlayerData.instance.SetBoolInternal("gotCharm_" + i, true);
-
-                if (i == 36 && !DebugMod.GrimmTroupe())
-                {
-                    break;
-                }
             }
 
             PlayerData.instance.charmSlots = 10;
@@ -805,15 +691,12 @@ namespace DebugMod
             PlayerData.instance.salubraNotch2 = true;
             PlayerData.instance.salubraNotch3 = true;
             PlayerData.instance.salubraNotch4 = true;
+            PlayerData.instance.SetBoolInternal("fragileGreed_unbreakable", true);
+            PlayerData.instance.SetBoolInternal("fragileHealth_unbreakable", true);
+            PlayerData.instance.SetBoolInternal("fragileStrength_unbreakable", true);
+            PlayerData.instance.SetIntInternal("grimmChildLevel", 5);
+            PlayerData.instance.charmSlots = 11;
 
-            if (DebugMod.GrimmTroupe())
-            {
-                PlayerData.instance.SetBoolInternal("fragileGreed_unbreakable", true);
-                PlayerData.instance.SetBoolInternal("fragileHealth_unbreakable", true);
-                PlayerData.instance.SetBoolInternal("fragileStrength_unbreakable", true);
-                PlayerData.instance.SetIntInternal("grimmChildLevel", 5);
-                PlayerData.instance.charmSlots = 11;
-            }
 
             Console.AddLine("Added all charms to inventory");
         }
@@ -914,12 +797,6 @@ namespace DebugMod
         [BindableMethod(name = "Increment Grimmchild", category = "Charms")]
         public static void IncreaseGrimmchildLevel()
         {
-            if (!DebugMod.GrimmTroupe())
-            {
-                Console.AddLine("Grimmchild does not exist on this patch");
-                return;
-            }
-
             if (!PlayerData.instance.GetBoolInternal("gotCharm_40"))
             {
                 PlayerData.instance.SetBoolInternal("gotCharm_40", true);
@@ -980,6 +857,7 @@ namespace DebugMod
             {
                 PlayerData.instance.hasShadowDash = true;
                 PlayerData.instance.canShadowDash = true;
+                EventRegister.SendEvent("GOT SHADOW DASH");
                 Console.AddLine("Giving player Shade Cloak");
             }
             else
@@ -1047,6 +925,7 @@ namespace DebugMod
             if (!PlayerData.instance.hasAcidArmour)
             {
                 PlayerData.instance.hasAcidArmour = true;
+                PlayMakerFSM.BroadcastEvent("GET ACID ARMOUR");
                 Console.AddLine("Giving player Isma's Tear");
             }
             else
@@ -1241,12 +1120,6 @@ namespace DebugMod
         [BindableMethod(name = "Respawn NK Grimm", category = "Bosses")]
         public static void ToggleNKGrimm()
         {
-            if (!DebugMod.GrimmTroupe())
-            {
-                Console.AddLine("Nightmare King Grimm does not exist on this patch");
-                return;
-            }
-
             if (PlayerData.instance.GetBoolInternal("killedNightmareGrimm") || PlayerData.instance.GetBoolInternal("destroyedNightmareLantern"))
             {
                 PlayerData.instance.SetBoolInternal("troupeInTown", true);
@@ -1661,6 +1534,13 @@ namespace DebugMod
             
             GameManager.instance.AwardAchievement(AchievementToGive);
         }
+        [BindableMethod(name = "Add GrimmKin Flames", category = "Consumables")]
+        public static void GrimmKinFlames()
+        {
+            if (PlayerData.instance.flamesCollected == 3) PlayerData.instance.flamesCollected = 0;
+            else PlayerData.instance.flamesCollected += 1;
+            Console.AddLine("Grimm kin flames incremented");
+        }
 
 
         #endregion
@@ -1783,14 +1663,14 @@ namespace DebugMod
             );
         }
         
-        [BindableMethod(name = "List all GameObjects in Scene", category = "ExportData")]
+        /*[BindableMethod(name = "List all GameObjects in Scene", category = "ExportData")]
         public static void Dump()
         {
             foreach (GameObject go in GameObject.FindObjectsOfType<GameObject>())
             {
                 DebugMod.instance.Log(go.name);
             }
-        }
+        }*/
         
         [BindableMethod(name = "Save Key Binds To File", category = "ExportData")]
         public static void GenerateKeyBindToFile()
@@ -1838,28 +1718,127 @@ namespace DebugMod
             var NewDict = new Dictionary<string, int>();
             foreach (var bind in StringDict)
             {
-                if (Enum.TryParse(bind.Value, true, out KeyCode newBind))
-                {
-                    NewDict.Add(bind.Key, (int)newBind);
-                }
+                NewDict.Add(bind.Key, (int) Enum.Parse(typeof(KeyCode), bind.Value, true));
             }
+
             return NewDict;
         }
 
-        [BindableMethod(name = "Turn Off Vsync", category = "ExportData")]
-        public static void Vsync()
-        {
-            GameManager.instance.gameSettings.vSync = 0;
-            GameManager.instance.gameSettings.SaveVideoSettings();
-            Platform.Current.AdjustGraphicsSettings(GameManager.instance.gameSettings);
-            var settings = new GameSettings()
-            {
-                vSync = 0,
-            };
-            settings.SaveVideoSettings();
-            Platform.Current.AdjustGraphicsSettings(settings);
-            Console.AddLine("No more vsync");
+        #endregion
+        #region Misc
 
+        /*[BindableMethod(name = "Nail Damage +4 Temp", category = "Misc")]
+        public static void IncreaseNailDamageTemp()
+        {
+            int num = 4;
+            if (DebugMod.NailDamage == 0)
+            {
+                num = 5;
+            }
+            DebugMod.NailDamage += num;
+            Console.AddLine($"Increased base nailDamage to {DebugMod.NailDamage}");
+        }
+
+        [BindableMethod(name = "Nail Damage -4 Temp", category = "Misc")]
+        public static void DecreaseNailDamageTemp()
+        {
+            int num2 = DebugMod.NailDamage - 4;
+            if (num2 >= 0)
+            {
+                DebugMod.NailDamage = num2;
+                Console.AddLine($"Decreased base nailDamage to {DebugMod.NailDamage}");
+            }
+            else
+            {
+                Console.AddLine("Cannot set base nailDamage less than 0 therefore forcing 0 value");
+                DebugMod.NailDamage = 0;
+            }
+        }*/
+
+        [BindableMethod(name = "Force Pause", category = "Misc")]
+        public static void ForcePause()
+        {
+            try
+            {
+                if ((PlayerData.instance.disablePause || (bool)TimeSlowed.GetValue(GameManager.instance) || (bool)IgnoreUnpause.GetValue(UIManager.instance)) && DebugMod.GetSceneName() != "Menu_Title" && DebugMod.GM.IsGameplayScene())
+                {
+                    TimeSlowed.SetValue(GameManager.instance, false);
+                    IgnoreUnpause.SetValue(UIManager.instance, false);
+                    PlayerData.instance.disablePause = false;
+                    UIManager.instance.TogglePauseGame();
+                    Console.AddLine("Forcing Pause Menu because pause is disabled");
+                }
+                else
+                {
+                    Console.AddLine("Game does not report that Pause is disabled, requesting it normally.");
+                    UIManager.instance.TogglePauseGame();
+                }
+            }
+            catch (Exception e)
+            {
+                Console.AddLine("Error while attempting to pause, check ModLog.txt");
+                DebugMod.instance.Log("Error while attempting force pause:\n" + e);
+            }
+        }
+
+        [BindableMethod(name = "Hazard Respawn", category = "Misc")]
+        public static void Respawn()
+        {
+            if (GameManager.instance.IsGameplayScene() && !HeroController.instance.cState.dead && PlayerData.instance.health > 0)
+            {
+                if (UIManager.instance.uiState.ToString() == "PAUSED")
+                {
+                    UIManager.instance.TogglePauseGame();
+                    GameManager.instance.HazardRespawn();
+                    Console.AddLine("Closing Pause Menu and respawning...");
+                    return;
+                }
+                if (UIManager.instance.uiState.ToString() == "PLAYING")
+                {
+                    HeroController.instance.RelinquishControl();
+                    GameManager.instance.HazardRespawn();
+                    HeroController.instance.RegainControl();
+                    Console.AddLine("Respawn signal sent");
+                    return;
+                }
+                Console.AddLine("Respawn requested in some weird conditions, abort, ABORT");
+            }
+        }
+
+        [BindableMethod(name = "Set Respawn", category = "Misc")]
+        public static void SetHazardRespawn()
+        {
+            Vector3 manualRespawn = DebugMod.RefKnight.transform.position;
+            HeroController.instance.SetHazardRespawn(manualRespawn, false);
+            Console.AddLine("Manual respawn point on this map set to" + manualRespawn);
+        }
+
+        [BindableMethod(name = "Toggle Infected Crossroads", category = "Misc")]
+        public static void ToggleInfection()
+        {
+            PlayerData.instance.crossroadsInfected = !PlayerData.instance.crossroadsInfected;
+            Console.AddLine($"Crossroads are now " + (PlayerData.instance.crossroadsInfected ? "enabled" : "disabled"));
+        }
+        [BindableMethod(name = "Force Camera Follow", category = "Misc")]
+        public static void ForceCameraFollow()
+        {
+            if (!DebugMod.cameraFollow)
+            {
+                Console.AddLine("Forcing camera follow");
+                DebugMod.cameraFollow = true;
+            }
+            else
+            {
+                DebugMod.cameraFollow = false;
+                cameraGameplayScene.SetValue(DebugMod.RefCamera, true);
+                Console.AddLine("Returning camera to normal settings");
+            }
+        }
+        [BindableMethod(name = "Clear White Screen", category = "Misc")]
+        public static void ClearWhiteScreen()
+        {
+            GameObject.Find("Blanker White").LocateMyFSM("Blanker Control").SendEvent("FADE OUT");
+            HeroController.instance.EnableRenderer();
         }
 
         #endregion

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using DebugMod.Canvas;
 using JetBrains.Annotations;
 using Modding;
 using UnityEngine;
@@ -198,11 +199,8 @@ namespace DebugMod
             {
                 panel.GetButton("Overcharm", "Charms Panel").SetTextColor(PlayerData.instance.overcharmed ? new Color(244f / 255f, 127f / 255f, 32f / 255f) : Color.white);
                 panel.GetButton("Kingsoul", "Charms Panel").UpdateText("Kingsoul: " + PlayerData.instance.royalCharmState);
-
-                if (DebugMod.GrimmTroupe())
-                {
-                    panel.GetButton("Grimmchild", "Charms Panel").UpdateText("Grimmchild: " + PlayerData.instance.GetIntInternal("grimmChildLevel"));
-                }
+                panel.GetButton("Grimmchild", "Charms Panel").UpdateText("Grimmchild: " + PlayerData.instance.GetIntInternal("grimmChildLevel"));
+                
             }
 
             if (panel.GetPanel("Cheats Panel").active)
@@ -221,11 +219,8 @@ namespace DebugMod
                 panel.GetButton("Failed Champ", "Bosses Panel").SetTextColor(PlayerData.instance.falseKnightDreamDefeated ? new Color(244f / 255f, 127f / 255f, 32f / 255f) : Color.white);
                 panel.GetButton("Soul Tyrant", "Bosses Panel").SetTextColor(PlayerData.instance.mageLordDreamDefeated ? new Color(244f / 255f, 127f / 255f, 32f / 255f) : Color.white);
                 panel.GetButton("Lost Kin", "Bosses Panel").SetTextColor(PlayerData.instance.infectedKnightDreamDefeated ? new Color(244f / 255f, 127f / 255f, 32f / 255f) : Color.white);
-
-                if (DebugMod.GrimmTroupe())
-                {
-                    panel.GetButton("NK Grimm", "Bosses Panel").SetTextColor((PlayerData.instance.GetBoolInternal("killedNightmareGrimm") || PlayerData.instance.GetBoolInternal("destroyedNightmareLantern")) ? new Color(244f / 255f, 127f / 255f, 32f / 255f) : Color.white);
-                }
+                panel.GetButton("NK Grimm", "Bosses Panel").SetTextColor((PlayerData.instance.GetBoolInternal("killedNightmareGrimm") || PlayerData.instance.GetBoolInternal("destroyedNightmareLantern")) ? new Color(244f / 255f, 127f / 255f, 32f / 255f) : Color.white);
+                
             }
             if (panel.GetPanel("DreamGate Panel").active)
             {
@@ -713,11 +708,11 @@ namespace DebugMod
 
         [PublicAPI]
         public static void AddTextToMenuButton(string MenuName, string ButtonText,
-            UnityAction<string> ClickedFunction, float Y_Position)
+            UnityAction<string> ClickedFunction, float Y_Position, float X_Pos = 5f)
         {
             panel.GetPanel(MenuName).AddButton(ButtonText,
                      GUIController.Instance.images["ButtonRectEmpty"],
-                    new Vector2(5f, Y_Position), 
+                    new Vector2(X_Pos, Y_Position), 
                     Vector2.zero, 
                     ClickedFunction,
                     new Rect(0f, 0f, 80f, 20f),

@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using InControl;
 using System.Collections.Generic;
+using DebugMod.Canvas;
 
 namespace DebugMod
 {

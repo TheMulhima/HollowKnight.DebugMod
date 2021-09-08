@@ -31,6 +31,7 @@ namespace DebugMod
             public FieldInfo cameraLockArea;
             public string filePath;
             public bool isKinematized;
+            
 
             internal SaveStateData() { }
             
@@ -149,7 +150,6 @@ namespace DebugMod
                         data.savePos = tmpData.savePos;
                         data.saveScene = tmpData.saveScene;
                         data.lockArea = tmpData.lockArea;
-                        data.isKinematized = tmpData.isKinematized;
                         DebugMod.instance.Log("Load SaveState ready: " + data.saveStateIdentifier);
                     }
                     catch (Exception ex)
@@ -197,7 +197,7 @@ namespace DebugMod
                 }
             );
 
-            ReflectionHelper.SetField(GameManager.instance.cameraCtrl, "isGameplayScene", true);
+            Compatibility.ReflectionHelper.SetField(GameManager.instance.cameraCtrl, "isGameplayScene", true);
 
             GameManager.instance.cameraCtrl.PositionToHero(false);
 

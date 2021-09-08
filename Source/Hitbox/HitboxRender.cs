@@ -16,7 +16,9 @@ namespace DebugMod.Hitbox
             public static readonly HitboxType Terrain = new(new Color(0, 0.8f, 0), 3);     // green
             public static readonly HitboxType Trigger = new(new Color(0.5f, 0.5f, 1f), 4); // blue
             public static readonly HitboxType Other = new(new Color(0.9f, 0.6f, 0.4f), 5); // orange
+            public static readonly HitboxType Breakable = new(new Color(1f, 0.75f, 0.8f), 6); // pink
 
+            
             public readonly Color Color;
             public readonly int Depth;
 
@@ -40,6 +42,7 @@ namespace DebugMod.Hitbox
             {HitboxType.Terrain, new HashSet<Collider2D>()},
             {HitboxType.Trigger, new HashSet<Collider2D>()},
             {HitboxType.Other, new HashSet<Collider2D>()},
+            {HitboxType.Breakable, new HashSet<Collider2D>()},
         };
 
         public static float LineWidth => Math.Max(0.7f, Screen.width / 960f * GameCameras.instance.tk2dCam.ZoomFactor);
@@ -79,29 +82,37 @@ namespace DebugMod.Hitbox
                 if (collider2D.GetComponent<DamageHero>() || collider2D.gameObject.LocateMyFSM("damages_hero"))
                 {
                     colliders[HitboxType.Enemy].Add(collider2D);
-                } else if (go.GetComponent<HealthManager>()||go.LocateMyFSM("health_manager_enemy") || go.LocateMyFSM("health_manager"))
+                } 
+                else if (go.GetComponent<HealthManager>()||go.LocateMyFSM("health_manager_enemy") || go.LocateMyFSM("health_manager"))
                 {
                     colliders[HitboxType.Other].Add(collider2D);
-                } else if (go.layer == (int) PhysLayers.TERRAIN)
+                } 
+                else if (go.layer == (int) PhysLayers.TERRAIN)
                 {
-                    colliders[HitboxType.Terrain].Add(collider2D);
-                } else if (go == HeroController.instance?.gameObject && !collider2D.isTrigger)
+                    if (go.name.Contains("Breakable") || go.name.Contains("Collapse") || go.GetComponent<Breakable>() != null) colliders[HitboxType.Breakable].Add(collider2D);
+                    else colliders[HitboxType.Terrain].Add(collider2D);
+                } 
+                else if (go == HeroController.instance?.gameObject && !collider2D.isTrigger)
                 {
                     colliders[HitboxType.Knight].Add(collider2D);
-                } else if (go.GetComponent<DamageEnemies>()||go.LocateMyFSM("damages_enemy") || go.name == "Damager" && go.LocateMyFSM("Damage"))
+                } 
+                else if (go.GetComponent<DamageEnemies>()||go.LocateMyFSM("damages_enemy") || go.name == "Damager" && go.LocateMyFSM("Damage"))
                 {
                     colliders[HitboxType.Attack].Add(collider2D);
-                } else if (collider2D.isTrigger && (collider2D.GetComponent<TransitionPoint>() || collider2D.GetComponent<HazardRespawnTrigger>()))
+                } 
+                else if (collider2D.isTrigger && (collider2D.GetComponent<TransitionPoint>() || collider2D.GetComponent<HazardRespawnTrigger>()))
                 {
                     colliders[HitboxType.Trigger].Add(collider2D);
-                } else if (collider2D.GetComponent<Breakable>())
+                } 
+                else if (collider2D.GetComponent<Breakable>())
                 {
                     NonBouncer bounce = collider2D.GetComponent<NonBouncer>();
                     if (bounce == null || !bounce.active)
                     {
                         colliders[HitboxType.Trigger].Add(collider2D);
                     }
-                } else if (HitboxViewer.State == 2)
+                } 
+                else if (HitboxViewer.State == 2)
                 {
                     colliders[HitboxType.Other].Add(collider2D);
                 }

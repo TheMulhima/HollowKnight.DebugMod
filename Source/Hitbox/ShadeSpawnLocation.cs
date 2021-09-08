@@ -22,7 +22,7 @@ namespace DebugMod.Hitbox
         {
             ShadeLocations = new List<GameObject>();
             Compass = new GameObject(
-                "Grassy Compass", 
+                "Compass", 
                 typeof(SpriteRenderer));
             DontDestroyOnLoad(Compass);
             

@@ -1,3 +1,4 @@
+using DebugMod.Canvas;
 using UnityEngine;
 using InControl;
 

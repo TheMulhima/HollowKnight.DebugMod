@@ -13,6 +13,7 @@ namespace DebugMod
             On.GameManager.SetTimeScale_float += GameManager_SetTimeScale_1;
             On.GameManager.FreezeMoment_float_float_float_float += GameManager_FreezeMoment_1;
             On.QuitToMenu.Start += Quit_To_Menu;
+            
         }
         
          public static void DisableTimeScale()
