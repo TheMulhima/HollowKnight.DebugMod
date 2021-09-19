@@ -1,13 +1,17 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using DebugMod.Hitbox;
 using DebugMod.MonoBehaviours;
 using GlobalEnums;
+using HutongGames.PlayMaker;
+using HutongGames.PlayMaker.Actions;
 using Newtonsoft.Json;
 using UnityEngine;
 using Object = UnityEngine.Object;
+using SetFsmBool = On.HutongGames.PlayMaker.Actions.SetFsmBool;
 using USceneManager = UnityEngine.SceneManagement.SceneManager;
 
 namespace DebugMod
@@ -668,6 +672,14 @@ namespace DebugMod
 
         #region Charms
 
+        private static void UpdateCharms()
+        {
+            PlayMakerFSM.BroadcastEvent("CHARM INDICATOR CHECK");
+            PlayMakerFSM.BroadcastEvent("CHARM EQUIP CHECK");
+            EventRegister.SendEvent("CHARM EQUIP CHECK");
+            EventRegister.SendEvent("CHARM INDICATOR CHECK");
+        }
+
         [BindableMethod(name = "Give All Charms", category = "Charms")]
         public static void GiveAllCharms()
         {
@@ -681,6 +693,7 @@ namespace DebugMod
             PlayerData.instance.charmsOwned = 40;
             PlayerData.instance.royalCharmState = 4;
             PlayerData.instance.gotShadeCharm = true;
+            PlayerData.instance.charmCost_36 = 0;
             PlayerData.instance.gotKingFragment = true;
             PlayerData.instance.gotQueenFragment = true;
             PlayerData.instance.notchShroomOgres = true;
@@ -691,12 +704,13 @@ namespace DebugMod
             PlayerData.instance.salubraNotch2 = true;
             PlayerData.instance.salubraNotch3 = true;
             PlayerData.instance.salubraNotch4 = true;
-            PlayerData.instance.SetBoolInternal("fragileGreed_unbreakable", true);
-            PlayerData.instance.SetBoolInternal("fragileHealth_unbreakable", true);
-            PlayerData.instance.SetBoolInternal("fragileStrength_unbreakable", true);
-            PlayerData.instance.SetIntInternal("grimmChildLevel", 5);
+            PlayerData.instance.fragileGreed_unbreakable = true;
+            PlayerData.instance.fragileStrength_unbreakable = true;
+            PlayerData.instance.fragileHealth_unbreakable = true;
+            PlayerData.instance.grimmChildLevel = 5;
+            PlayerData.instance.charmCost_40 = 3;
             PlayerData.instance.charmSlots = 11;
-
+            UpdateCharms();
 
             Console.AddLine("Added all charms to inventory");
         }
@@ -725,15 +739,17 @@ namespace DebugMod
             PlayerData.instance.salubraNotch2 = false;
             PlayerData.instance.salubraNotch3 = false;
             PlayerData.instance.salubraNotch4 = false;
-            
-            PlayerData.instance.SetBoolInternal("fragileGreed_unbreakable", false);
-            PlayerData.instance.SetBoolInternal("fragileHealth_unbreakable", false);
-            PlayerData.instance.SetBoolInternal("fragileStrength_unbreakable", false);
-            PlayerData.instance.SetIntInternal("grimmChildLevel", 0);
+            PlayerData.instance.fragileGreed_unbreakable = true;
+            PlayerData.instance.fragileStrength_unbreakable = true;
+            PlayerData.instance.fragileHealth_unbreakable = true;
+            PlayerData.instance.grimmChildLevel = 5;
+            PlayerData.instance.charmCost_40 = 2;
             PlayerData.instance.charmSlots = 3;
-            
+            PlayerData.instance.equippedCharms.Clear();
 
 
+
+            UpdateCharms();
             Console.AddLine("Removed all charms from inventory");
         }
 
@@ -753,6 +769,15 @@ namespace DebugMod
             {
                 PlayerData.instance.royalCharmState = 0;
             }
+
+            PlayerData.instance.charmCost_36 = PlayerData.instance.royalCharmState switch
+            {
+                3 => 5,
+                4 => 0,
+                _ => PlayerData.instance.charmCost_36,
+            };
+            
+            UpdateCharms();
         }
 
         [BindableMethod(name = "Fix Fragile Heart", category = "Charms")]
@@ -762,6 +787,9 @@ namespace DebugMod
             {
                 PlayerData.instance.brokenCharm_23 = false;
                 Console.AddLine("Fixed fragile heart");
+                
+                PlayMakerFSM.BroadcastEvent("CHARM INDICATOR CHECK");
+                PlayMakerFSM.BroadcastEvent("CHARM EQUIP CHECK");
             }
         }
 
@@ -772,6 +800,8 @@ namespace DebugMod
             {
                 PlayerData.instance.brokenCharm_24 = false;
                 Console.AddLine("Fixed fragile greed");
+                
+                UpdateCharms();
             }
         }
 
@@ -782,6 +812,8 @@ namespace DebugMod
             {
                 PlayerData.instance.brokenCharm_25 = false;
                 Console.AddLine("Fixed fragile strength");
+                
+                UpdateCharms();
             }
         }
 
@@ -797,17 +829,39 @@ namespace DebugMod
         [BindableMethod(name = "Increment Grimmchild", category = "Charms")]
         public static void IncreaseGrimmchildLevel()
         {
-            if (!PlayerData.instance.GetBoolInternal("gotCharm_40"))
+            if (!PlayerData.instance.gotCharm_40)
             {
-                PlayerData.instance.SetBoolInternal("gotCharm_40", true);
+                PlayerData.instance.gotCharm_40 = true;
             }
 
-            PlayerData.instance.SetIntInternal("grimmChildLevel", PlayerData.instance.GetIntInternal("grimmChildLevel") + 1);
+            PlayerData.instance.grimmChildLevel += 1;
 
-            if (PlayerData.instance.GetIntInternal("grimmChildLevel") >= 6)
+            if (PlayerData.instance.grimmChildLevel >= 6)
             {
-                PlayerData.instance.SetIntInternal("grimmChildLevel", 0);
+                PlayerData.instance.grimmChildLevel = 0;
             }
+            PlayerData.instance.charmCost_40 = PlayerData.instance.grimmChildLevel switch
+            {
+                5 => 3,
+                _ => 2,
+            };
+
+            PlayerData.instance.destroyedNightmareLantern = PlayerData.instance.grimmChildLevel == 5;
+
+            Object.Destroy(GameObject.FindWithTag("Grimmchild"));
+
+            UpdateCharms();
+
+            GameManager.instance.StartCoroutine(SpawnGrimm());
+
+            IEnumerator SpawnGrimm()
+            {
+                yield return null;
+                yield return null;
+                HeroController.instance.transform.Find("Charm Effects").gameObject.LocateMyFSM("Spawn Grimmchild").SendEvent("CHARM EQUIP CHECK");
+            }
+
+
         }
 
         #endregion
@@ -1725,6 +1779,7 @@ namespace DebugMod
         }
 
         #endregion
+        
         #region Misc
 
         /*[BindableMethod(name = "Nail Damage +4 Temp", category = "Misc")]

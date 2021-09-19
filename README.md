@@ -78,3 +78,8 @@ Assistance with canvas - KDT<br />
         * toggling vanilla noclip,
         * giving dreamgate invulnerability (invincibility + can't pick up geo + no roar stun)
         * Clear white screen
+* Add options in top menu to open:
+    * Saves folder
+    * Mods Folder
+* Incrementing GrimmChild now spawns the new and correct grimmchild. also changes charm cost if goes to carefree
+* Incrementing Kingsoul changes charmcost to the correctvalue

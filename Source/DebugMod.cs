@@ -27,7 +27,7 @@ namespace DebugMod
     {
         public override string GetVersion()
         {
-            return "1.4.7 - 0";
+            return "1.4.7 - 2";
         }
 
         private static GameManager _gm;

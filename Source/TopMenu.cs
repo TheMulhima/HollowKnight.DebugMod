@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using DebugMod.Canvas;
 using JetBrains.Annotations;
@@ -20,7 +22,7 @@ namespace DebugMod
         public static void BuildMenu(GameObject canvas)
         {
             MakeList();
-            panel = new CanvasPanel(canvas, GUIController.Instance.images["ButtonsMenuBG"], new Vector2(Screen.width - GUIController.Instance.images["ButtonsMenuBG"].width , 25f), Vector2.zero, new Rect(0f, 0f, GUIController.Instance.images["ButtonsMenuBG"].width, GUIController.Instance.images["ButtonsMenuBG"].height));
+            panel = new CanvasPanel(canvas, GUIController.Instance.images["ButtonsMenuBG"], new Vector2(1070f , 25f), Vector2.zero, new Rect(0f, 0f, GUIController.Instance.images["ButtonsMenuBG"].width, GUIController.Instance.images["ButtonsMenuBG"].height));
 
             Rect buttonRect = new Rect(0, 0, GUIController.Instance.images["ButtonRect"].width, GUIController.Instance.images["ButtonRect"].height);
             
@@ -29,13 +31,15 @@ namespace DebugMod
             panel.AddButton("Kill All", GUIController.Instance.images["ButtonRect"], new Vector2(146f, 28f), Vector2.zero, KillAllClicked, buttonRect, GUIController.Instance.trajanBold, "Kill All");
             panel.AddButton("Set Spawn", GUIController.Instance.images["ButtonRect"], new Vector2(246f, 28f), Vector2.zero, SetSpawnClicked, buttonRect, GUIController.Instance.trajanBold, "Set Spawn");
             panel.AddButton("Respawn", GUIController.Instance.images["ButtonRect"], new Vector2(346f, 28f), Vector2.zero, RespawnClicked, buttonRect, GUIController.Instance.trajanBold, "Respawn");
-            panel.AddButton("Dump Log", GUIController.Instance.images["ButtonRect"], new Vector2(446f, 28f), Vector2.zero, DumpLogClicked, buttonRect, GUIController.Instance.trajanBold, "Dump Log");
+            panel.AddButton("Other", GUIController.Instance.images["ButtonRect"], new Vector2(446f, 28f), Vector2.zero, OtherClicked, buttonRect, GUIController.Instance.trajanBold, "Other");
             panel.AddButton("Cheats", GUIController.Instance.images["ButtonRect"], new Vector2(46f, 68f), Vector2.zero, CheatsClicked, buttonRect, GUIController.Instance.trajanBold, "Cheats");
             panel.AddButton("Charms", GUIController.Instance.images["ButtonRect"], new Vector2(146f, 68f), Vector2.zero, CharmsClicked, buttonRect, GUIController.Instance.trajanBold, "Charms");
             panel.AddButton("Skills", GUIController.Instance.images["ButtonRect"], new Vector2(246f, 68f), Vector2.zero, SkillsClicked, buttonRect, GUIController.Instance.trajanBold, "Skills");
             panel.AddButton("Items", GUIController.Instance.images["ButtonRect"], new Vector2(346f, 68f), Vector2.zero, ItemsClicked, buttonRect, GUIController.Instance.trajanBold, "Items");
             panel.AddButton("Bosses", GUIController.Instance.images["ButtonRect"], new Vector2(446f, 68f), Vector2.zero, BossesClicked, buttonRect, GUIController.Instance.trajanBold, "Bosses");
             panel.AddButton("DreamGate", GUIController.Instance.images["ButtonRect"], new Vector2(546f, 68f), Vector2.zero, DreamGatePanelClicked, buttonRect, GUIController.Instance.trajanBold, "DreamGate");
+            panel.AddButton("Report Bug", GUIController.Instance.images["ButtonRect"], new Vector2(546f, 28f), Vector2.zero, SugesstionsClicked, buttonRect, GUIController.Instance.trajanBold, "Report Bug");
+
             
             //Dropdown panels
             panel.AddPanel("Cheats Panel", GUIController.Instance.images["DropdownBG"], new Vector2(45f, 75f), Vector2.zero, new Rect(0, 0, GUIController.Instance.images["DropdownBG"].width, 240f));
@@ -44,7 +48,8 @@ namespace DebugMod
             panel.AddPanel("Items Panel", GUIController.Instance.images["DropdownBG"], new Vector2(345f, 75f), Vector2.zero, new Rect(0, 0, GUIController.Instance.images["DropdownBG"].width, GUIController.Instance.images["DropdownBG"].height));
             panel.AddPanel("Bosses Panel", GUIController.Instance.images["DropdownBG"], new Vector2(445f, 75f), Vector2.zero, new Rect(0, 0, GUIController.Instance.images["DropdownBG"].width, 200f));
             panel.AddPanel("DreamGate Panel", GUIController.Instance.images["DreamGateDropdownBG"], new Vector2(545f, 75f), Vector2.zero, new Rect(0, 0, GUIController.Instance.images["DreamGateDropdownBG"].width, GUIController.Instance.images["DreamGateDropdownBG"].height));
-            
+            panel.AddPanel("Other Panel", GUIController.Instance.images["DropdownBG"], new Vector2(445f, 75f), Vector2.zero, new Rect(0, 0, GUIController.Instance.images["DropdownBG"].width, GUIController.Instance.images["DropdownBG"].height));
+
             
             //Cheats panel
             panel.GetPanel("Cheats Panel").AddButton("Infinite Jump", GUIController.Instance.images["ButtonRectEmpty"], new Vector2(5f, 30f), Vector2.zero, InfiniteJumpClicked, new Rect(0f, 0f, 80f, 20f), GUIController.Instance.trajanNormal, "Infinite Jump", 10);
@@ -153,6 +158,13 @@ namespace DebugMod
             panel.GetPanel("DreamGate Panel").AddButton("Scroll Up", GUIController.Instance.images["ScrollBarArrowUp"], new Vector2(180f, 30f), Vector2.zero, ScrollUpClicked, new Rect(0f, 0f, GUIController.Instance.images["ScrollBarArrowUp"].width, GUIController.Instance.images["ScrollBarArrowUp"].height));
             panel.GetPanel("DreamGate Panel").AddButton("Scroll Down", GUIController.Instance.images["ScrollBarArrowDown"], new Vector2(180f, 130f), Vector2.zero, ScrollDownClicked, new Rect(0f, 0f, GUIController.Instance.images["ScrollBarArrowDown"].width, GUIController.Instance.images["ScrollBarArrowDown"].height));
 
+            //Other Panel
+            panel.GetPanel("Other Panel").AddButton("Dump Log", GUIController.Instance.images["ButtonRectEmpty"], new Vector2(5f, 30f), Vector2.zero, _ => BindableFunctions.DumpConsoleLog(), new Rect(0f, 0f, 80f, 20f), GUIController.Instance.trajanNormal, "Dump Log", 10);
+            panel.GetPanel("Other Panel").AddButton("Open Saves", GUIController.Instance.images["ButtonRectEmpty"], new Vector2(5f, 60f), Vector2.zero, _ => Process.Start(Application.persistentDataPath), new Rect(0f, 0f, 80f, 20f), GUIController.Instance.trajanNormal, "Open Saves Files", 10);
+            panel.GetPanel("Other Panel").AddButton("Open Mods", GUIController.Instance.images["ButtonRectEmpty"], new Vector2(5f, 90f), Vector2.zero, _ => Process.Start(Directory.GetParent(Path.GetDirectoryName(System.Reflection.Assembly.GetCallingAssembly().Location)).ToString()), new Rect(0f, 0f, 80f, 20f), GUIController.Instance.trajanNormal, "Open Mods Folder", 10);
+
+            
+            
             panel.FixRenderOrder();
         }
 
@@ -330,6 +342,11 @@ namespace DebugMod
         }
 
         #region ClickedFunctions
+
+        public static void SugesstionsClicked(string buttonName)
+        {
+            Application.OpenURL("https://discord.gg/VDsg3HmWuB");
+        }
         private static void KillAllClicked(string buttonName)
         {
             BindableFunctions.KillAll();
@@ -345,9 +362,9 @@ namespace DebugMod
             BindableFunctions.Respawn();
         }
 
-        private static void DumpLogClicked(string buttonName)
+        private static void OtherClicked(string buttonName)
         {
-            BindableFunctions.DumpConsoleLog();
+            panel.TogglePanel("Other Panel");
         }
 
         private static void CheatsClicked(string buttonName)
