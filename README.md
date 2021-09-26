@@ -25,7 +25,7 @@
 * Disable the vignette drawn around the player
 * Change the time scale of the game
 ----------------------------------------------------------------------------------------
-                                  INSTALLATION (STEAM, WINDOWS)
+                             INSTALLATION (STEAM, WINDOWS)
 ----------------------------------------------------------------------------------------
 1) Download the modding API from here: https://drive.google.com/open?id=0B_b9PFqx_PR9X1ZrWGFxUGdydTg
 2) Right click Hollow Knight in Steam -> Properties -> Local Files -> Browse Local Files
@@ -35,7 +35,29 @@
 6) This mod should not affect saves negatively, but it is a good idea to back them up anyway.
    Saves are located at %AppData%\..\LocalLow\Team Cherry\Hollow Knight\
 ----------------------------------------------------------------------------------------
-                                          CREDITS
+                     UPGRADING SAVE STATES TO SAVE STATES WITH PAGES
+----------------------------------------------------------------------------------------
+If you're upgrading DebugMod from version `1.4.7 - 2` or below, do the following:
+1) Update the installed mod.
+2) Start Hollow Knight and then exit.
+3) Open a file browser and navigate to `%APPDATA%\..\LocalLow\Team Cherry\Hollow Knight`
+4) Open DebugMod.GlobalSettings.json in a text editor
+5) Modify MaxSaveStates's value from 6 to 10 if you want more save states per page of
+   save states. Don't go higher than 10 - not exactly sure what'll happen but it 
+   probably won't work as you want.
+7) Save and close the file.
+8) Back in the file browser, navigate to `Savestates Current Patch` - these are your 
+   old save states
+9) Move them to `%APPDATA%\..\LocalLow\Team Cherry\Hollow Knight\DebugModData\Savestates Current Patch\0`
+   - this should make them visible to the updated mod on the first page of the save 
+   states. The directory should be empty if you're upgrading from verion `1.4.7 - 2` 
+   or below. You can delete `%APPDATA%\..\LocalLow\Team Cherry\Hollow Knight\Savestates Current Patch`
+   if you like.
+10) Boot the game back up. You should be good to go!
+11) Additionally, you probably want to bind the Next/Previous Page commands to make full
+    use of the save state pages feature.
+----------------------------------------------------------------------------------------
+                                     CREDITS
 ----------------------------------------------------------------------------------------
 Coding - Seanpr<br />
 SaveStates/Old Current Patch - 56<br />
@@ -43,7 +65,7 @@ UI design and graphics - The Embraced One<br />
 Assistance with canvas - KDT<br />
 1.5 and A lot of Changes - Mulhima<br />
 ----------------------------------------------------------------------------------------
-                                          Changelog from Debug v1.3.6
+                            Changelog from Debug v1.3.6
 ----------------------------------------------------------------------------------------
 ** 1221 => CP 
     * Added multiple savestate and loading/saving savestates from files (took someone long enough lol. 1221 debug had it since forever)

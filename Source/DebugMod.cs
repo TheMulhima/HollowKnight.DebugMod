@@ -8,7 +8,6 @@ using Modding;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using GlobalEnums;
-using HutongGames.PlayMaker;
 using JetBrains.Annotations;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
@@ -138,7 +137,11 @@ namespace DebugMod
                 settings.binds.Add("Zoom In", (int) KeyCode.PageUp);
                 settings.binds.Add("Zoom Out", (int) KeyCode.PageDown);
             }
-            
+
+            if (!Directory.Exists(settings.ModBaseDirectory)) 
+            {
+                Directory.CreateDirectory(settings.ModBaseDirectory);
+            }
 
             if (settings.NumPadForSaveStates)
             {

@@ -1,6 +1,8 @@
 using System;
+using System.IO;
 using System.Collections.Generic;
-using Modding;
+
+using UnityEngine;
 
 namespace DebugMod
 {
@@ -26,6 +28,8 @@ namespace DebugMod
         //Save members
         public Dictionary<string, int> binds = new Dictionary<string, int>();
 
+        public readonly string ModBaseDirectory = Path.Combine(Application.persistentDataPath, "DebugModData");
+
         public bool ConsoleVisible = true;
 
         public bool EnemiesPanelVisible = true;
@@ -46,7 +50,9 @@ namespace DebugMod
         
         public int ShowHitBoxes;
 
-        public int MaxSaveStates = 6;
+        public int MaxSaveStates = 10;
+
+        public int MaxSavePages = 10;
 
         public float AmountToMove = 0.1f;
 

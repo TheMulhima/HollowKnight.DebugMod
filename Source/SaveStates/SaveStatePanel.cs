@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using InControl;
 using System.Collections.Generic;
 using DebugMod.Canvas;
 
@@ -23,14 +22,14 @@ namespace DebugMod
                     GUIController.Instance.images["BlankVertical"].height
                 )
             );
-
+            statePanel.AddText("CurrentFolder", "Page: " + (SaveStateManager.currentStateFolder + 1).ToString(), new Vector2(8, 0), Vector2.zero, GUIController.Instance.arial, 15);
             statePanel.AddText("Mode", "mode: ", new Vector2(8, 20), Vector2.zero, GUIController.Instance.arial, 15);
             statePanel.AddText("currentmode", "-", new Vector2(60, 20), Vector2.zero, GUIController.Instance.arial, 15);
 
             for (int i = 0; i < SaveStateManager.maxSaveStates; i++) { 
 
-                //Labels
-                statePanel.AddText("Slot " + i, i.ToString(), new Vector2(10, i * 20 + 40), Vector2.zero, GUIController.Instance.arial, 15);
+                //Labels - these shouldn't be modified
+                statePanel.AddText($"Slot{i}", i.ToString(), new Vector2(10, i * 20 + 40), Vector2.zero, GUIController.Instance.arial, 15);
                 
                 //Values
                 statePanel.AddText(i.ToString(), "", new Vector2(50, i * 20 + 40), Vector2.zero, GUIController.Instance.arial, 15);
@@ -66,7 +65,7 @@ namespace DebugMod
             if (statePanel.active)
             {
                 statePanel.GetText("currentmode").UpdateText(SaveStateManager.currentStateOperation);
-
+                statePanel.GetText("CurrentFolder").UpdateText($"Page: {SaveStateManager.currentStateFolder+1}/{SaveStateManager.savePages}");
                 for (int i = 0; i < SaveStateManager.maxSaveStates; i++)
                 {
                     statePanel.GetText(i.ToString()).UpdateText("open");
