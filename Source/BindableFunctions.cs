@@ -1916,7 +1916,43 @@ namespace DebugMod
             GameObject.Find("Blanker White").LocateMyFSM("Blanker Control").SendEvent("FADE OUT");
             HeroController.instance.EnableRenderer();
         }
+        
+        internal static Action ClearSceneDataHook;
+        [BindableMethod(name = "Refresh Scene Data", category = "Misc")]
+        public static void HookResetCurrentScene(string scene)
+        {
+            Console.AddLine("Clearing scene data from this scene, re-enter scene or warp");
+            ClearSceneDataHook?.Invoke();
+            On.GameManager.SaveLevelState += GameManager_SaveLevelState;
+            ClearSceneDataHook = () => On.GameManager.SaveLevelState -= GameManager_SaveLevelState;
 
+            void GameManager_SaveLevelState(On.GameManager.orig_SaveLevelState orig, GameManager self)
+            {
+                orig(self);
+                SceneData.instance.persistentBoolItems = SceneData.instance.persistentBoolItems.Where(x => x.sceneName != scene).ToList();
+                SceneData.instance.persistentIntItems = SceneData.instance.persistentIntItems.Where(x => x.sceneName != scene).ToList();
+                SceneData.instance.geoRocks = SceneData.instance.geoRocks.Where(x => x.sceneName != scene).ToList();
+
+                On.GameManager.SaveLevelState -= GameManager_SaveLevelState;
+                ClearSceneDataHook = null;
+            }
+        }
+        [BindableMethod(name = "Block Scene Data Changes", category = "Misc")]
+        public static void HookBlockCurrentSceneChanges()
+        {
+            Console.AddLine("Scene data changes made since entering this scene will not be saved");
+            ClearSceneDataHook?.Invoke();
+            On.GameManager.SaveLevelState += GameManager_BlockLevelChanges;
+            ClearSceneDataHook = () => On.GameManager.SaveLevelState -= GameManager_BlockLevelChanges;
+
+            void GameManager_BlockLevelChanges(On.GameManager.orig_SaveLevelState orig, GameManager self)
+            {
+                On.GameManager.SaveLevelState -= GameManager_BlockLevelChanges;
+                ClearSceneDataHook = null;
+            }
+        }
+        
+        
         #endregion
     }
 }
