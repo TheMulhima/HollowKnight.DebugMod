@@ -1919,8 +1919,9 @@ namespace DebugMod
         
         internal static Action ClearSceneDataHook;
         [BindableMethod(name = "Refresh Scene Data", category = "Misc")]
-        public static void HookResetCurrentScene(string scene)
+        public static void HookResetCurrentScene()
         {
+            string scene = GameManager.instance.sceneName;
             Console.AddLine("Clearing scene data from this scene, re-enter scene or warp");
             ClearSceneDataHook?.Invoke();
             On.GameManager.SaveLevelState += GameManager_SaveLevelState;
