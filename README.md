@@ -37,7 +37,7 @@
 ----------------------------------------------------------------------------------------
                      UPGRADING SAVE STATES TO SAVE STATES WITH PAGES
 ----------------------------------------------------------------------------------------
-If you're upgrading DebugMod from version `1.4.7 - 2` or below, do the following:
+If you're upgrading DebugMod from version `1.4.7` or below, do the following:
 1) Update the installed mod.
 2) Start Hollow Knight and then exit.
 3) Open a file browser and navigate to `%APPDATA%\..\LocalLow\Team Cherry\Hollow Knight`
@@ -50,7 +50,7 @@ If you're upgrading DebugMod from version `1.4.7 - 2` or below, do the following
    old save states
 9) Move them to `%APPDATA%\..\LocalLow\Team Cherry\Hollow Knight\DebugModData\Savestates Current Patch\0`
    - this should make them visible to the updated mod on the first page of the save 
-   states. The directory should be empty if you're upgrading from verion `1.4.7 - 2` 
+   states. The directory should be empty if you're upgrading from verion `1.4.7` 
    or below. You can delete `%APPDATA%\..\LocalLow\Team Cherry\Hollow Knight\Savestates Current Patch`
    if you like.
 10) Boot the game back up. You should be good to go!
@@ -64,6 +64,10 @@ SaveStates/Old Current Patch - 56<br />
 UI design and graphics - The Embraced One<br />
 Assistance with canvas - KDT<br />
 1.5 and A lot of Changes - Mulhima<br />
+Multiple SaveStates/Minimal info panel- Cerpin<br />
+Improve hitbox viewer - DemoJameson<br />
+Multiple SaveState Pages - Magnetic Pizza (and jhearom for porting to cp)<br />
+Additional Glitched functionality - pseudorandomhk<br />
 ----------------------------------------------------------------------------------------
                             Changelog from Debug v1.3.6
 ----------------------------------------------------------------------------------------
@@ -105,3 +109,4 @@ Assistance with canvas - KDT<br />
     * Mods Folder
 * Incrementing GrimmChild now spawns the new and correct grimmchild. also changes charm cost if goes to carefree
 * Incrementing Kingsoul changes charmcost to the correctvalue
+* Multiple save state pages Credits: Magnetic Pizza (and jhearom for porting to cp)
