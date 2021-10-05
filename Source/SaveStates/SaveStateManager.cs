@@ -27,11 +27,14 @@ namespace DebugMod
     internal class SaveStateManager
     {
         public static int maxSaveStates = DebugMod.settings.MaxSaveStates;
+        public static int savePages = DebugMod.settings.MaxSavePages;
 
+        public static int currentStateFolder = 0;
         public static SaveState quickState;
         public static bool inSelectSlotState = false;   // a mutex, in practice?
         public static int currentStateSlot = -1;
-        public static string path = Application.persistentDataPath + "/Savestates Current Patch/";
+        public static readonly string saveStatesBaseDirectory = Path.Combine(DebugMod.settings.ModBaseDirectory, "Savestates Current Patch");
+        public static string path = Path.Combine(saveStatesBaseDirectory, "0"); // initialize to page 0, this gets read and updated by callbacks during runtime.
         public static string currentStateOperation = null;
 
         private static string[] stateStrings =
@@ -60,13 +63,17 @@ namespace DebugMod
                 DebugMod.settings.SaveStatePanelVisible = false;
                 quickState = new SaveState();
 
-                if (!Directory.Exists(path))
+                for (int i = 0; i < savePages; i++)
                 {
-                    Directory.CreateDirectory(path);
-                }
-                else
-                {
-                    RefreshStateMenu();
+                    string saveStatePageDirectory = Path.Combine(saveStatesBaseDirectory, i.ToString());
+                    if (!Directory.Exists(saveStatePageDirectory))
+                    {
+                        Directory.CreateDirectory(saveStatePageDirectory);
+                    }
+                    else
+                    {
+                        RefreshStateMenu();
+                    }
                 }
             }
             catch (Exception)
@@ -310,13 +317,9 @@ namespace DebugMod
         {
             try
             {
-                //SaveState tempSave = new SaveState();
+                saveStateFiles.Clear();
                 string shortFileName;
                 string[] files = Directory.GetFiles(path);
-                //DebugMod.instance.Log( 
-                //    "path var: " + path +
-                //    "\nSavestates: " + files.ToString()
-                //    );
 
                 foreach (string file in files)
                 {

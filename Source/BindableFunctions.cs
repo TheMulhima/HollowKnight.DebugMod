@@ -20,6 +20,7 @@ namespace DebugMod
     {
         private static readonly FieldInfo TimeSlowed = typeof(GameManager).GetField("timeSlowed", BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Static);
         private static readonly FieldInfo IgnoreUnpause = typeof(UIManager).GetField("ignoreUnpause", BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Static);
+        private static readonly string keybindFilePath = Path.Combine(DebugMod.settings.ModBaseDirectory, "Keybinds.json");
         
         internal static readonly FieldInfo cameraGameplayScene = typeof(CameraController).GetField("isGameplayScene", BindingFlags.Instance | BindingFlags.NonPublic);
 
@@ -221,6 +222,28 @@ namespace DebugMod
             DebugMod.saveStateManager.LoadState(SaveStateType.SkipOne);
         }
 
+        [BindableMethod(name = "Next Save Page", category = "Savestates")]
+        public static void NextStatePage()
+        {
+            SaveStateManager.currentStateFolder++;
+            if (SaveStateManager.currentStateFolder >= SaveStateManager.savePages) { SaveStateManager.currentStateFolder = 0; } //rollback to 0 if higher than max
+            SaveStateManager.path = Path.Combine(
+                SaveStateManager.saveStatesBaseDirectory,
+                SaveStateManager.currentStateFolder.ToString()); //change path
+            DebugMod.saveStateManager.RefreshStateMenu(); // update menu
+        }
+
+        [BindableMethod(name = "Prev Save Page", category = "Savestates")]
+        public static void PrevStatePage()
+        {
+            SaveStateManager.currentStateFolder--;
+            if (SaveStateManager.currentStateFolder < 0) { SaveStateManager.currentStateFolder = SaveStateManager.savePages - 1; } //rollback to max if we go below page 0
+            SaveStateManager.path = Path.Combine(
+                SaveStateManager.saveStatesBaseDirectory,
+                SaveStateManager.currentStateFolder.ToString()); //change path
+            DebugMod.saveStateManager.RefreshStateMenu(); // update menu
+        }
+
         /*
         [BindableMethod(name = "Toggle auto slot", category = "Savestates")]
         public static void ToggleAutoSlot()
@@ -237,7 +260,7 @@ namespace DebugMod
         */
 
         #endregion
-        
+
         #region Visual
 
         [BindableMethod(name = "Show Hitboxes", category = "Visual")]
@@ -1696,8 +1719,7 @@ namespace DebugMod
         [BindableMethod(name = "SceneData to file", category = "ExportData")]
         public static void SceneDataToFile()
         {
-            File.WriteAllText(string.Concat(
-                    new object[] { Application.persistentDataPath, "/SceneData.json" }),
+            File.WriteAllText(Path.Combine(DebugMod.settings.ModBaseDirectory, "SceneData.json"),
                 JsonUtility.ToJson(
                     SceneData.instance,
                     prettyPrint: true
@@ -1708,8 +1730,7 @@ namespace DebugMod
         [BindableMethod(name = "PlayerData to file", category = "ExportData")]
         public static void PlayerDataToFile()
         {
-            File.WriteAllText(string.Concat(
-                    new object[] { Application.persistentDataPath, "/PlayerData.json" }),
+            File.WriteAllText(Path.Combine(DebugMod.settings.ModBaseDirectory, "PlayerData.json"),
                 JsonUtility.ToJson(
                     PlayerData.instance,
                     prettyPrint: true
@@ -1734,7 +1755,7 @@ namespace DebugMod
                 binds_to_file = Convert_Int_To_String_Dict(DebugMod.settings.binds)
             };
 
-            File.WriteAllText(SaveStateManager.path + "Keybinds.json",JsonConvert.SerializeObject(DictToSave));
+            File.WriteAllText(keybindFilePath,JsonConvert.SerializeObject(DictToSave));
             
             Console.AddLine("Keybind File Created");
         }
@@ -1742,12 +1763,12 @@ namespace DebugMod
         [BindableMethod(name = "Load Key Binds From File", category = "ExportData")]
         public static void LoadKeyBindFromFile()
         {
-            if (!File.Exists(SaveStateManager.path + "Keybinds.json"))
+            if (!File.Exists(keybindFilePath))
             {
                 Console.AddLine("Keybind file not found. Please generate one first");
                 return;
             }
-            var NewDict = JsonConvert.DeserializeObject<KeyBinds>(File.ReadAllText(SaveStateManager.path + "Keybinds.json"))?.binds_to_file;
+            var NewDict = JsonConvert.DeserializeObject<KeyBinds>(File.ReadAllText(keybindFilePath))?.binds_to_file;
 
             DebugMod.settings.binds = Convert_String_To_Int_Dict(NewDict);
             

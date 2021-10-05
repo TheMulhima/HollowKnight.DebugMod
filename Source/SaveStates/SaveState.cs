@@ -1,14 +1,8 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using DebugMod;
 using GlobalEnums;
-using HutongGames.PlayMaker.Actions;
-using Modding;
 using UnityEngine;
 using USceneManager = UnityEngine.SceneManagement.SceneManager;
 
@@ -62,7 +56,7 @@ namespace DebugMod
         public void SaveTempState()
         {
             data.saveScene = GameManager.instance.GetSceneNameString();
-            data.saveStateIdentifier = "(tmp)_" + data.saveScene + "-" + DateTime.Now.ToString("H:mm_d-MMM");
+            data.saveStateIdentifier = $"(tmp)_{data.saveScene}-{DateTime.Now.ToString("H:mm_d-MMM")}";
             data.savedPd = JsonUtility.FromJson<PlayerData>(JsonUtility.ToJson(PlayerData.instance));
             data.savedSd = JsonUtility.FromJson<SceneData>(JsonUtility.ToJson(SceneData.instance));
             data.savePos = HeroController.instance.gameObject.transform.position;
@@ -89,17 +83,10 @@ namespace DebugMod
                 {
                     throw new Exception("No temp save state set");
                 }
-                
-                File.WriteAllText (
-                    string.Concat(new object[] {
-                        SaveStateManager.path,
-                        "/savestate",
-                        paramSlot,
-                        ".json"
-                    }),
-                    JsonUtility.ToJson( data, 
-                        prettyPrint: true 
-                    )
+
+                string saveStateFile = Path.Combine(SaveStateManager.path, $"savestate{paramSlot}.json");
+                File.WriteAllText (saveStateFile,
+                    JsonUtility.ToJson( data, prettyPrint: true )
                 );
             }
             catch (Exception ex)
@@ -127,14 +114,7 @@ namespace DebugMod
         {
             try
             {
-                data.filePath = string.Concat(
-                new object[]
-                {
-                    SaveStateManager.path,
-                    "savestate",
-                    paramSlot,
-                    ".json"
-                });
+                data.filePath = Path.Combine(SaveStateManager.path, $"savestate{paramSlot}.json");
                 DebugMod.instance.Log("prep filepath: " + data.filePath);
 
                 if (File.Exists(data.filePath))
