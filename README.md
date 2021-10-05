@@ -68,45 +68,4 @@ Multiple SaveStates/Minimal info panel- Cerpin<br />
 Improve hitbox viewer - DemoJameson<br />
 Multiple SaveState Pages - Magnetic Pizza (and jhearom for porting to cp)<br />
 Additional Glitched functionality - pseudorandomhk<br />
-----------------------------------------------------------------------------------------
-                            Changelog from Debug v1.3.6
-----------------------------------------------------------------------------------------
-** 1221 => CP 
-    * Added multiple savestate and loading/saving savestates from files (took someone long enough lol. 1221 debug had it since forever)
-    * Added a minimal info panel
-    * Added a front and back button on keybinds panel
-    * Greatly improved hitbox viewer in debug. Credits: DemoJameson#1195
-* Improved Timescale feature and made it not reset timescale after getting hit or pausing
-* Made sure Timescale increments by 0.1 on each press after timescale > 10.
-* Increased accuracy of Player Position on lower info panel.
-* Removed ability to bind mouse1
-* Pressing Escape when rebinding a key now unbinds it (basically addds ability to unbind keys ingame).
-* Fixed voidheart (the issue of hornet not showing up in thk phase 4 if given void heart using the mod)
-* Fixed delicate flower
-** Added a new binds:
-    * Reset Settings
-    * Move Left/Right/Up/Down by a specific amount (default 0.1)
-    * Face Left/Right
-    * Remove all charms, Give all stags, Add/remove mask/vessel
-    * Give dreamers, Give/take soul/health
-    * shade spawn location and max travel range
-    * Save/Load Keybinds to file
-    * "freeze game" that pauses game without showing UI
-* Made a new options in cheats menu that doesnt allow keybinds to be used (except for the toggle all ui key bind)
-* Made self damage work without enemies in scene and panel open
-* A secret EasterEgg
-* Add ability for other mods to easily add to debug's menus
-* Make 1.4 and 1.5 debug have same features
-* Changes from pseudorandomhk
-    * Add savestate support for MMS-style noclip
-    * Added bindable functions for:
-        * toggling bench storage
-        * toggling vanilla noclip,
-        * giving dreamgate invulnerability (invincibility + can't pick up geo + no roar stun)
-        * Clear white screen
-* Add options in top menu to open:
-    * Saves folder
-    * Mods Folder
-* Incrementing GrimmChild now spawns the new and correct grimmchild. also changes charm cost if goes to carefree
-* Incrementing Kingsoul changes charmcost to the correctvalue
-* Multiple save state pages Credits: Magnetic Pizza (and jhearom for porting to cp)
+Additional Bindable Functions - Flib<br/>
