@@ -23,5 +23,5 @@ DebugMod.DebugMod.AddToKeyBindList(typeof(TheClassYouMadeinStep1));
 DebugMod.TopMenu.AddNewMenuToTopMenu(MenuName);
 ```
 2. To add buttons to the panel, you have 2 options, Add Text buttons or add image buttons
-  1. To add text buttons do `DebugMod.TopMenu.AddTextToMenuButton(MenuName, buttonName, Unity<string> OnClikedFunction, Y_Pos);`. For reference, all text panels in debug use Y_Pos 30, 60, 90.... and so on. Max shouldnt be bigger than 357
+  1. To add text buttons do `DebugMod.TopMenu.AddTextToMenuButton(MenuName, buttonName, Unity<string> OnClikedFunction, Y_Pos);`. For reference, all text panels in debug use Y_Pos 30, 60, 90.... and so on. Max shouldn't be bigger than 357
   2. To add image buttons call on `DebugMod.TopMenu.AddImageToMenuButton();`. For a guide on how to use this, see [how it is done in Debug Item Panel](https://github.com/TheMulhima/HollowKnight.DebugMod/blob/a0f342ce43c14b4084584990b708caf8a9b08fa5/Source/TopMenu.cs#L98-L114)
