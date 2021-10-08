@@ -1,6 +1,6 @@
 # For any Questions Join the [discord](https://discord.gg/F6Y5TeFQ8j)
 [![Discord](https://img.shields.io/discord/879125729936298015.svg?logo=discord&logoColor=white&logoWidth=20&labelColor=7289DA&label=Discord&color=17cf48)](https://discord.gg/F6Y5TeFQ8j)   
-﻿----------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------
                                        FEATURES
 ----------------------------------------------------------------------------------------
 * A completely new toggleable UI in game that provides the following functions:
