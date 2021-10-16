@@ -15,8 +15,10 @@ namespace DebugMod.Hitbox
             public static readonly HitboxType Attack = new(Color.cyan, 2);                       // cyan
             public static readonly HitboxType Terrain = new(new Color(0, 0.8f, 0), 3);     // green
             public static readonly HitboxType Trigger = new(new Color(0.5f, 0.5f, 1f), 4); // blue
-            public static readonly HitboxType Other = new(new Color(0.9f, 0.6f, 0.4f), 5); // orange
-            public static readonly HitboxType Breakable = new(new Color(1f, 0.75f, 0.8f), 6); // pink
+            public static readonly HitboxType Breakable = new(new Color(1f, 0.75f, 0.8f), 5); // pink
+            public static readonly HitboxType Gate = new(new Color(0.0f, 0.0f, 0.5f), 6); // dark blue
+            public static readonly HitboxType HazardRespawn = new(new Color(0.5f, 0.0f, 0.5f),7); // purple 
+            public static readonly HitboxType Other = new(new Color(0.9f, 0.6f, 0.4f), 8); // orange
 
             
             public readonly Color Color;
@@ -41,8 +43,10 @@ namespace DebugMod.Hitbox
             {HitboxType.Attack, new HashSet<Collider2D>()},
             {HitboxType.Terrain, new HashSet<Collider2D>()},
             {HitboxType.Trigger, new HashSet<Collider2D>()},
-            {HitboxType.Other, new HashSet<Collider2D>()},
             {HitboxType.Breakable, new HashSet<Collider2D>()},
+            {HitboxType.Gate, new HashSet<Collider2D>()},
+            {HitboxType.HazardRespawn, new HashSet<Collider2D>()},
+            {HitboxType.Other, new HashSet<Collider2D>()},
         };
 
         public static float LineWidth => Math.Max(0.7f, Screen.width / 960f * GameCameras.instance.tk2dCam.ZoomFactor);
@@ -100,9 +104,13 @@ namespace DebugMod.Hitbox
                 {
                     colliders[HitboxType.Attack].Add(collider2D);
                 } 
-                else if (collider2D.isTrigger && (collider2D.GetComponent<TransitionPoint>() || collider2D.GetComponent<HazardRespawnTrigger>()))
+                else if (collider2D.isTrigger && collider2D.GetComponent<HazardRespawnTrigger>())
                 {
-                    colliders[HitboxType.Trigger].Add(collider2D);
+                    colliders[HitboxType.HazardRespawn].Add(collider2D);
+                } 
+                else if (collider2D.isTrigger && collider2D.GetComponent<TransitionPoint>())
+                {
+                    colliders[HitboxType.Gate].Add(collider2D);
                 } 
                 else if (collider2D.GetComponent<Breakable>())
                 {
