@@ -102,6 +102,7 @@
         <EmbeddedResource Include="Images\Vessel.png" />
         <EmbeddedResource Include="Images\SilkNever.png" />
         <EmbeddedResource Include="Images\Cursor.png" />
+        <EmbeddedResource Include="Images\ButtonRun.png" />
     </ItemGroup>
     
     <!-- Same References -->
