@@ -667,6 +667,23 @@ namespace DebugMod
             GameCameras.instance.hudCanvas.gameObject.SetActive(true);
         }
         
+        [BindableMethod(name = "Recover Shade", category = "Cheats")]
+        public static void RecoverShade()
+        {
+            PlayerData.instance.EndSoulLimiter();
+            if (PlayerData.instance.geoPool > 0)
+            {
+                HeroController.instance.AddGeo(PlayerData.instance.geoPool);
+                PlayerData.instance.geoPool = 0;
+            }
+            PlayerData.instance.shadeScene = "None";
+            foreach (PlayMakerFSM fsm in GameCameras.instance.hudCanvas.transform.Find("Soul Orb").GetComponentsInChildren<PlayMakerFSM>())
+            {
+                fsm.SendEvent("SOUL LIMITER DOWN");
+            }
+            PlayMakerFSM.BroadcastEvent("HOLLOW SHADE KILLED");
+        }
+        
         [BindableMethod(name = "Toggle Bench Storage", category = "Cheats")]
         public static void ToggleBenchStorage()
         {
