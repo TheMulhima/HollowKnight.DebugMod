@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using DebugMod.Canvas;
 using Modding;
 using UnityEngine;
@@ -20,46 +21,60 @@ namespace DebugMod
         // TODO: Refactor to allow rotating images
         public static void BuildMenu(GameObject canvas)
         {
-                panel = new CanvasPanel(canvas, GUIController.Instance.images["HelpBG"], new Vector2(1123, 456), Vector2.zero, new Rect(0, 0, GUIController.Instance.images["HelpBG"].width, GUIController.Instance.images["HelpBG"].height));
-                panel.AddText("Label", "Binds", new Vector2(130f, -25f), Vector2.zero, GUIController.Instance.trajanBold, 30);
+            panel = new CanvasPanel(canvas, GUIController.Instance.images["HelpBG"], new Vector2(1123, 456),
+                Vector2.zero,
+                new Rect(0, 0, GUIController.Instance.images["HelpBG"].width,
+                    GUIController.Instance.images["HelpBG"].height));
+            panel.AddText("Label", "Binds", new Vector2(130f, -25f), Vector2.zero, GUIController.Instance.trajanBold,
+                30);
 
-                panel.AddText("Category", "", new Vector2(25f, 25f), Vector2.zero, GUIController.Instance.trajanNormal, 20);
-                panel.AddText("Help", "", new Vector2(25f, 50f), Vector2.zero, GUIController.Instance.arial, 15);
-                panel.AddButton("Page", GUIController.Instance.images["ButtonRect"], new Vector2(125, 250), Vector2.zero, NextClicked, new Rect(0, 0, GUIController.Instance.images["ButtonRect"].width, GUIController.Instance.images["ButtonRect"].height), GUIController.Instance.trajanBold, "# / #");
+            panel.AddText("Category", "", new Vector2(25f, 25f), Vector2.zero, GUIController.Instance.trajanNormal, 20);
+            panel.AddText("Help", "", new Vector2(25f, 50f), Vector2.zero, GUIController.Instance.arial, 15);
+            panel.AddButton("Page", GUIController.Instance.images["ButtonRect"], new Vector2(125, 250), Vector2.zero,
+                NextClicked,
+                new Rect(0, 0, GUIController.Instance.images["ButtonRect"].width,
+                    GUIController.Instance.images["ButtonRect"].height), GUIController.Instance.trajanBold, "# / #");
 
 
-                panel.AddButton(
-                        "NextPage",
-                        GUIController.Instance.images["ScrollBarArrowRight"],
-                        new Vector2(223, 254),
-                        Vector2.zero,
-                        NextClicked,
-                        new Rect(
-                            0,
-                            0,
-                            GUIController.Instance.images["ScrollBarArrowRight"].width,
-                            GUIController.Instance.images["ScrollBarArrowRight"].height)
-                    );
-                panel.AddButton(
-                        "PrevPage",
-                        GUIController.Instance.images["ScrollBarArrowLeft"],
-                        new Vector2(95, 254),
-                        Vector2.zero,
-                        NextClicked,
-                        new Rect(
-                            0,
-                            0,
-                            GUIController.Instance.images["ScrollBarArrowLeft"].width,
-                            GUIController.Instance.images["ScrollBarArrowLeft"].height)
-                    );
+            panel.AddButton(
+                "NextPage",
+                GUIController.Instance.images["ScrollBarArrowRight"],
+                new Vector2(223, 254),
+                Vector2.zero,
+                NextClicked,
+                new Rect(
+                    0,
+                    0,
+                    GUIController.Instance.images["ScrollBarArrowRight"].width,
+                    GUIController.Instance.images["ScrollBarArrowRight"].height)
+            );
+            panel.AddButton(
+                "PrevPage",
+                GUIController.Instance.images["ScrollBarArrowLeft"],
+                new Vector2(95, 254),
+                Vector2.zero,
+                NextClicked,
+                new Rect(
+                    0,
+                    0,
+                    GUIController.Instance.images["ScrollBarArrowLeft"].width,
+                    GUIController.Instance.images["ScrollBarArrowLeft"].height)
+            );
 
             for (int i = 0; i < 11; i++)
             {
-                panel.AddButton(i.ToString(), GUIController.Instance.images["Scrollbar_point"], new Vector2(300f, 45f + 17.5f * i), Vector2.zero, ChangeBind, new Rect(0, 0, GUIController.Instance.images["Scrollbar_point"].width, GUIController.Instance.images["Scrollbar_point"].height));
+                panel.AddButton(i.ToString(), GUIController.Instance.images["Scrollbar_point"],
+                    new Vector2(290f, 45f + 17.5f * i), Vector2.zero, ChangeBind,
+                    new Rect(0, 0, GUIController.Instance.images["Scrollbar_point"].width,
+                        GUIController.Instance.images["Scrollbar_point"].height));
+                panel.AddButton($"run{i}", GUIController.Instance.images["ButtonRun"],
+                    new Vector2(308f, 51f + 17.5f * i), new Vector2(12f, 12f), RunBind,
+                    new Rect(0, 0, GUIController.Instance.images["ButtonRun"].width,
+                        GUIController.Instance.images["ButtonRun"].height));
             }
-
-            //Build pages based on categories
-            foreach (KeyValuePair<string, Pair> bindable in DebugMod.bindMethods)
+        
+        //Build pages based on categories
+        foreach (KeyValuePair<string, Pair> bindable in DebugMod.bindMethods)
             {
                 string name = bindable.Key;
                 string cat = (string)bindable.Value.First;
@@ -112,6 +127,13 @@ namespace DebugMod
             UpdateHelpText();
 
             UnHook_AddAdditionalKeys();
+        }
+        
+        private static void RunBind(string buttonName) {
+            int bindIndex = Convert.ToInt32(buttonName.Substring(3)); // strip leading "run"
+            string bindName = bindPages[pageKeys[page]][bindIndex];
+            MethodInfo method = (MethodInfo)DebugMod.bindMethods[bindName].Second;
+            method.Invoke(null, null);
         }
 
         public static void UpdateHelpText()
@@ -224,6 +246,7 @@ namespace DebugMod
                 for (int i = 0; i < 11; i++)
                 {
                     panel.GetButton(i.ToString()).SetActive(bindPages[pageKeys[page]].Count > i);
+                    panel.GetButton($"run{i}").SetActive(bindPages[pageKeys[page]].Count > i);
                 }
             }
         }
