@@ -47,3 +47,5 @@
   * HookResetCurrentScene: Reset all scene data in this scene (geo rocks unbroken, breakable walls unbroken, levers unflipped, elevators at default positions, etc).
   * HookBlockCurrentSceneChanges: Any scenedata changes made since entering the current scene won't be saved.
 * Add buttons to directly run bindable actions. Credits: Flukeball
+* Changes to respawn point hitbox color (Credits: Dandy)
+* New bindable function to recover shade (Credits: Flib)
