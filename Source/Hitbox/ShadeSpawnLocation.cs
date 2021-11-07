@@ -79,7 +79,7 @@ namespace DebugMod.Hitbox
         public void OnGUI()
         {
 
-            if (Event.current?.type != EventType.Repaint || GameManager.instance.isPaused || Camera.main == null)
+            if (Event.current?.type != EventType.Repaint || Camera.main == null || GameManager.instance == null || GameManager.instance.isPaused)
             {
                 return;
             }
@@ -88,11 +88,11 @@ namespace DebugMod.Hitbox
             Camera camera = Camera.main;
             float lineWidth = HitboxRender.LineWidth;
 
-            if (!EnabledCompass) // dont wanna repeat if needed
-            {
-                ShadeLocations = FindShadeMarkers();
-                go_ClosestSpawn = FindClosest(ShadeLocations);
-            }
+            if (!EnabledCompass) return;
+                                 
+            ShadeLocations = FindShadeMarkers();
+            go_ClosestSpawn = FindClosest(ShadeLocations);
+            
 
             //if no shadelocations, no circles/squares required
             if (ShadeLocations.Count < 1) return;

@@ -475,6 +475,12 @@ namespace DebugMod
             if (component == null) HeroController.instance.gameObject.AddComponent<ShadeSpawnLocation>();
             //not gonna delete component if disabled to not break something if someone spams
 
+            if (!ShadeSpawnLocation.EnabledCompass)
+            {
+                Console.AddLine("Please Enable Shade compass first");
+                return;
+            }
+
             if (++ShadeSpawnLocation.ShowShadeRetreatBorder > 2) ShadeSpawnLocation.ShowShadeRetreatBorder = 0;
 
             string displaytext = ShadeSpawnLocation.ShowShadeRetreatBorder switch
