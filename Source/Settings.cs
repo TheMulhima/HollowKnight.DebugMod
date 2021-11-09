@@ -8,12 +8,7 @@ using UnityEngine;
 namespace DebugMod
 {
     //Empty class required for DebugMod class definition
-    public class SaveSettings
-    #if OLDVERSION
-    : ModSettings
-    #endif
-    
-    { }
+    public class SaveSettings {}
 
     [Serializable]
     public class KeyBinds
@@ -22,9 +17,6 @@ namespace DebugMod
     }
     
     public class GlobalSettings
-    #if OLDVERSION
-    : ModSettings
-    #endif
     {
         //Save members
         public Dictionary<string, int> binds = new Dictionary<string, int>();

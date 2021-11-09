@@ -3,6 +3,7 @@ using System.Collections;
 using System.IO;
 using System.Reflection;
 using GlobalEnums;
+using Modding;
 using UnityEngine;
 using USceneManager = UnityEngine.SceneManagement.SceneManager;
 
@@ -177,7 +178,7 @@ namespace DebugMod
                 }
             );
 
-            Compatibility.ReflectionHelper.SetField(GameManager.instance.cameraCtrl, "isGameplayScene", true);
+            ReflectionHelper.SetField(GameManager.instance.cameraCtrl, "isGameplayScene", true);
 
             GameManager.instance.cameraCtrl.PositionToHero(false);
 

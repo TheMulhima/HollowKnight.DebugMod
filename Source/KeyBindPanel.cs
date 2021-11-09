@@ -95,14 +95,14 @@ namespace DebugMod
 
         private static void UnHook_AddAdditionalKeys()
         {
-            Compatibility.ModHooks.SavegameLoadHook -= AddAdditionalKeys_;
-            Compatibility.ModHooks.NewGameHook -= AddAdditionalKeys;
+            ModHooks.SavegameLoadHook -= AddAdditionalKeys_;
+            ModHooks.NewGameHook -= AddAdditionalKeys;
         }
 
         private static void Hook_AddAdditionalKeys()
         {
-            Compatibility.ModHooks.SavegameLoadHook += AddAdditionalKeys_;
-            Compatibility.ModHooks.NewGameHook += AddAdditionalKeys;
+            ModHooks.SavegameLoadHook += AddAdditionalKeys_;
+            ModHooks.NewGameHook += AddAdditionalKeys;
         }
 
         private static void AddAdditionalKeys_(int _ = 0)

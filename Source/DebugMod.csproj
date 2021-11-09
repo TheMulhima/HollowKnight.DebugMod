@@ -78,11 +78,7 @@
     </ItemGroup>
     
 	<Target Name="CopyMod" AfterTargets="PostBuildEvent">
-        <Copy 
-                SourceFiles="$(TargetPath);$(TargetDir)$(TargetName).pdb" 
-                DestinationFolder="$(ModsDirectory)\$(TargetName)" 
-                SkipUnchangedFiles="true" 
-        />
+        <Copy SourceFiles="$(TargetPath);$(TargetDir)$(TargetName).pdb" DestinationFolder="$(ModsDirectory)\$(TargetName)" SkipUnchangedFiles="true" />
     </Target>
     
     <Target Name="CreateReleaseZip" AfterTargets="PostBuildEvent" Condition="'$(Configuration)' == 'Release'">
@@ -90,15 +86,12 @@
         <Delete Files="$(ProjectDir)/$(TargetName).zip" />
         <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(ProjectDir)/Output/" />
         <Copy SourceFiles="$(TargetDir)$(TargetName).pdb" DestinationFolder="$(ProjectDir)/Output/" />
-        <Copy SourceFiles="$(SolutionDir)/README.md" DestinationFolder="$(ProjectDir)/Output/" ContinueOnError="true"/>
+        <Copy SourceFiles="$(SolutionDir)/README.md" DestinationFolder="$(ProjectDir)/Output/" ContinueOnError="true" />
         <ZipDirectory DestinationFile="$(ProjectDir)/$(TargetName).zip" SourceDirectory="$(ProjectDir)/Output" />
         <RemoveDir Directories="$(ProjectDir)Output" />
         
-        <GetFileHash Files="$(ProjectDir)/$(TargetName).zip" Algorithm="SHA256" >
-            <Output
-                    TaskParameter="Items"
-                    ItemName="FilesWithHashes" 
-            />
+        <GetFileHash Files="$(ProjectDir)/$(TargetName).zip" Algorithm="SHA256">
+            <Output TaskParameter="Items" ItemName="FilesWithHashes" />
         </GetFileHash>
         <Message Importance="High" Text="@(FilesWithHashes->'%(Identity): %(FileHash)')" />
     </Target>

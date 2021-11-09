@@ -16,13 +16,8 @@ using Random = UnityEngine.Random;
 
 namespace DebugMod
 {
-    public class DebugMod
-        #if CURRENTVERSION
-        : Mod, IGlobalSettings<GlobalSettings>, ILocalSettings<SaveSettings>
+    public class DebugMod : Mod, IGlobalSettings<GlobalSettings>, ILocalSettings<SaveSettings>
 
-        #elif OLDVERSION
-        : Mod<SaveSettings, GlobalSettings>
-        #endif
     {
         public override string GetVersion()
         {
@@ -49,18 +44,13 @@ namespace DebugMod
 
         //internal static int NailDamage;
         
-        #if CURRENTVERSION
         public static GlobalSettings settings { get; set; } = new GlobalSettings();
         public void OnLoadGlobal(GlobalSettings s) => DebugMod.settings = s;
         public GlobalSettings OnSaveGlobal() => DebugMod.settings;
         public SaveSettings LocalSaveData { get; set; } = new SaveSettings();
         public void OnLoadLocal(SaveSettings s) => this.LocalSaveData = s;
         public SaveSettings OnSaveLocal() => this.LocalSaveData;
-    
-        #elif OLDVERSION
-        internal static GlobalSettings settings;
-        #endif
-        
+
         private static float _loadTime;
         private static float _unloadTime;
         private static bool _loadingChar;
@@ -111,10 +101,6 @@ namespace DebugMod
             
             instance.Log("Done! Time taken: " + (Time.realtimeSinceStartup - startTime) + "s. Found " + bindMethods.Count + " methods");
 
-            #if OLDVERSION
-            settings = GlobalSettings;
-            #endif
-            
             if (settings.FirstRun)
             {
                 instance.Log("First run detected, setting default binds");
@@ -170,14 +156,14 @@ namespace DebugMod
             Object.DontDestroyOnLoad(UIObj);
             
             saveStateManager = new SaveStateManager();
-            Compatibility.ModHooks.AfterSavegameLoadHook += LoadCharacter;
+            ModHooks.AfterSavegameLoadHook += LoadCharacter;
 
             //ModHooks.HitInstanceHook += DoDamage;
             
-            Compatibility.ModHooks.NewGameHook += NewCharacter;
-            Compatibility.ModHooks.BeforeSceneLoadHook += OnLevelUnload;
-            Compatibility.ModHooks.TakeHealthHook += PlayerDamaged;
-            Compatibility.ModHooks.ApplicationQuitHook += SaveSettings;
+            ModHooks.NewGameHook += NewCharacter;
+            ModHooks.BeforeSceneLoadHook += OnLevelUnload;
+            ModHooks.TakeHealthHook += PlayerDamaged;
+            ModHooks.ApplicationQuitHook += SaveSettings;
 
 
             BossHandler.PopulateBossLists();
@@ -247,7 +233,7 @@ namespace DebugMod
 
         private void ChangeVersionNumber(On.SetVersionNumber.orig_Start orig, SetVersionNumber self)
         {
-            Text textUi = Compatibility.ReflectionHelper.GetField<SetVersionNumber, Text>(self, "textUi");
+            Text textUi = ReflectionHelper.GetField<SetVersionNumber, Text>(self, "textUi");
 
             if (!(textUi != null)) return;
             
