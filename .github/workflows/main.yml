@@ -29,3 +29,8 @@ jobs:
         run: dotnet restore
       - name: Build Mod
         run: dotnet build
+      - name: Upload Mod
+        uses: actions/upload-artifact@v2
+        with:
+          name: DebugMod
+          path: ./DebugMod/
