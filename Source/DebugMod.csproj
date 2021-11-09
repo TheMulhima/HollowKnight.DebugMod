@@ -9,9 +9,11 @@
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <LangVersion>latest</LangVersion>
 	<TargetFramework>net472</TargetFramework>
-	<HollowKnightFolder>..\..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\</HollowKnightFolder>
-    <ModsDirectory>C:\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\Mods</ModsDirectory>
-	<DefineConstants>CURRENTVERSION</DefineConstants>
+    <!-- <HollowKnightFolder>..\..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\</HollowKnightFolder>-->
+      <HollowKnightFolder>..\API</HollowKnightFolder>
+
+      <ModsDirectory>C:\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\Mods</ModsDirectory>
+    <DefineConstants>CURRENTVERSION</DefineConstants>
   </PropertyGroup>
       
     <ItemGroup>
@@ -77,6 +79,7 @@
         </Reference>
     </ItemGroup>
     
+    <!-- uncomment this if you are building this
 	<Target Name="CopyMod" AfterTargets="PostBuildEvent">
         <Copy SourceFiles="$(TargetPath);$(TargetDir)$(TargetName).pdb" DestinationFolder="$(ModsDirectory)\$(TargetName)" SkipUnchangedFiles="true" />
     </Target>
@@ -95,5 +98,5 @@
         </GetFileHash>
         <Message Importance="High" Text="@(FilesWithHashes->'%(Identity): %(FileHash)')" />
     </Target>
-	
+	-->
 </Project>
