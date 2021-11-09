@@ -10,20 +10,20 @@
     <LangVersion>latest</LangVersion>
 	<TargetFramework>net472</TargetFramework>
     <!-- <HollowKnightFolder>..\..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\</HollowKnightFolder>-->
+    <!--<ModsDirectory>C:\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\Mods</ModsDirectory>-->
       <HollowKnightFolder>..\API</HollowKnightFolder>
+      <ModsDirectory>$(SolutionDir)</ModsDirectory>
+      <DefineConstants>CURRENTVERSION</DefineConstants>
+</PropertyGroup>
+   
+ <ItemGroup>
+     <None Remove="Images\**\*.png" />
+ </ItemGroup>
+ <ItemGroup>
+     <EmbeddedResource Include="Images\**\*.png" />
+ </ItemGroup>
 
-      <ModsDirectory>C:\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\Mods</ModsDirectory>
-    <DefineConstants>CURRENTVERSION</DefineConstants>
-  </PropertyGroup>
-      
-    <ItemGroup>
-        <None Remove="Images\**\*.png" />
-    </ItemGroup>
-    <ItemGroup>
-        <EmbeddedResource Include="Images\**\*.png" />
-    </ItemGroup>
-  
-    <!-- Same References -->
+ <!-- Same References -->
     <ItemGroup>
         <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
           <HintPath>$(HollowKnightFolder)\Assembly-CSharp.dll</HintPath>
@@ -79,7 +79,6 @@
         </Reference>
     </ItemGroup>
     
-    <!-- uncomment this if you are building this
 	<Target Name="CopyMod" AfterTargets="PostBuildEvent">
         <Copy SourceFiles="$(TargetPath);$(TargetDir)$(TargetName).pdb" DestinationFolder="$(ModsDirectory)\$(TargetName)" SkipUnchangedFiles="true" />
     </Target>
@@ -98,5 +97,5 @@
         </GetFileHash>
         <Message Importance="High" Text="@(FilesWithHashes->'%(Identity): %(FileHash)')" />
     </Target>
-	-->
+	
 </Project>
