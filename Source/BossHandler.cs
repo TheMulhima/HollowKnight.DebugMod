@@ -112,9 +112,7 @@ namespace DebugMod
                             {
                                 if (playMakerFSM.FsmVariables.GetFsmBool("Activated") != null)
                                 {
-                                    Modding.Logger.Log(playMakerFSM.Fsm.GetFsmBool("Activated").Value);
                                     playMakerFSM.FsmVariables.GetFsmBool("Activated").Value = false;
-                                    Modding.Logger.Log(playMakerFSM.Fsm.GetFsmBool("Activated").Value);
                                     Console.AddLine("Boss control for this scene was reset, re-enter scene or warp");
                                 }
                             }

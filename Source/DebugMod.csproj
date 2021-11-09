@@ -1,110 +1,26 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-    <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
-    <PropertyGroup>
-        <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-        <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-        <ProjectGuid>{932ED497-4C09-461E-B198-8B44FD9B288F}</ProjectGuid>
-        <OutputType>Library</OutputType>
-        <AppDesignerFolder>Properties</AppDesignerFolder>
-        <RootNamespace>DebugMod</RootNamespace>
-        <AssemblyName>DebugMod</AssemblyName>
-        <FileAlignment>512</FileAlignment>
-        <LangVersion>latest</LangVersion>
-        </PropertyGroup>
-    <!-- 1.5 Builds -->
-    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-        <TargetFramework>v4.7.2</TargetFramework>
-        <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
-        <DefineConstants>CURRENTVERSION</DefineConstants>
-        
-        <!-- Put your 1.5 Install Path Here -->
-        <HollowKnightFolder>..\..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\</HollowKnightFolder>
-        <ModsDirectory>C:\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\Mods\DebugMod</ModsDirectory>
-        <OutputPath>bin\Debug\</OutputPath>
-    </PropertyGroup>
-    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-        <TargetFramework>v4.7.2</TargetFramework>
-        <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
-        <DefineConstants>CURRENTVERSION</DefineConstants>
-        
-        <!-- Put your 1.5 Install Path Here -->
-        <HollowKnightFolder>..\..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\</HollowKnightFolder>
-        <ModsDirectory>C:\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\Mods\DebugMod</ModsDirectory>
-        <OutputPath>bin\Release\</OutputPath>
-    </PropertyGroup>
-    
-    
-    <!-- 1.4 Build -->
-    <!-- To get this build configuration, manually add a build config named "1.4"-->
-    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'oldversion|AnyCPU' ">
-      <TargetFramework>v3.5</TargetFramework>
-        <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
-        <DefineConstants>OLDVERSION</DefineConstants>
-        
-      <HollowKnightFolder>..\..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Hollow Knight 1.4 Modded\hollow_knight_Data\Managed\</HollowKnightFolder>
-      <ModsDirectory>C:\Program Files (x86)\Steam\steamapps\common\Hollow Knight 1.4 Modded\hollow_knight_Data\Managed\Mods</ModsDirectory>
-      <OutputPath>bin\oldversion\</OutputPath>
-    </PropertyGroup>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <ProjectGuid>{932ED497-4C09-461E-B198-8B44FD9B288F}</ProjectGuid>
+
+    <RootNamespace>DebugMod</RootNamespace>
+    <AssemblyTitle>DebugMod</AssemblyTitle>
+    <AssemblyVersion>1.4.8</AssemblyVersion>
+    <Deterministic>true</Deterministic>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <LangVersion>latest</LangVersion>
+	<TargetFramework>net472</TargetFramework>
+	<HollowKnightFolder>..\..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\</HollowKnightFolder>
+    <ModsDirectory>C:\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\Mods</ModsDirectory>
+	<DefineConstants>CURRENTVERSION</DefineConstants>
+  </PropertyGroup>
+      
     <ItemGroup>
-        <EmbeddedResource Include="Images\AddEntry.png" />
-        <EmbeddedResource Include="Images\BlueGlow.png" />
-        <EmbeddedResource Include="Images\ButtonDel.png" />
-        <EmbeddedResource Include="Images\ButtonInf.png" />
-        <EmbeddedResource Include="Images\ButtonPlus.png" />
-        <EmbeddedResource Include="Images\ButtonRect.png" />
-        <EmbeddedResource Include="Images\ButtonRectEmpty.png" />
-        <EmbeddedResource Include="Images\ButtonsMenuBG.png" />
-        <EmbeddedResource Include="Images\CityKey.png" />
-        <EmbeddedResource Include="Images\ConsoleBg.png" />
-        <EmbeddedResource Include="Images\CrystalHeart.png" />
-        <EmbeddedResource Include="Images\DreamGate.png" />
-        <EmbeddedResource Include="Images\DreamGateDropdownBG.png" />
-        <EmbeddedResource Include="Images\DreamNail1.png" />
-        <EmbeddedResource Include="Images\DreamNail2.png" />
-        <EmbeddedResource Include="Images\DropdownBG.png" />
-        <EmbeddedResource Include="Images\ElegantKey.png" />
-        <EmbeddedResource Include="Images\EnemiesBg.png" />
-        <EmbeddedResource Include="Images\EnemiesPBg.png" />
-        <EmbeddedResource Include="Images\Essence.png" />
-        <EmbeddedResource Include="Images\Essence2.png" />
-        <EmbeddedResource Include="Images\Flower.png" />
-        <EmbeddedResource Include="Images\Geo.png" />
-        <EmbeddedResource Include="Images\HelpBG.png" />
-        <EmbeddedResource Include="Images\IsmasTear.png" />
-        <EmbeddedResource Include="Images\Kingsbrand.png" />
-        <EmbeddedResource Include="Images\Lantern.png" />
-        <EmbeddedResource Include="Images\LoveKey.png" />
-        <EmbeddedResource Include="Images\MantisClaw.png" />
-        <EmbeddedResource Include="Images\MapQuill.png" />
-        <EmbeddedResource Include="Images\MonarchWings.png" />
-        <EmbeddedResource Include="Images\MothwingCloak.png" />
-        <EmbeddedResource Include="Images\NailArt_CycloneSlash.png" />
-        <EmbeddedResource Include="Images\NailArt_DashSlash.png" />
-        <EmbeddedResource Include="Images\NailArt_GreatSlash.png" />
-        <EmbeddedResource Include="Images\PaleOre.png" />
-        <EmbeddedResource Include="Images\RancidEgg.png" />
-        <EmbeddedResource Include="Images\ScrollBarArrowDown.png" />
-        <EmbeddedResource Include="Images\ScrollBarArrowUp.png" />
-        <EmbeddedResource Include="Images\scrollbar_mid.png" />
-        <EmbeddedResource Include="Images\Scrollbar_point.png" />
-        <EmbeddedResource Include="Images\ShadeCloak.png" />
-        <EmbeddedResource Include="Images\SimpleKey.png" />
-        <EmbeddedResource Include="Images\SlyKey.png" />
-        <EmbeddedResource Include="Images\StatusPanelBG.png" />
-        <EmbeddedResource Include="Images\TramPass.png" />
-        <EmbeddedResource Include="Images\BlankBox.png" />
-        <EmbeddedResource Include="Images\BlankVertical.png" />
-        <EmbeddedResource Include="Images\ScrollBarArrowLeft.png" />
-        <EmbeddedResource Include="Images\ScrollBarArrowRight.png" />
-        <EmbeddedResource Include="Images\LastStagFace.png" />
-        <EmbeddedResource Include="Images\Mask.png" />
-        <EmbeddedResource Include="Images\Vessel.png" />
-        <EmbeddedResource Include="Images\SilkNever.png" />
-        <EmbeddedResource Include="Images\Cursor.png" />
-        <EmbeddedResource Include="Images\ButtonRun.png" />
+        <None Remove="Images\**\*.png" />
     </ItemGroup>
-    
+    <ItemGroup>
+        <EmbeddedResource Include="Images\**\*.png" />
+    </ItemGroup>
+  
     <!-- Same References -->
     <ItemGroup>
         <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
@@ -143,13 +59,7 @@
         <Reference Include="UnityEngine.UIModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
           <HintPath>$(HollowKnightFolder)\UnityEngine.UIModule.dll</HintPath>
         </Reference>
-    </ItemGroup>
-
-    <!-- 1.5 Specific References -->
-    <ItemGroup Condition=" '$(TargetFramework)' == 'v4.7.2' ">
-        <Reference Include="System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e">
-            <HintPath>$(HollowKnightFolder)\System.dll</HintPath>
-        </Reference>
+		
         <Reference Include="MMHOOK_Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
             <HintPath>$(HollowKnightFolder)\MMHOOK_Assembly-CSharp.dll</HintPath>
         </Reference>
@@ -159,15 +69,6 @@
         <Reference Include="UnityEngine.InputLegacyModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
             <HintPath>$(HollowKnightFolder)\UnityEngine.InputLegacyModule.dll</HintPath>
         </Reference>
-        <Reference Include="System.IO.Compression, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-            <HintPath>$(HollowKnightFolder)\System.IO.Compression.dll</HintPath>
-        </Reference>
-        <Reference Include="System.Net.Http, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-            <HintPath>$(HollowKnightFolder)\System.Net.Http.dll</HintPath>
-        </Reference>
-        <Reference Include="System.Runtime.Serialization.Xml, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-            <HintPath>$(HollowKnightFolder)\System.Runtime.Serialization.Xml.dll</HintPath>
-        </Reference>
         <Reference Include="netstandard, Version=2.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51">
             <HintPath>$(HollowKnightFolder)\netstandard.dll</HintPath>
         </Reference>
@@ -175,52 +76,31 @@
             <HintPath>$(HollowKnightFolder)\mscorlib.dll</HintPath>
         </Reference>
     </ItemGroup>
-
-    <!-- 1.4 Specific References -->
-    <ItemGroup Condition=" '$(TargetFramework)' == 'v3.5' ">
-        <Reference Include="System, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-            <HintPath>$(HollowKnightFolder)\System.dll</HintPath>
-        </Reference>
-        <Reference Include="mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-            <HintPath>$(HollowKnightFolder)\mscorlib.dll</HintPath>
-        </Reference>
-    </ItemGroup>
     
-    <ItemGroup>
-        <Compile Include="BindableFunctions.cs" />
-        <Compile Include="BindableMethod.cs" />
-        <Compile Include="BossHandler.cs" />
-        <Compile Include="Canvas\CanvasButton.cs" />
-        <Compile Include="Canvas\CanvasImage.cs" />
-        <Compile Include="Canvas\CanvasPanel.cs" />
-        <Compile Include="Canvas\CanvasText.cs" />
-        <Compile Include="Compatibility\ModHooks.cs" />
-        <Compile Include="Compatibility\ReflectionHelper.cs" />
-        <Compile Include="Console.cs" />
-        <Compile Include="DebugMod.cs" />
-        <Compile Include="DreamGate.cs" />
-        <Compile Include="EnemiesPanel.cs" />
-        <Compile Include="EnemyData.cs" />
-        <Compile Include="GUIController.cs" />
-        <Compile Include="Hitbox\ShadeSpawnLocation.cs" />
-        <Compile Include="Hitbox\Drawing.cs" />
-        <Compile Include="Hitbox\HitboxRender.cs" />
-        <Compile Include="Hitbox\HitboxViewer.cs" />
-        <Compile Include="InfoPanel.cs" />
-        <Compile Include="KeyBindPanel.cs" />
-        <Compile Include="MinimalInfoPanel.cs" />
-        <Compile Include="MonoBehaviours\Cursor.cs" />
-        <Compile Include="Pair.cs" />
-        <Compile Include="PlayerDeathWatcher.cs" />
-        <Compile Include="SaveStates\SaveState.cs" />
-        <Compile Include="SaveStates\SaveStateManager.cs" />
-        <Compile Include="SaveStates\SaveStatePanel.cs" />
-        <Compile Include="Settings.cs" />
-        <Compile Include="TimeScale.cs" />
-        <Compile Include="TopMenu.cs" />
-    </ItemGroup>
-    <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-    <Target Name="CopyMod" AfterTargets="PostBuildEvent">
-        <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(ModsDirectory)" SkipUnchangedFiles="true" />
+	<Target Name="CopyMod" AfterTargets="PostBuildEvent">
+        <Copy 
+                SourceFiles="$(TargetPath);$(TargetDir)$(TargetName).pdb" 
+                DestinationFolder="$(ModsDirectory)\$(TargetName)" 
+                SkipUnchangedFiles="true" 
+        />
     </Target>
+    
+    <Target Name="CreateReleaseZip" AfterTargets="PostBuildEvent" Condition="'$(Configuration)' == 'Release'">
+        <MakeDir Directories="$(ProjectDir)Output" />
+        <Delete Files="$(ProjectDir)/$(TargetName).zip" />
+        <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(ProjectDir)/Output/" />
+        <Copy SourceFiles="$(TargetDir)$(TargetName).pdb" DestinationFolder="$(ProjectDir)/Output/" />
+        <Copy SourceFiles="$(SolutionDir)/README.md" DestinationFolder="$(ProjectDir)/Output/" ContinueOnError="true"/>
+        <ZipDirectory DestinationFile="$(ProjectDir)/$(TargetName).zip" SourceDirectory="$(ProjectDir)/Output" />
+        <RemoveDir Directories="$(ProjectDir)Output" />
+        
+        <GetFileHash Files="$(ProjectDir)/$(TargetName).zip" Algorithm="SHA256" >
+            <Output
+                    TaskParameter="Items"
+                    ItemName="FilesWithHashes" 
+            />
+        </GetFileHash>
+        <Message Importance="High" Text="@(FilesWithHashes->'%(Identity): %(FileHash)')" />
+    </Target>
+	
 </Project>

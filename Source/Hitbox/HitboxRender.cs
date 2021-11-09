@@ -69,7 +69,7 @@ namespace DebugMod.Hitbox
 
         private Vector2 LocalToScreenPoint(Camera camera, Collider2D collider2D, Vector2 point)
         {
-            Vector2 result = camera.WorldToScreenPoint(collider2D.transform.TransformPoint(point + collider2D.offset));
+            Vector2 result = camera.WorldToScreenPoint((Vector2)collider2D.transform.TransformPoint(point + collider2D.offset));
             return new Vector2((int) Math.Round(result.x), (int) Math.Round(Screen.height - result.y));
         }
 
@@ -196,9 +196,8 @@ namespace DebugMod.Hitbox
                 }
             } else if (collider2D is CircleCollider2D circleCollider2D)
             {
-                Vector2 offset = circleCollider2D.offset;
-                Vector2 center = LocalToScreenPoint(camera, collider2D, offset);
-                Vector2 right = LocalToScreenPoint(camera, collider2D, new Vector2(offset.x + circleCollider2D.radius, offset.y));
+                Vector2 center = LocalToScreenPoint(camera, collider2D, Vector2.zero);
+                Vector2 right = LocalToScreenPoint(camera, collider2D, Vector2.right * circleCollider2D.radius);
                 int radius = (int) Math.Round(Vector2.Distance(center, right));
                 Drawing.DrawCircle(center, radius, hitboxType.Color, lineWidth, true, Mathf.Clamp(radius / 16, 4, 32));
             }
