@@ -328,7 +328,7 @@ namespace DebugMod
             {
                 if (UIManager.instance.uiState.ToString() == "PAUSED")
                 {
-                    UIManager.instance.TogglePauseGame();
+                    InputHandler.Instance.StartCoroutine(GameManager.instance.PauseGameToggle());
                     GameManager.instance.HazardRespawn();
                     Console.AddLine("Closing Pause Menu and respawning...");
                     return;
@@ -785,8 +785,14 @@ namespace DebugMod
         [BindableMethod(name = "Kill All", category = "Cheats")]
         public static void KillAll()
         {
-            PlayMakerFSM.BroadcastEvent("INSTA KILL");
-            Console.AddLine("INSTA KILL broadcasted!");
+            foreach (GameObject go in USceneManager.GetActiveScene().GetRootGameObjects())
+            {
+                foreach (HealthManager hm in go.GetComponentsInChildren<HealthManager>())
+                {
+                    hm.Die(null, AttackTypes.Generic, true);
+                }
+            }
+            Console.AddLine("Killing all Healthmanagers in scene!");
         }
 
         [BindableMethod(name = "Infinite Jump", category = "Cheats")]

@@ -385,7 +385,7 @@ namespace DebugMod
                             int num2 = gameObject.name.IndexOf("hopper", StringComparison.OrdinalIgnoreCase);
                             if (num3 >= 0 && num2 >= 0)
                             {
-                                component = gameObject.transform.FindChild("Sprite").gameObject.gameObject.GetComponent<tk2dSprite>();
+                                component = gameObject.transform.Find("Sprite").gameObject.gameObject.GetComponent<tk2dSprite>();
                             }
                             if (healthManager != null)
                             {

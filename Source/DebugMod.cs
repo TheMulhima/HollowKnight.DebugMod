@@ -39,7 +39,7 @@ namespace DebugMod
 
         internal static GameManager GM => _gm != null ? _gm : (_gm = GameManager.instance);
         internal static InputHandler IH => _ih != null ? _ih : (_ih = GM.inputHandler);
-        internal static HeroController HC => _hc != null ? _hc : (_hc = GM.hero_ctrl);
+        internal static HeroController HC => _hc != null ? _hc : (_hc = HeroController.instance);
         internal static GameObject RefKnight => _refKnight != null ? _refKnight : (_refKnight = HC.gameObject);
         internal static PlayMakerFSM RefKnightSlash => _refKnightSlash != null ? _refKnightSlash : (_refKnightSlash = RefKnight.transform.Find("Attacks/Slash").GetComponent<PlayMakerFSM>());
         internal static CameraController RefCamera => _refCamera != null ? _refCamera : (_refCamera = GM.cameraCtrl);
