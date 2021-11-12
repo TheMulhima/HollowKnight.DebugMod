@@ -707,8 +707,49 @@ namespace DebugMod
             Console.AddLine($"Time since {(DebugMod.KeyBindLock ? "Unlock":"Lock")} was {currentTime - PreviousBindChange[listLength - 2]}");
         }
         #endregion
+        
+        internal static void AddTopMenuContent(string MenuName, List<TopMenuButton> ButtonList)
+        {
+            if (panel.GetPanel(MenuName) == null)
+            {
+                Rect buttonRect = new Rect(0, 0, GUIController.Instance.images["ButtonRect"].width, GUIController.Instance.images["ButtonRect"].height);
+                UnityAction<string> ClickedFunction = _ => panel.TogglePanel(MenuName);
 
-        [PublicAPI(comment:"Hi")]
+                Vector2 Pos = AllPossibleLocations.First();
+                AllPossibleLocations.Remove(Pos);
+
+                panel.AddButton(MenuName, GUIController.Instance.images["ButtonRect"], Pos, Vector2.zero, ClickedFunction, buttonRect, GUIController.Instance.trajanBold, MenuName);
+                panel.AddPanel(MenuName, GUIController.Instance.images["DropdownBG"], new Vector2(Pos.x, 75f), Vector2.zero, new Rect(0, 0, GUIController.Instance.images["DropdownBG"].width, GUIController.Instance.images["DropdownBG"].height));
+            }
+
+            CanvasPanel MyPanel = panel.GetPanel(MenuName);
+
+            foreach (var button in ButtonList)
+            {
+                if (button is TextButton textButton)
+                {
+                    MyPanel.AddButton(textButton.ButtonText,
+                        GUIController.Instance.images["ButtonRectEmpty"],
+                        MyPanel.GetNextPos(CanvasPanel.MenuItems.TextButton), 
+                        Vector2.zero, 
+                        textButton.ClickedFunction,
+                        new Rect(0f, 0f, 80f, 20f),
+                        GUIController.Instance.trajanNormal, 
+                        textButton.ButtonText,
+                        10);
+                }
+                else if (button is ImageButton imageButton)
+                {
+                    MyPanel.AddButton($"{MenuName} {imageButton.ButtonImage.name} {MyPanel.NumButtons}", 
+                        imageButton.ButtonImage,
+                        MyPanel.GetNextPos(CanvasPanel.MenuItems.ImageButton), 
+                        new Vector2(27f, 27f), 
+                        imageButton.ClickedFunction,
+                        new Rect(0, 0, imageButton.ButtonImage.width, imageButton.ButtonImage.height));
+                }
+            }
+        }
+        /*
         public static void AddNewMenuToTopMenu(string MenuName)
         {
             Rect buttonRect = new Rect(0, 0, GUIController.Instance.images["ButtonRect"].width, GUIController.Instance.images["ButtonRect"].height);
@@ -721,9 +762,9 @@ namespace DebugMod
             panel.AddButton(MenuName, GUIController.Instance.images["ButtonRect"], Pos, Vector2.zero, ClickedFunction, buttonRect, GUIController.Instance.trajanBold, MenuName);
             
             panel.AddPanel(MenuName, GUIController.Instance.images["DropdownBG"], new Vector2(Pos.x, 75f), Vector2.zero, new Rect(0, 0, GUIController.Instance.images["DropdownBG"].width, GUIController.Instance.images["DropdownBG"].height));
-        }
 
-        [PublicAPI]
+
+        }
         public static void AddTextToMenuButton(string MenuName, string ButtonText,
             UnityAction<string> ClickedFunction, float Y_Position, float X_Pos = 5f)
         {
@@ -738,7 +779,6 @@ namespace DebugMod
                     10);
         }
 
-        [PublicAPI]
         public static void AddImageToMenuButton(string MenuName, string ButtonText,Texture2D buttonImage,
             Vector2 Position, Vector2 imageSizeOnPanel, UnityAction<string> ClickedFunction)
         {
@@ -748,6 +788,6 @@ namespace DebugMod
                 imageSizeOnPanel, 
                 ClickedFunction,
                 new Rect(0, 0, buttonImage.width, buttonImage.height));
-        }
+        }*/
     }
 }

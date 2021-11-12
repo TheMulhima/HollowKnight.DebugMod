@@ -77,10 +77,14 @@ namespace DebugMod
             switch (DebugMod.TimeScaleActive)
             {
                 case true when wasTimeScaleActive == false:
-                    TimeScale.EnableTimeScale();
+                    GameManager.instance.gameObject.AddComponent<TimeScale>();
                     break;
                 case false when wasTimeScaleActive:
-                    TimeScale.DisableTimeScale();
+                    if (GameManager.instance.GetComponent<TimeScale>() != null)
+                    {
+                        Object.Destroy(GameManager.instance.gameObject.GetComponent<TimeScale>());
+                    }
+
                     break;
             }
             Console.AddLine("New TimeScale value: " + DebugMod.CurrentTimeScale + " Old value: " + oldScale);
@@ -105,10 +109,14 @@ namespace DebugMod
             switch (DebugMod.TimeScaleActive)
             {
                 case true when wasTimeScaleActive == false:
-                    TimeScale.EnableTimeScale();
+                    GameManager.instance.gameObject.AddComponent<TimeScale>();
                     break;
                 case false when wasTimeScaleActive:
-                    TimeScale.DisableTimeScale();
+                    if (GameManager.instance.GetComponent<TimeScale>() != null)
+                    {
+                        Object.Destroy(GameManager.instance.gameObject.GetComponent<TimeScale>());
+                    }
+
                     break;
             }
             Console.AddLine("New TimeScale value: " + DebugMod.CurrentTimeScale + " Old value: " + oldScale);
@@ -173,7 +181,10 @@ namespace DebugMod
             component.color = color;
 
             //rest all is self explanatory
-            TimeScale.DisableTimeScale();
+            if (GameManager.instance.GetComponent<TimeScale>() != null)
+            {
+                Object.Destroy(GameManager.instance.gameObject.GetComponent<TimeScale>());
+            }
             GC.tk2dCam.ZoomFactor = 1f;
             HC.vignette.enabled = false;
             EnemiesPanel.hitboxes = false;
@@ -417,7 +428,7 @@ namespace DebugMod
             }
         }
         
-        [BindableMethod(name = "Recover Shade", category = "Cheats")]
+        [BindableMethod(name = "Recover Shade", category = "Misc")]
         public static void RecoverShade()
         {
             PlayerData.instance.EndSoulLimiter();
@@ -434,6 +445,29 @@ namespace DebugMod
             PlayMakerFSM.BroadcastEvent("HOLLOW SHADE KILLED");
         }
         
+        [BindableMethod(name = "Start/End Frame Advance", category = "Misc")]
+        public static void ToggleFrameAdvance()
+        {
+            if (GameManager.instance.gameObject.GetComponent<FrameByFrameAdvance>() == null)
+            {
+                GameManager.instance.gameObject.AddComponent<FrameByFrameAdvance>();
+                Console.AddLine("Starting frame by frame advance on keybind press");
+            }
+            else
+            {
+                Object.Destroy(GameManager.instance.GetComponent<FrameByFrameAdvance>());
+                Console.AddLine("Stopping frame by frame advance on keybind press");
+            }
+        }
+
+        [BindableMethod(name = "Advance Frame", category = "Misc")]
+        public static void AdvanceFrame()
+        {
+            GameManager.instance.GetComponent<FrameByFrameAdvance>().frameAdvance = true;
+            Time.timeScale = 1f;
+
+        }
+
         #endregion
         
         #region Visual

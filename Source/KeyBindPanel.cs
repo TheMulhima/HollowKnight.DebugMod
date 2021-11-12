@@ -73,8 +73,8 @@ namespace DebugMod
                         GUIController.Instance.images["ButtonRun"].height));
             }
         
-        //Build pages based on categories
-        foreach (KeyValuePair<string, Pair> bindable in DebugMod.bindMethods)
+            //Build pages based on categories
+            foreach (KeyValuePair<string, Pair> bindable in DebugMod.bindMethods)
             {
                 string name = bindable.Key;
                 string cat = (string)bindable.Value.First;

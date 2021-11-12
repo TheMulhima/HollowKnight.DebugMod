@@ -341,6 +341,9 @@ namespace DebugMod
 
             GM.LoadScene(scenename);
         }
+
+        [PublicAPI]
+        public static void AddTopMenuContent(string MenuName, List<TopMenuButton> ButtonList) => TopMenu.AddTopMenuContent(MenuName, ButtonList);
         
         [PublicAPI]
         public static void AddToKeyBindList(Type BindableFunctionsClass)

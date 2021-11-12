@@ -15,6 +15,20 @@ namespace DebugMod.Canvas
         private Dictionary<string, CanvasImage> images = new Dictionary<string, CanvasImage>();
         private Dictionary<string, CanvasText> texts = new Dictionary<string, CanvasText>();
 
+        public enum MenuItems
+        {
+            TextButton = 0,
+            ImageButton
+        };
+
+        private MenuItems LastItem = MenuItems.TextButton;
+        public int NumButtons = 0;
+        private float xpos = Xposes[0];
+        private float ypos = 30f;
+        private static float[] Xposes =
+        {
+            15f, 52f
+        };
         public bool active;
 
         public CanvasPanel(GameObject parent, Texture2D tex, Vector2 pos, Vector2 sz, Rect bgSubSection)
@@ -245,6 +259,36 @@ namespace DebugMod.Canvas
             {
                 p.Destroy();
             }
+        }
+
+        public Vector2 GetNextPos(MenuItems currentItem)
+        {
+            if (currentItem == MenuItems.TextButton)
+            {
+                if (NumButtons != 0) ypos += 30f;
+                xpos = 5f;
+                LastItem = MenuItems.TextButton;
+            }
+            else if (currentItem == MenuItems.ImageButton)
+            {
+                if (LastItem == MenuItems.TextButton)
+                {
+                    xpos = Xposes[0];
+                    if (NumButtons != 0) ypos += 30f;
+                }
+                else if (LastItem == MenuItems.ImageButton)
+                {
+                    if (xpos == Xposes[1])
+                    {
+                        if (NumButtons != 0) ypos += 30f;
+                    }
+                    xpos = xpos == Xposes[0] ? Xposes[1] : Xposes[0];
+                }
+                LastItem = MenuItems.ImageButton;
+            }
+
+            NumButtons++;
+            return new Vector2(xpos, ypos);;
         }
     }
 }
