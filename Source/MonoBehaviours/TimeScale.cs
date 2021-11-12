@@ -18,8 +18,6 @@ namespace DebugMod.MonoBehaviours
             DebugMod.TimeScaleActive = true;
             Time.timeScale = DebugMod.CurrentTimeScale;
 
-            ModHooks.HeroUpdateHook += Update;
-
             On.GameManager.SetTimeScale_float += GameManager_SetTimeScale_1;
             On.QuitToMenu.Start += QuitToMenu_Start;
 
@@ -34,14 +32,12 @@ namespace DebugMod.MonoBehaviours
         
          public void OnDestroy()
         {
-            Time.timeScale = 1f;
-            DebugMod.CurrentTimeScale = 1f;
+            
             foreach (ILHook hook in _coroutineHooks)
                 hook.Dispose();
 
             Time.timeScale = 1;
-
-            ModHooks.HeroUpdateHook -= Update;
+            DebugMod.CurrentTimeScale = 1f;
 
             On.GameManager.SetTimeScale_float -= GameManager_SetTimeScale_1;
             On.QuitToMenu.Start -= QuitToMenu_Start;
@@ -71,26 +67,6 @@ namespace DebugMod.MonoBehaviours
              cursor.EmitDelegate<Func<float>>(() => DebugMod.CurrentTimeScale);
 
              cursor.Emit(OpCodes.Mul);
-         }
-
-         private void Update()
-         {
-             if (Input.GetKeyDown(KeyCode.Alpha2))
-             {
-                 if (Math.Abs(Time.timeScale - DebugMod.CurrentTimeScale) < Mathf.Epsilon)
-                     Time.timeScale += 0.05f;
-
-                 DebugMod.CurrentTimeScale += 0.05f;
-             }
-
-             // ReSharper disable once InvertIf
-             if (Input.GetKeyDown(KeyCode.Alpha1))
-             {
-                 if (Math.Abs(Time.timeScale - DebugMod.CurrentTimeScale) < Mathf.Epsilon)
-                     Time.timeScale -= 0.05f;
-
-                 DebugMod.CurrentTimeScale -= 0.05f;
-             }
          }
 
          private IEnumerator QuitToMenu_Start(On.QuitToMenu.orig_Start orig, QuitToMenu self)

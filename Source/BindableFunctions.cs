@@ -25,6 +25,8 @@ namespace DebugMod
         
         internal static readonly FieldInfo cameraGameplayScene = typeof(CameraController).GetField("isGameplayScene", BindingFlags.Instance | BindingFlags.NonPublic);
 
+        private static float TimeScaleDuringFrameAdvance = 0f;
+        
         #region GamePlayAltering
         [BindableMethod(name = "Nail Damage +4", category = "GamePlay Altering")]
         public static void IncreaseNailDamage()
@@ -77,7 +79,7 @@ namespace DebugMod
             switch (DebugMod.TimeScaleActive)
             {
                 case true when wasTimeScaleActive == false:
-                    GameManager.instance.gameObject.AddComponent<TimeScale>();
+                    if (GameManager.instance.GetComponent<TimeScale>() == null) GameManager.instance.gameObject.AddComponent<TimeScale>();
                     break;
                 case false when wasTimeScaleActive:
                     if (GameManager.instance.GetComponent<TimeScale>() != null)
@@ -109,7 +111,7 @@ namespace DebugMod
             switch (DebugMod.TimeScaleActive)
             {
                 case true when wasTimeScaleActive == false:
-                    GameManager.instance.gameObject.AddComponent<TimeScale>();
+                    if (GameManager.instance.GetComponent<TimeScale>() == null) GameManager.instance.gameObject.AddComponent<TimeScale>();
                     break;
                 case false when wasTimeScaleActive:
                     if (GameManager.instance.GetComponent<TimeScale>() != null)
@@ -448,14 +450,19 @@ namespace DebugMod
         [BindableMethod(name = "Start/End Frame Advance", category = "Misc")]
         public static void ToggleFrameAdvance()
         {
-            if (GameManager.instance.gameObject.GetComponent<FrameByFrameAdvance>() == null)
+            if (Time.timeScale !=0)
             {
-                GameManager.instance.gameObject.AddComponent<FrameByFrameAdvance>();
+                if (GameManager.instance.GetComponent<TimeScale>() == null) GameManager.instance.gameObject.AddComponent<TimeScale>();
+                Time.timeScale = 0f;
+                TimeScaleDuringFrameAdvance = DebugMod.CurrentTimeScale;
+                DebugMod.CurrentTimeScale = 0;
+                DebugMod.TimeScaleActive = true;
                 Console.AddLine("Starting frame by frame advance on keybind press");
             }
             else
             {
-                Object.Destroy(GameManager.instance.GetComponent<FrameByFrameAdvance>());
+                DebugMod.CurrentTimeScale = TimeScaleDuringFrameAdvance;
+                Time.timeScale = DebugMod.CurrentTimeScale;
                 Console.AddLine("Stopping frame by frame advance on keybind press");
             }
         }
@@ -463,9 +470,15 @@ namespace DebugMod
         [BindableMethod(name = "Advance Frame", category = "Misc")]
         public static void AdvanceFrame()
         {
-            GameManager.instance.GetComponent<FrameByFrameAdvance>().frameAdvance = true;
-            Time.timeScale = 1f;
+            if (Time.timeScale != 0) ToggleFrameAdvance();
+            GameManager.instance.StartCoroutine(AdvanceMyFrame());
+        }
 
+        private static IEnumerator AdvanceMyFrame()
+        {
+            Time.timeScale = 1f;
+            yield return new WaitForFixedUpdate();
+            Time.timeScale = 0;
         }
 
         #endregion

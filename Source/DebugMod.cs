@@ -64,7 +64,7 @@ namespace DebugMod
         internal static SaveStateManager saveStateManager;
         internal static bool KeyBindLock;
         internal static bool TimeScaleActive;
-        internal static float CurrentTimeScale;
+        internal static float CurrentTimeScale = 1f;
         internal static bool PauseGameNoUIActive = false;
 
         internal static Dictionary<string, Pair> bindMethods = new Dictionary<string, Pair>();
@@ -171,7 +171,6 @@ namespace DebugMod
 
             KeyBindLock = false;
             TimeScaleActive = false;
-            CurrentTimeScale = 1f;
 
             Console.AddLine("New session started " + DateTime.Now);
         }
