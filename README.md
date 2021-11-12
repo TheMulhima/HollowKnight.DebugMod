@@ -72,5 +72,6 @@ Multiple SaveStates/Minimal info panel- Cerpin<br />
 Improve hitbox viewer - DemoJameson<br />
 Multiple SaveState Pages - Magnetic Pizza (and jhearom for porting to cp)<br />
 Additional Glitched functionality - pseudorandomhk<br />
-Additional Bindable Functions - Flib<br/>
+Additional Bindable Functions, and Fix Stuff - Flib<br/>
 Buttons to directly run bindable actions - flukebull<br/>
+Add frame by frame advance code - SFGrenade<br/>

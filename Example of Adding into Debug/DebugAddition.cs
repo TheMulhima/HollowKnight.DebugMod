@@ -18,7 +18,7 @@ namespace DebugAddition
             Instance = this;
 
             //checks if Debug Exists. makes sure the mod doesnt fail to load
-            if (AppDomain.CurrentDomain.GetAssemblies().Select(x => x.GetName().Name).Contains("DebugMod"))
+            if (ModHooks.GetMod("DebugMod") is Mod)
             {
                 //this needs to be in different function or else mod will fail to load if debug exists
                 AddStuffToDebug();
@@ -32,29 +32,26 @@ namespace DebugAddition
             //see BindableFunctions2 for example on how to set it up
             DebugMod.DebugMod.AddToKeyBindList(typeof(BindableFunctions2));
             
-            string MenuName = "My Menu";
-            
-            //make a new button in top menu. when this button is clicked, it'll open a panel where you can add text/images as buttons
-            //you need to pass in name of menu
-            DebugMod.TopMenu.AddNewMenuToTopMenu(MenuName);
-
-            //some functions we'll need when adding buttons
-            UnityAction<string> TakeDamage = _ => HeroController.instance.TakeDamage(HeroController.instance.takeHitPrefab, CollisionSide.left, 1, (int) HazardType.LAVA);
-            UnityAction<string> GiveHealth = _  => HeroController.instance.AddHealth(1);
-
-            //Add a text button onto the panel. requires AddNewMenuToTopMenu to be called before this is called
-            //parameters:
-            //MenuName: the name of the panel you made
-            //ButtonText: name of button that will show to the player
-            //ClickedFunction: Unity<string> function which will be executed when the player clicks button being made
-            //Y_Position: Where thee button is going to be. For reference, all text panels use 30, 60, 90.... and so on. Max shouldnt be bigger than 357
-            DebugMod.TopMenu.AddTextToMenuButton(MenuName,
-                "Take Damage", 
-                TakeDamage,
-                30f);
-            
-            //For AddImageToMenuButton(); See how debug does it in TopMenu.cs. its basically the same function. couldnt find a way to simplify it
+			//To add to Debug TopMenu, Syntax would look something like this
+			DebugMod.DebugMod.AddTopMenuContent("TestMenu",
+                new List<TopMenuButton>()
+                {
+                     new TextButton("Button 1", _ => { DebugMod.Console.AddLine("Run any code here"); }),
+					 new ImageButton(Image, _ => { DebugMod.Console.AddLine("Run any code here"); }),
+                });
+			// the AddTopMenuContent takes 2 parameters, the menu name and the List of TopMenuButton. This list will contain the buttons that will be added
+			// currectly how it works is it will take reach entry in the list in the order it was added and place it into the menu as per the following rules
+			// 1 text button per row and 2 image buttons per row
+			
+			//to add a text button to the menu, call new TextButton to create a text button. 
+			// the parameters it takes is the string MenuName and the UnityAction<string> which is the action that will run when the button is clicked
+			
+			//to add an image button to the menu, call new ImageButton to create an image button. 
+			// the parameters it takes is the Texture2D which will be the image shown to user and the UnityAction<string> which is the action that will run when the button is clicked
+			// note that for 2 images to appear in the same row, they'll need to be added next to each other in the list
+			
         }   
+		private Texture2D Image = null;
     }
     
     public static class BindableFunctions2

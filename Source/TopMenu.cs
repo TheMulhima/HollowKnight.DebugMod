@@ -749,45 +749,5 @@ namespace DebugMod
                 }
             }
         }
-        /*
-        public static void AddNewMenuToTopMenu(string MenuName)
-        {
-            Rect buttonRect = new Rect(0, 0, GUIController.Instance.images["ButtonRect"].width, GUIController.Instance.images["ButtonRect"].height);
-
-            UnityAction<string> ClickedFunction = _ => panel.TogglePanel(MenuName);
-
-            Vector2 Pos = AllPossibleLocations.First();
-            AllPossibleLocations.Remove(Pos);
-
-            panel.AddButton(MenuName, GUIController.Instance.images["ButtonRect"], Pos, Vector2.zero, ClickedFunction, buttonRect, GUIController.Instance.trajanBold, MenuName);
-            
-            panel.AddPanel(MenuName, GUIController.Instance.images["DropdownBG"], new Vector2(Pos.x, 75f), Vector2.zero, new Rect(0, 0, GUIController.Instance.images["DropdownBG"].width, GUIController.Instance.images["DropdownBG"].height));
-
-
-        }
-        public static void AddTextToMenuButton(string MenuName, string ButtonText,
-            UnityAction<string> ClickedFunction, float Y_Position, float X_Pos = 5f)
-        {
-            panel.GetPanel(MenuName).AddButton(ButtonText,
-                     GUIController.Instance.images["ButtonRectEmpty"],
-                    new Vector2(X_Pos, Y_Position), 
-                    Vector2.zero, 
-                    ClickedFunction,
-                    new Rect(0f, 0f, 80f, 20f),
-                    GUIController.Instance.trajanNormal, 
-                    ButtonText,
-                    10);
-        }
-
-        public static void AddImageToMenuButton(string MenuName, string ButtonText,Texture2D buttonImage,
-            Vector2 Position, Vector2 imageSizeOnPanel, UnityAction<string> ClickedFunction)
-        {
-            panel.GetPanel(MenuName).AddButton(ButtonText, 
-                buttonImage,
-                Position, 
-                imageSizeOnPanel, 
-                ClickedFunction,
-                new Rect(0, 0, buttonImage.width, buttonImage.height));
-        }*/
     }
 }

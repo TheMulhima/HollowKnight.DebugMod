@@ -49,3 +49,8 @@
 * Add buttons to directly run bindable actions. Credits: Flukeball
 * Changes to respawn point hitbox color (Credits: Dandy)
 * New bindable function to recover shade (Credits: Flib)
+* Fix shade spawn point not disappearing
+* Fix Kill All, Hazard Respawn to work while the game is paused and Hitbox Viewer's circle colliders and objects with a nonzero z coordinate (Credits: Flib)
+* Revamp TopMenu Addition code, 
+* Add Frame by frame advance bindable function (Credits: SFGrenade)
+* Update sanic's code to make it better (Credits: 56)
