@@ -58,3 +58,6 @@
 * Revamp TopMenu Addition code, 
 * Add Frame by frame advance bindable function (Credits: SFGrenade)
 * Update sanic's code to make it better (Credits: 56)
+* Add ModMenu which basic buttons for reset settings, reset keybinds and show/hide debug menu (1.5 only)
+* Dont remove keys if a matching method isn't found. Makes it so removing a debug addition doesnt remove its saved keybind.
+* add option for increment/decrement charm notches
