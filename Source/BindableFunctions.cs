@@ -1153,16 +1153,26 @@ namespace DebugMod
 
             UpdateCharms();
 
-            GameManager.instance.StartCoroutine(SpawnGrimm());
+            GameManager.instance.StartCoroutine(SpawnGrimmChild());
 
-            IEnumerator SpawnGrimm()
+            IEnumerator SpawnGrimmChild()
             {
                 yield return null;
                 yield return null;
                 HeroController.instance.transform.Find("Charm Effects").gameObject.LocateMyFSM("Spawn Grimmchild").SendEvent("CHARM EQUIP CHECK");
             }
+        }
 
-
+        [BindableMethod(name = "Add Charm Notch", category = "Charms")]
+        public static void AddCharmNotch()
+        {
+            PlayerData.instance.charmSlots++;
+        }
+        
+        [BindableMethod(name = "Decrease Charm Notch", category = "Charms")]
+        public static void DecreaseCharmNotch()
+        {
+            PlayerData.instance.charmSlots--;
         }
 
         #endregion
@@ -1889,12 +1899,51 @@ namespace DebugMod
             
             GameManager.instance.AwardAchievement(AchievementToGive);
         }
+
         [BindableMethod(name = "Add GrimmKin Flames", category = "Consumables")]
         public static void GrimmKinFlames()
         {
             if (PlayerData.instance.flamesCollected == 3) PlayerData.instance.flamesCollected = 0;
             else PlayerData.instance.flamesCollected += 1;
             Console.AddLine("Grimm kin flames incremented");
+        } 
+        
+        
+        private static string[] AllMapBools = new[]
+        {
+            "mapCrossroads",
+            "mapGreenpath",
+            "mapFogCanyon",
+            "mapRoyalGardens",
+            "mapFungalWastes",
+            "mapCity",
+            "mapWaterways",
+            "mapMines",
+            "mapDeepnest",
+            "mapCliffs",
+            "mapOutskirts",
+            "mapRestingGrounds",
+            "mapAbyss"
+        };
+        
+        [BindableMethod(name = "Give All Maps", category = "Consumables")]
+        public static void GiveAllMaps()
+        {
+            PlayerData.instance.hasMap = true;
+            PlayerData.instance.mapAllRooms = true;
+            PlayerData.instance.mapCrossroads = true;
+            PlayerData.instance.mapGreenpath = true;
+            PlayerData.instance.mapFogCanyon = true;
+            PlayerData.instance.mapRoyalGardens = true;
+            PlayerData.instance.mapFungalWastes = true;
+            PlayerData.instance.mapCity = true;
+            PlayerData.instance.mapWaterways = true;
+            PlayerData.instance.mapMines = true;
+            PlayerData.instance.mapDeepnest = true;
+            PlayerData.instance.mapCliffs = true;
+            PlayerData.instance.mapOutskirts = true;
+            PlayerData.instance.mapRestingGrounds = true;
+            PlayerData.instance.mapAbyss = true;
         }
 
 

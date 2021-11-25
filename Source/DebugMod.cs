@@ -16,7 +16,7 @@ using Random = UnityEngine.Random;
 
 namespace DebugMod
 {
-    public class DebugMod : Mod, IGlobalSettings<GlobalSettings>, ILocalSettings<SaveSettings>
+    public class DebugMod : Mod, IGlobalSettings<GlobalSettings>, ILocalSettings<SaveSettings>, ICustomMenuMod
 
     {
         public override string GetVersion()
@@ -106,22 +106,7 @@ namespace DebugMod
                 instance.Log("First run detected, setting default binds");
 
                 settings.FirstRun = false;
-                settings.binds.Clear();
-
-                settings.binds.Add("Toggle All UI", (int) KeyCode.F1);
-                settings.binds.Add("Toggle Info", (int) KeyCode.F2);
-                settings.binds.Add("Toggle Menu", (int) KeyCode.F3);
-                settings.binds.Add("Toggle Console", (int) KeyCode.F4);
-                settings.binds.Add("Full/Min Info Switch", (int) KeyCode.F6);
-                settings.binds.Add("Force Camera Follow", (int) KeyCode.F8);
-                settings.binds.Add("Toggle Enemy Panel", (int) KeyCode.F9);
-                settings.binds.Add("Toggle Binds", (int) KeyCode.BackQuote);
-                settings.binds.Add("Nail Damage +4", (int) KeyCode.Equals);
-                settings.binds.Add("Nail Damage -4", (int) KeyCode.Minus);
-                settings.binds.Add("Increase Timescale", (int) KeyCode.KeypadPlus);
-                settings.binds.Add("Decrease Timescale", (int) KeyCode.KeypadMinus);
-                settings.binds.Add("Zoom In", (int) KeyCode.PageUp);
-                settings.binds.Add("Zoom Out", (int) KeyCode.PageDown);
+                ResetKeyBinds();
             }
 
             if (!Directory.Exists(settings.ModBaseDirectory)) 
@@ -242,6 +227,27 @@ namespace DebugMod
         }
 
         #endregion
+
+
+        internal static void ResetKeyBinds()
+        {
+            settings.binds.Clear();
+
+            settings.binds.Add("Toggle All UI", (int) KeyCode.F1);
+            settings.binds.Add("Toggle Info", (int) KeyCode.F2);
+            settings.binds.Add("Toggle Menu", (int) KeyCode.F3);
+            settings.binds.Add("Toggle Console", (int) KeyCode.F4);
+            settings.binds.Add("Full/Min Info Switch", (int) KeyCode.F6);
+            settings.binds.Add("Force Camera Follow", (int) KeyCode.F8);
+            settings.binds.Add("Toggle Enemy Panel", (int) KeyCode.F9);
+            settings.binds.Add("Toggle Binds", (int) KeyCode.BackQuote);
+            settings.binds.Add("Nail Damage +4", (int) KeyCode.Equals);
+            settings.binds.Add("Nail Damage -4", (int) KeyCode.Minus);
+            settings.binds.Add("Increase Timescale", (int) KeyCode.KeypadPlus);
+            settings.binds.Add("Decrease Timescale", (int) KeyCode.KeypadMinus);
+            settings.binds.Add("Zoom In", (int) KeyCode.PageUp);
+            settings.binds.Add("Zoom Out", (int) KeyCode.PageDown);
+        }
         private void SaveSettings()
         {
             SaveGlobalSettings();
@@ -361,5 +367,10 @@ namespace DebugMod
                 } 
             }
         }
+
+        public MenuScreen GetMenuScreen(MenuScreen modListMenu, ModToggleDelegates? toggleDelegates) =>
+            ModMenu.CreateMenuScreen(modListMenu).Build();
+
+        public bool ToggleButtonInsideMenu => false;
     }
 }

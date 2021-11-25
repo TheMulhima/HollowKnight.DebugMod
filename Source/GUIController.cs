@@ -212,8 +212,8 @@ namespace DebugMod
                 }
                 else
                 {
-                    DebugMod.instance.LogWarn("Bind found without matching method, removing from binds: " + bind.Key);
-                    DebugMod.settings.binds.Remove(bind.Key);
+                    DebugMod.instance.LogDebug("Bind found without matching method: " + bind.Key);
+                    //DebugMod.settings.binds.Remove(bind.Key);
                 }
             }
             if (SaveStateManager.inSelectSlotState && DebugMod.settings.SaveStatePanelVisible)

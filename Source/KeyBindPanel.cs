@@ -89,26 +89,16 @@ namespace DebugMod
             panel.GetButton("Page").UpdateText((page + 1) + " / " + pageKeys.Count);
             UpdateHelpText();
 
-            UnHook_AddAdditionalKeys();
-            Hook_AddAdditionalKeys(); 
+            On.HeroController.Awake += AddAdditionalKeys;
         }
 
-        private static void UnHook_AddAdditionalKeys()
+        private static void AddAdditionalKeys(On.HeroController.orig_Awake orig, HeroController self)
         {
-            ModHooks.SavegameLoadHook -= AddAdditionalKeys_;
-            ModHooks.NewGameHook -= AddAdditionalKeys;
-        }
-
-        private static void Hook_AddAdditionalKeys()
-        {
-            ModHooks.SavegameLoadHook += AddAdditionalKeys_;
-            ModHooks.NewGameHook += AddAdditionalKeys;
-        }
-
-        private static void AddAdditionalKeys_(int _ = 0)
-        {
+            orig(self);
             AddAdditionalKeys();
+            On.HeroController.Awake -= AddAdditionalKeys;
         }
+
 
         private static void AddAdditionalKeys()
         {
@@ -126,7 +116,6 @@ namespace DebugMod
             panel.GetButton("Page").UpdateText((page + 1) + " / " + pageKeys.Count);
             UpdateHelpText();
 
-            UnHook_AddAdditionalKeys();
         }
         
         private static void RunBind(string buttonName) {
