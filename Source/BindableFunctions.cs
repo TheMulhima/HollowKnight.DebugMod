@@ -931,12 +931,8 @@ namespace DebugMod
                 if (DebugMod.RefKnight.LocateMyFSM("Surface Water").ActiveStateName != "Inactive")
                 {
                     DebugMod.RefKnight.LocateMyFSM("Surface Water").SendEvent("JUMP");
-                    Console.AddLine("Disabled noclip and ended swim");
                 }
-                else
-                {
-                    Console.AddLine("Disabled noclip");
-                }
+                Console.AddLine("Disabled noclip");
             }
         }
 
