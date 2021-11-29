@@ -16,14 +16,12 @@ namespace DebugMod
 
     // TODO: Fix vessel count between savestates
 
-    /// <summary>
-    /// Handles organisation of SaveState-s
-    /// quickState replicating legacy behaviour of only stored in RAM.
-    /// Dictionary(int slot : file). Might change to HashMap(?) 
-    ///  if: memory requirement too high: array for limiting savestates? hashmap as all states should logically be unique?
-    /// HUD for viewing necessary info for UX.
-    /// AutoSlotSelect to iterate over slots, eventually overwrite when circled and no free slots.
-    /// </summary>
+    // Handles organisation of SaveState-s
+    // quickState replicating legacy behaviour of only stored in RAM.
+    // Dictionary(int slot : file). Might change to HashMap(?) 
+    //  if: memory requirement too high: array for limiting savestates? hashmap as all states should logically be unique?
+    // HUD for viewing necessary info for UX.
+    // AutoSlotSelect to iterate over slots, eventually overwrite when circled and no free slots.
     internal class SaveStateManager
     {
         public static int maxSaveStates = DebugMod.settings.MaxSaveStates;

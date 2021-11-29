@@ -130,7 +130,7 @@ namespace DebugMod
             //Handle keybinds
             foreach (KeyValuePair<string, int> bind in DebugMod.settings.binds)
             {
-                if (DebugMod.bindMethods.ContainsKey(bind.Key) ||DebugMod.AdditionalBindMenthods.ContainsKey(bind.Key) )
+                if (DebugMod.bindMethods.ContainsKey(bind.Key) || DebugMod.AdditionalBindMethods.ContainsKey(bind.Key) )
                 {
                     if ((KeyCode) bind.Value == KeyCode.None)
                     {
@@ -181,9 +181,9 @@ namespace DebugMod
                             try
                             {
                                 if (DebugMod.bindMethods.ContainsKey(bind.Key))
-                                    ((MethodInfo) DebugMod.bindMethods[bind.Key].Second).Invoke(null, null);
-                                if (DebugMod.AdditionalBindMenthods.ContainsKey(bind.Key))
-                                    ((MethodInfo) DebugMod.AdditionalBindMenthods[bind.Key].Second).Invoke(null, null);
+                                    (DebugMod.bindMethods[bind.Key].method).Invoke();
+                                if (DebugMod.AdditionalBindMethods.ContainsKey(bind.Key))
+                                    (DebugMod.AdditionalBindMethods[bind.Key].method).Invoke();
 
                             }
                             catch (Exception e)
@@ -197,9 +197,9 @@ namespace DebugMod
                             try
                             {
                                 if (DebugMod.bindMethods.ContainsKey(bind.Key))
-                                    ((MethodInfo) DebugMod.bindMethods[bind.Key].Second).Invoke(null, null);
-                                if (DebugMod.AdditionalBindMenthods.ContainsKey(bind.Key))
-                                    ((MethodInfo) DebugMod.AdditionalBindMenthods[bind.Key].Second).Invoke(null, null);
+                                    (DebugMod.bindMethods[bind.Key].method).Invoke();
+                                if (DebugMod.AdditionalBindMethods.ContainsKey(bind.Key))
+                                    (DebugMod.AdditionalBindMethods[bind.Key].method).Invoke();
 
                             }
                             catch (Exception e)
