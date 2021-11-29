@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Linq;
 using System.Text;
 using Modding;
+using MonoMod.ModInterop;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using GlobalEnums;
@@ -67,8 +68,8 @@ namespace DebugMod
         internal static float CurrentTimeScale = 1f;
         internal static bool PauseGameNoUIActive = false;
 
-        internal static Dictionary<string, Pair> bindMethods = new Dictionary<string, Pair>();
-        internal static Dictionary<string, Pair> AdditionalBindMenthods = new Dictionary<string, Pair>();
+        internal static Dictionary<string, (string category, Action method)> bindMethods = new();
+        internal static Dictionary<string, (string category, Action method)> AdditionalBindMethods = new();
 
         internal static Dictionary<KeyCode, int> alphaKeyDict = new Dictionary<KeyCode, int>();
 
@@ -95,7 +96,7 @@ namespace DebugMod
                     string name = attr.name;
                     string cat = attr.category;
 
-                    bindMethods.Add(name, new Pair(cat, method));
+                    bindMethods.Add(name, (cat, (Action)Delegate.CreateDelegate(typeof(Action), method)));
                 }
             }
             
@@ -168,18 +169,26 @@ namespace DebugMod
             return hit;
         }*/
 
+        public DebugMod()
+        {
+            // Register exports early so other mods can use them when initializing
+            typeof(DebugExport).ModInterop();
+
+            // idk
+            DoTrollMenu();
+        }
+
         #region Troll Menu
         private static int chooser;
         private static bool OpenedSave;
-        
-        public DebugMod()
+        private void DoTrollMenu()
         {
             chooser = Random.Range(1, 100);
             OpenedSave = false;
             if (chooser != 1) return;
             GameObject DebugEasterEgg = new GameObject("DebugEasterEgg");
             Object.DontDestroyOnLoad(DebugEasterEgg);
-            
+
             On.SetVersionNumber.Start += ChangeVersionNumber;
             On.MenuStyleTitle.SetTitle += FixMenuTitle;
         }
@@ -347,26 +356,41 @@ namespace DebugMod
             GM.LoadScene(scenename);
         }
 
+        /// <summary>
+        /// Adds a menu to the top menu, with the provided name and button list.
+        /// </summary>
         [PublicAPI]
         public static void AddTopMenuContent(string MenuName, List<TopMenuButton> ButtonList) => TopMenu.AddTopMenuContent(MenuName, ButtonList);
         
+        /// <summary>
+        /// Add all public static methods on a type to the keybinds list. Methods must be decorated with the BindableMethod attribute.
+        /// </summary>
         [PublicAPI]
         public static void AddToKeyBindList(Type BindableFunctionsClass)
         {
             foreach (MethodInfo method in BindableFunctionsClass.GetMethods(BindingFlags.Public | BindingFlags.Static))
             {
-                object[] attributes = method.GetCustomAttributes(typeof(BindableMethod), false);
-
-                if (attributes.Any())
+                if (method.GetCustomAttribute<BindableMethod>(false) is BindableMethod attr)
                 {
-                    BindableMethod attr = (BindableMethod)attributes[0];
                     string name = attr.name;
                     string cat = attr.category;
 
-                    AdditionalBindMenthods.Add(name, new Pair(cat, method));
+                    instance.Log($"Recieved Action: {name} (from {BindableFunctionsClass.Name})");
+                    AdditionalBindMethods.Add(name, (cat, (Action)Delegate.CreateDelegate(typeof(Action), method)));
                 } 
             }
         }
+
+        /// <summary>
+        /// Add an action to the keybinds list.
+        /// </summary>
+        [PublicAPI]
+        public static void AddActionToKeyBindList(Action method, string name, string category)
+        {
+            instance.Log($"Recieved Action: {name}");
+            AdditionalBindMethods.Add(name, (category, method));
+        }
+
 
         public MenuScreen GetMenuScreen(MenuScreen modListMenu, ModToggleDelegates? toggleDelegates) =>
             ModMenu.CreateMenuScreen(modListMenu).Build();

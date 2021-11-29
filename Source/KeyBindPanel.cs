@@ -74,10 +74,10 @@ namespace DebugMod
             }
         
             //Build pages based on categories
-            foreach (KeyValuePair<string, Pair> bindable in DebugMod.bindMethods)
+            foreach (var bindable in DebugMod.bindMethods)
             {
                 string name = bindable.Key;
-                string cat = (string)bindable.Value.First;
+                string cat = bindable.Value.category;
 
                 if (!bindPages.ContainsKey(cat)) bindPages.Add(cat, new List<string>());
                 bindPages[cat].Add(name);
@@ -102,10 +102,10 @@ namespace DebugMod
 
         private static void AddAdditionalKeys()
         {
-            foreach (KeyValuePair<string, Pair> bindable in DebugMod.AdditionalBindMenthods)
+            foreach (var bindable in DebugMod.AdditionalBindMethods)
             {
                 string name = bindable.Key;
-                string cat = (string)bindable.Value.First;
+                string cat = bindable.Value.category;
 
                 if (!bindPages.ContainsKey(cat)) bindPages.Add(cat, new List<string>());
                 bindPages[cat].Add(name);
@@ -121,8 +121,12 @@ namespace DebugMod
         private static void RunBind(string buttonName) {
             int bindIndex = Convert.ToInt32(buttonName.Substring(3)); // strip leading "run"
             string bindName = bindPages[pageKeys[page]][bindIndex];
-            MethodInfo method = (MethodInfo)DebugMod.bindMethods[bindName].Second;
-            method.Invoke(null, null);
+
+            if (!DebugMod.bindMethods.TryGetValue(bindName, out var pair) && !DebugMod.AdditionalBindMethods.TryGetValue(bindName, out pair))
+            {
+                DebugMod.instance.LogError("Error running bind: not found");
+            }
+            pair.method.Invoke();
         }
 
         public static void UpdateHelpText()

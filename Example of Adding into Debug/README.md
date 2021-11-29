@@ -1,4 +1,22 @@
-# Basic Structure of Adding to Debug
+# Adding stuff to debug without referencing DebugMod.dll
+1. Make sure that `MonoMod.Utils.dll` is referenced by your project.
+2. Create a static class with the following code:
+ ```
+[ModImportName("DebugMod")]
+internal static class DebugMod
+{
+    public static Action<Action, string, string> AddActionToKeyBindList = null;
+} 
+ ```
+The name of the class doesn't matter, but the method must be called `AddActionToKeyBindList`
+and the argument to the ModImportName attribute must be `"DebugMod"`.
+This requires `using MonoMod.ModInterop;`.
+
+3. Call `typeof(DebugMod).ModInterop();` at the start of your mod's `Initialize();` method.
+4. You can now use `DebugMod.AddActionToKeyBindList(method, name, category);` to add to the keybind list,
+where `method` is an `Action` you want to execute; if DebugMod is not installed then nothing will happen.
+
+# Adding stuff to debug with a reference to DebugMod.dll
 
 1. Reference DebugMod.dll from mods folder (Note: if you follow steps here, the mod won't fail to load if debug isn't present)
 2. In the mod's initialize add this code to check if debug exists:
