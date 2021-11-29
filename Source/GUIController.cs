@@ -210,11 +210,6 @@ namespace DebugMod
                         }
                     }
                 }
-                else
-                {
-                    DebugMod.instance.LogDebug("Bind found without matching method: " + bind.Key);
-                    //DebugMod.settings.binds.Remove(bind.Key);
-                }
             }
             if (SaveStateManager.inSelectSlotState && DebugMod.settings.SaveStatePanelVisible)
             {
