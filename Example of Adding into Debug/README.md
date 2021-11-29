@@ -11,6 +11,7 @@ internal static class DebugMod
 The name of the class doesn't matter, but the method must be called `AddActionToKeyBindList`
 and the argument to the ModImportName attribute must be `"DebugMod"`.
 This requires `using MonoMod.ModInterop;`.
+
 3. Call `typeof(DebugMod).ModInterop();` at the start of your mod's `Initialize();` method.
 4. You can now use `DebugMod.AddActionToKeyBindList(method, name, category);` to add to the keybind list,
 where `method` is an `Action` you want to execute; if DebugMod is not installed then nothing will happen.
