@@ -10,11 +10,73 @@ namespace DebugMod
 {
     public static class KeyBindPanel
     {
-        private static CanvasPanel panel;
-        private static int page = 0;
+        private class CategoryInfo
+        {
+            public string Name;
+            public List<string> Functions = new();
+            
+            public CategoryInfo(string Name)
+            {
+                this.Name = Name;
+            }
 
-        private static Dictionary<string, List<string>> bindPages = new Dictionary<string, List<string>>();
-        private static List<string> pageKeys;
+            public void Add(string method) => Functions.Add(method);
+
+            public int NumPages => (Functions.Count + ItemsPerPage - 1) / (ItemsPerPage); // Ceiling division
+
+            public IEnumerable<string> ItemsOnPage(int index)
+            {
+                for (int i = ItemsPerPage * index; i < ItemsPerPage * (index + 1) && i < Functions.Count; i++)
+                {
+                    yield return Functions[i];
+                }
+            }
+
+
+            public static List<string> Categories = new();
+            public static Dictionary<string, CategoryInfo> CategoryInfos = new();
+            public static int TotalPages => CategoryInfos.Select(x => x.Value.NumPages).Sum();
+
+            public static List<(string categoryName, int indexInCategory)> pageData = new();
+            public static void GeneratePageData()
+            {
+                pageData.Clear();
+                foreach (string categoryName in Categories)
+                {
+                    for (int i = 0; i < CategoryInfos[categoryName].NumPages; i++)
+                    {
+                        pageData.Add((categoryName, i));
+                    }
+                }
+            }
+            
+            public static int currentPage = 0;
+
+            public static void AddFunction(string category, string name)
+            {
+                if (!CategoryInfos.TryGetValue(category, out CategoryInfo info))
+                {
+                    info = new CategoryInfo(category);
+
+                    Categories.Add(category);
+                    CategoryInfos.Add(category, info);
+                }
+
+                info.Add(name);
+            }
+
+            public static List<string> FunctionsOnCurrentPage()
+            {
+                (string categoryName, int indexInCategory) = pageData[currentPage];
+
+                return CategoryInfos[categoryName].ItemsOnPage(indexInCategory).ToList();
+            }
+            public static string CurrentCategory => pageData[currentPage].categoryName;
+        }
+
+        public const int ItemsPerPage = 11;
+
+        private static CanvasPanel panel;
         
         public static KeyCode keyWarning = KeyCode.None;
 
@@ -61,7 +123,7 @@ namespace DebugMod
                     GUIController.Instance.images["ScrollBarArrowLeft"].height)
             );
 
-            for (int i = 0; i < 11; i++)
+            for (int i = 0; i < ItemsPerPage; i++)
             {
                 panel.AddButton(i.ToString(), GUIController.Instance.images["Scrollbar_point"],
                     new Vector2(290f, 45f + 17.5f * i), Vector2.zero, ChangeBind,
@@ -79,14 +141,12 @@ namespace DebugMod
                 string name = bindable.Key;
                 string cat = bindable.Value.category;
 
-                if (!bindPages.ContainsKey(cat)) bindPages.Add(cat, new List<string>());
-                bindPages[cat].Add(name);
+                CategoryInfo.AddFunction(cat, name);
             }
+            CategoryInfo.GeneratePageData();
 
-            pageKeys = bindPages.Keys.ToList();
-
-            panel.GetText("Category").UpdateText(pageKeys[page]);
-            panel.GetButton("Page").UpdateText((page + 1) + " / " + pageKeys.Count);
+            panel.GetText("Category").UpdateText(CategoryInfo.CurrentCategory);
+            panel.GetButton("Page").UpdateText((CategoryInfo.currentPage + 1) + " / " + CategoryInfo.TotalPages);
             UpdateHelpText();
 
             On.HeroController.Awake += AddAdditionalKeys;
@@ -107,20 +167,19 @@ namespace DebugMod
                 string name = bindable.Key;
                 string cat = bindable.Value.category;
 
-                if (!bindPages.ContainsKey(cat)) bindPages.Add(cat, new List<string>());
-                bindPages[cat].Add(name);
-                if (!pageKeys.Contains(cat)) pageKeys.Add(cat);
+                CategoryInfo.AddFunction(cat, name);
             }
+            CategoryInfo.GeneratePageData();
 
-            panel.GetText("Category").UpdateText(pageKeys[page]);
-            panel.GetButton("Page").UpdateText((page + 1) + " / " + pageKeys.Count);
+            panel.GetText("Category").UpdateText(CategoryInfo.CurrentCategory);
+            panel.GetButton("Page").UpdateText((CategoryInfo.currentPage + 1) + " / " + CategoryInfo.TotalPages);
             UpdateHelpText();
 
         }
         
         private static void RunBind(string buttonName) {
             int bindIndex = Convert.ToInt32(buttonName.Substring(3)); // strip leading "run"
-            string bindName = bindPages[pageKeys[page]][bindIndex];
+            string bindName = CategoryInfo.FunctionsOnCurrentPage()[bindIndex];
 
             if (!DebugMod.bindMethods.TryGetValue(bindName, out var pair) && !DebugMod.AdditionalBindMethods.TryGetValue(bindName, out pair))
             {
@@ -131,10 +190,10 @@ namespace DebugMod
 
         public static void UpdateHelpText()
         {
-            if (page < 0 || page >= pageKeys.Count) return;
+            if (CategoryInfo.currentPage < 0 || CategoryInfo.currentPage >= CategoryInfo.TotalPages) return;
 
-            string cat = pageKeys[page];
-            List<string> helpPage = bindPages[cat];
+            string cat = CategoryInfo.CurrentCategory;
+            List<string> helpPage = CategoryInfo.FunctionsOnCurrentPage();
 
             string updatedText = "";
 
@@ -170,17 +229,17 @@ namespace DebugMod
         {
             if (buttonName.StartsWith("Prev"))
             {
-                page--;
-                if (page < 0) page = pageKeys.Count - 1;
+                CategoryInfo.currentPage--;
+                if (CategoryInfo.currentPage < 0) CategoryInfo.currentPage = CategoryInfo.TotalPages - 1;
             }
             else
             {
-                page++;
-                if (page >= pageKeys.Count) page = 0;
+                CategoryInfo.currentPage++;
+                if (CategoryInfo.currentPage >= CategoryInfo.TotalPages) CategoryInfo.currentPage = 0;
             }
 
-            panel.GetText("Category").UpdateText(pageKeys[page]);
-            panel.GetButton("Page").UpdateText((page + 1) + " / " + pageKeys.Count);
+            panel.GetText("Category").UpdateText(CategoryInfo.CurrentCategory);
+            panel.GetButton("Page").UpdateText((CategoryInfo.currentPage + 1) + " / " + CategoryInfo.TotalPages);
             UpdateHelpText();
         }
 
@@ -188,13 +247,13 @@ namespace DebugMod
         {
             int num = Convert.ToInt32(buttonName);
 
-            if (num < 0 || num >= bindPages[pageKeys[page]].Count)
+            if (num < 0 || num >= CategoryInfo.FunctionsOnCurrentPage().Count)
             {
                 DebugMod.instance.LogWarn("Invalid bind change button clicked. Should not be possible");
                 return;
             }
 
-            string bindName = bindPages[pageKeys[page]][num];
+            string bindName = CategoryInfo.FunctionsOnCurrentPage()[num];
 
             if (DebugMod.settings.binds.ContainsKey(bindName))
             {
@@ -234,12 +293,12 @@ namespace DebugMod
                 panel.SetActive(false, true);
             }
 
-            if (panel.active && page >= 0 && page < pageKeys.Count)
+            if (panel.active && CategoryInfo.currentPage >= 0 && CategoryInfo.currentPage < CategoryInfo.TotalPages)
             {
-                for (int i = 0; i < 11; i++)
+                for (int i = 0; i < ItemsPerPage; i++)
                 {
-                    panel.GetButton(i.ToString()).SetActive(bindPages[pageKeys[page]].Count > i);
-                    panel.GetButton($"run{i}").SetActive(bindPages[pageKeys[page]].Count > i);
+                    panel.GetButton(i.ToString()).SetActive(CategoryInfo.FunctionsOnCurrentPage().Count > i);
+                    panel.GetButton($"run{i}").SetActive(CategoryInfo.FunctionsOnCurrentPage().Count > i);
                 }
             }
         }
