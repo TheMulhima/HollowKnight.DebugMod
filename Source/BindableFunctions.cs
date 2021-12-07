@@ -690,15 +690,16 @@ namespace DebugMod
         }
         internal static void SetAlwaysShowCursor()
         {
-            ModHooks.CursorHook -= CursorDisplayActive;
-            ModHooks.CursorHook += CursorDisplayActive;
+            On.InputHandler.OnGUI -= CursorDisplayActive;
+            On.InputHandler.OnGUI += CursorDisplayActive;
         }
         internal static void UnsetAlwaysShowCursor()
         {
-            ModHooks.CursorHook -= CursorDisplayActive;
+            On.InputHandler.OnGUI -= CursorDisplayActive;
         }
-        private static void CursorDisplayActive()
+        private static void CursorDisplayActive(On.InputHandler.orig_OnGUI orig, InputHandler self)
         {
+            orig(self);
             Cursor.visible = true;
         }
 
