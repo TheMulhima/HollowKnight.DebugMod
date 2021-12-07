@@ -9,10 +9,10 @@ using DebugMod.MonoBehaviours;
 using GlobalEnums;
 using HutongGames.PlayMaker;
 using HutongGames.PlayMaker.Actions;
+using Modding;
 using Newtonsoft.Json;
 using UnityEngine;
 using Object = UnityEngine.Object;
-using SetFsmBool = On.HutongGames.PlayMaker.Actions.SetFsmBool;
 using USceneManager = UnityEngine.SceneManagement.SceneManager;
 
 namespace DebugMod
@@ -133,12 +133,8 @@ namespace DebugMod
             {
                 Time.timeScale = 0;
                 GameCameras.instance.StopCameraShake();
-
-                var component = GameManager.instance.gameObject.GetComponent<MyCursor>();
-                if (component == null) GameManager.instance.gameObject.AddComponent<MyCursor>();
-
+                SetAlwaysShowCursor();
                 Console.AddLine("Game was Frozen");
-
             }
             else
             {
@@ -149,13 +145,16 @@ namespace DebugMod
                 if (HeroController.instance != null) HeroController.instance.UnPause();
                 Time.timeScale = DebugMod.CurrentTimeScale;
                 GameManager.instance.inputHandler.AllowPause();
-                var component = GameManager.instance.gameObject.GetComponent<MyCursor>();
-                if (component != null) Object.Destroy(component);
+
+                if (!DebugMod.settings.ShowCursorWhileUnpaused)
+                {
+                    UnsetAlwaysShowCursor();
+                }
                 
                 Console.AddLine("Game was Unfrozen");
             }
         }
-        
+
         [BindableMethod(name = "Reset settings", category = "GamePlay Altering")]
         public static void Reset()
         {
@@ -546,7 +545,7 @@ namespace DebugMod
             Console.AddLine("Vignette toggled " + (HeroController.instance.vignette.enabled ? "On" : "Off"));
         }
 
-        [BindableMethod(name = "Deactivate visual masks", category = "Visual")]
+        [BindableMethod(name = "Deactivate Visual Masks", category = "Visual")]
         public static void DeactivateVisualMasks()
         {
             int ctr = 0;
@@ -671,6 +670,37 @@ namespace DebugMod
             bool newValue = !GameCameras.instance.cameraShakeFSM.enabled;
             GameCameras.instance.cameraShakeFSM.enabled = newValue;
             Console.AddLine($"{(newValue ? "Enabling" : "Disabling")} Camera Shake...");
+        }
+
+        [BindableMethod(name = "Toggle Cursor", category = "Visual")]
+        public static void ToggleAlwaysShowCursor()
+        {
+            DebugMod.settings.ShowCursorWhileUnpaused = !DebugMod.settings.ShowCursorWhileUnpaused;
+
+            if (DebugMod.settings.ShowCursorWhileUnpaused)
+            {
+                SetAlwaysShowCursor();
+                Console.AddLine("Showing cursor while unpaused");
+            }
+            else
+            {
+                UnsetAlwaysShowCursor();
+                Console.AddLine("Not showing cursor while unpaused");
+            }
+        }
+        internal static void SetAlwaysShowCursor()
+        {
+            On.InputHandler.OnGUI -= CursorDisplayActive;
+            On.InputHandler.OnGUI += CursorDisplayActive;
+        }
+        internal static void UnsetAlwaysShowCursor()
+        {
+            On.InputHandler.OnGUI -= CursorDisplayActive;
+        }
+        private static void CursorDisplayActive(On.InputHandler.orig_OnGUI orig, InputHandler self)
+        {
+            orig(self);
+            Cursor.visible = true;
         }
 
         #endregion

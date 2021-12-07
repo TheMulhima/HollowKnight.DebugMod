@@ -151,6 +151,10 @@ namespace DebugMod
             ModHooks.TakeHealthHook += PlayerDamaged;
             ModHooks.ApplicationQuitHook += SaveSettings;
 
+            if (settings.ShowCursorWhileUnpaused)
+            {
+                BindableFunctions.SetAlwaysShowCursor();
+            }
 
             BossHandler.PopulateBossLists();
             GUIController.Instance.BuildMenus();
