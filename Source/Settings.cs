@@ -50,5 +50,7 @@ namespace DebugMod
         public float AmountToMove = 0.1f;
 
         public float NoClipSpeedModifier = 1f;
+
+        public bool ShowCursorWhileUnpaused = false;
     }
 }
