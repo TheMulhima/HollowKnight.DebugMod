@@ -692,17 +692,23 @@ namespace DebugMod
         {
             On.InputHandler.OnGUI -= CursorDisplayActive;
             On.InputHandler.OnGUI += CursorDisplayActive;
+            ModHooks.CursorHook -= CursorDisplayActive;
+            ModHooks.CursorHook += CursorDisplayActive;
         }
         internal static void UnsetAlwaysShowCursor()
         {
             On.InputHandler.OnGUI -= CursorDisplayActive;
+            ModHooks.CursorHook -= CursorDisplayActive;
         }
         private static void CursorDisplayActive(On.InputHandler.orig_OnGUI orig, InputHandler self)
         {
             orig(self);
             Cursor.visible = true;
         }
-
+        private static void CursorDisplayActive()
+        {
+            Cursor.visible = true;
+        }
         #endregion
 
         #region Panels
