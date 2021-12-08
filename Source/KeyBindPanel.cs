@@ -143,25 +143,6 @@ namespace DebugMod
 
                 CategoryInfo.AddFunction(cat, name);
             }
-            CategoryInfo.GeneratePageData();
-
-            panel.GetText("Category").UpdateText(CategoryInfo.CurrentCategory);
-            panel.GetButton("Page").UpdateText((CategoryInfo.currentPage + 1) + " / " + CategoryInfo.TotalPages);
-            UpdateHelpText();
-
-            On.HeroController.Awake += AddAdditionalKeys;
-        }
-
-        private static void AddAdditionalKeys(On.HeroController.orig_Awake orig, HeroController self)
-        {
-            orig(self);
-            AddAdditionalKeys();
-            On.HeroController.Awake -= AddAdditionalKeys;
-        }
-
-
-        private static void AddAdditionalKeys()
-        {
             foreach (var bindable in DebugMod.AdditionalBindMethods)
             {
                 string name = bindable.Key;
@@ -174,7 +155,6 @@ namespace DebugMod
             panel.GetText("Category").UpdateText(CategoryInfo.CurrentCategory);
             panel.GetButton("Page").UpdateText((CategoryInfo.currentPage + 1) + " / " + CategoryInfo.TotalPages);
             UpdateHelpText();
-
         }
         
         private static void RunBind(string buttonName) {

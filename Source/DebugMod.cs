@@ -165,14 +165,6 @@ namespace DebugMod
             Console.AddLine("New session started " + DateTime.Now);
         }
 
-        /*private HitInstance DoDamage(Fsm owner, HitInstance hit)
-        {
-            int damagedealt = Mathf.CeilToInt(NailDamage * (PlayerData.instance.equippedCharm_25 ? 1.5f : 1f));
-            Log(damagedealt);
-            hit.DamageDealt = damagedealt;
-            return hit;
-        }*/
-
         public DebugMod()
         {
             // Register exports early so other mods can use them when initializing

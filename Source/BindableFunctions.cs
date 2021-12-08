@@ -721,20 +721,10 @@ namespace DebugMod
                 DebugMod.settings.InfoPanelVisible ||
                 DebugMod.settings.EnemiesPanelVisible ||
                 DebugMod.settings.TopMenuVisible ||
-                DebugMod.settings.ConsoleVisible ||
-                DebugMod.settings.MinInfoPanelVisible
+                DebugMod.settings.ConsoleVisible
                 );
 
-            if (MinimalInfoPanel.minInfo)
-            {
-                DebugMod.settings.InfoPanelVisible = false;
-                DebugMod.settings.MinInfoPanelVisible = active;
-            }
-            else
-            {
-                DebugMod.settings.InfoPanelVisible = active;
-                DebugMod.settings.MinInfoPanelVisible = false;
-            }
+            DebugMod.settings.InfoPanelVisible = active;
             DebugMod.settings.TopMenuVisible = active;
             DebugMod.settings.EnemiesPanelVisible = active;
             DebugMod.settings.ConsoleVisible = active;
@@ -755,16 +745,7 @@ namespace DebugMod
         [BindableMethod(name = "Toggle Info", category = "Mod UI")]
         public static void ToggleInfoPanel()
         {
-            if (MinimalInfoPanel.minInfo)
-            {
-                DebugMod.settings.InfoPanelVisible = false;
-                DebugMod.settings.MinInfoPanelVisible = !DebugMod.settings.MinInfoPanelVisible;
-            }
-            else
-            {
-                DebugMod.settings.InfoPanelVisible = !DebugMod.settings.InfoPanelVisible;
-                DebugMod.settings.MinInfoPanelVisible = false;
-            }
+            DebugMod.settings.InfoPanelVisible = !DebugMod.settings.InfoPanelVisible;
         }
 
         [BindableMethod(name = "Toggle Top Menu", category = "Mod UI")]
@@ -795,30 +776,11 @@ namespace DebugMod
             DebugMod.settings.SaveStatePanelVisible = !DebugMod.settings.SaveStatePanelVisible;
         }
 
-        // A variant of info panel. View handled in the two InfoPanel classes
-        //  TODO: stop not knowing how to use xor in c#
-        [BindableMethod(name = "Alt. Info Switch", category = "Mod UI")]
-        public static void ToggleFullInfo()
+        // View handled in the InfoPanel classes
+        [BindableMethod(name = "Info Panel Switch", category = "Mod UI")]
+        public static void SwitchActiveInfoPanel()
         {
-            MinimalInfoPanel.minInfo = !MinimalInfoPanel.minInfo;
-            
-            if (MinimalInfoPanel.minInfo) 
-            {
-                if (DebugMod.settings.InfoPanelVisible)
-                {
-                    DebugMod.settings.InfoPanelVisible = false;
-                    DebugMod.settings.MinInfoPanelVisible = true;
-                }
-            }
-            else
-            {
-                if (DebugMod.settings.MinInfoPanelVisible)
-                {
-                    DebugMod.settings.MinInfoPanelVisible = false;
-                    DebugMod.settings.InfoPanelVisible = true;
-                }
-            }
-            
+            InfoPanel.ToggleActivePanel();
         }
 
         #endregion

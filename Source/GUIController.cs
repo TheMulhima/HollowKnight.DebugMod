@@ -40,15 +40,25 @@ namespace DebugMod
             scaler.referenceResolution = new Vector2(1920f, 1080f);
             canvas.AddComponent<GraphicRaycaster>();
 
-            MinimalInfoPanel.BuildMenu(canvas);
             SaveStatesPanel.BuildMenu(canvas);
-            InfoPanel.BuildMenu(canvas);
             TopMenu.BuildMenu(canvas);
             EnemiesPanel.BuildMenu(canvas);
             Console.BuildMenu(canvas);
-            KeyBindPanel.BuildMenu(canvas);
+
+            // Modding.ModHooks.FinishedLoadingModsHook += () => InfoPanel.BuildInfoPanels(canvas);
+            // Modding.ModHooks.FinishedLoadingModsHook += () => KeyBindPanel.BuildMenu(canvas);
+            On.HeroController.Awake += HeroController_Awake;
+
 
             DontDestroyOnLoad(canvas);
+        }
+
+        private void HeroController_Awake(On.HeroController.orig_Awake orig, HeroController self)
+        {
+            orig(self);
+            InfoPanel.BuildInfoPanels(canvas);
+            KeyBindPanel.BuildMenu(canvas);
+            On.HeroController.Awake -= HeroController_Awake;
         }
 
         private void LoadResources()
@@ -122,7 +132,6 @@ namespace DebugMod
             EnemiesPanel.Update();
             Console.Update();
             KeyBindPanel.Update();
-            MinimalInfoPanel.Update();
             InfoPanel.Update();
             
             if (DebugMod.GetSceneName() == "Menu_Title") return;

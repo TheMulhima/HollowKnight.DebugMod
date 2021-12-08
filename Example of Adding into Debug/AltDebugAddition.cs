@@ -34,6 +34,12 @@ namespace DebugAddition
     internal static class DebugMod
     {
         public static Action<Action, string, string> AddActionToKeyBindList = null;
-		    public static Action<string> LogToConsole = null;
+        public static Action<string> LogToConsole = null;
+        public static Func<bool, string> GetStringForBool = null;
+        public static Action<string, bool> CreateCustomInfoPanel = null;
+        public static Action<string, float, float, float, string, Func<string>> AddInfoToPanel = null;
+        public static Action<string, float> CreateSimpleInfoPanel = null;
+        public static Action<string, string, Func<string>> AddInfoToSimplePanel = null;
+
     } 
 }

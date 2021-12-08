@@ -31,7 +31,9 @@ namespace DebugMod
 
         public bool InfoPanelVisible = true;
 
+        [Obsolete]
         public bool MinInfoPanelVisible = true;
+        public string CurrentInfoPanelName = "";
 
         public bool SaveStatePanelVisible = true;
         
