@@ -142,7 +142,7 @@ namespace DebugMod
         /// <param name="p">The panel to add.</param>
         /// <exception cref="InvalidOperationException">A panel with this name already exists.</exception>
         [PublicAPI]
-        public static void AddInfoPanel(string Name, InfoPanel p)
+        public static void AddInfoPanel(string Name, TogglableInfoPanel p)
         {
             if (AllPanels.ContainsKey(Name))
             {

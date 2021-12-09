@@ -7,13 +7,11 @@ using JetBrains.Annotations;
 
 namespace DebugMod.InfoPanels
 {
-    public class CustomInfoPanel : InfoPanel
+    public class CustomInfoPanel : TogglableInfoPanel
     {
-        public string Name;
         public bool ShowSprite;
-        public CustomInfoPanel(string Name, bool ShowSprite)
+        public CustomInfoPanel(string Name, bool ShowSprite) : base(Name)
         {
-            this.Name = Name;
             this.ShowSprite = ShowSprite;
         }
 
@@ -75,7 +73,6 @@ namespace DebugMod.InfoPanels
                 panel.GetText(kvp.Key).UpdateText(kvp.Value.Invoke());
             }
         }
-        public override bool Active => DebugMod.settings.CurrentInfoPanelName == this.Name;
 
         public void AddInfo(float xLabel, float xInfo, float y, string label, Func<string> textFunc)
             => PanelBuildInfo.Add((xLabel, xInfo, y, label, textFunc));
