@@ -94,8 +94,7 @@ namespace DebugMod
         [PublicAPI]
         public static void CreateCustomInfoPanel(string Name, bool ShowSprite)
         {
-            AllPanels.Add(Name, new CustomInfoPanel(Name, ShowSprite));
-            TogglablePanelNames.Add(Name);
+            AddInfoPanel(Name, new CustomInfoPanel(Name, ShowSprite));
         }
 
         /// <summary>
@@ -121,8 +120,7 @@ namespace DebugMod
         [PublicAPI]
         public static void CreateSimpleInfoPanel(string Name, float sep)
         {
-            AllPanels.Add(Name, new SimpleInfoPanel(Name, sep));
-            TogglablePanelNames.Add(Name);
+            AddInfoPanel(Name, new SimpleInfoPanel(Name, sep));
         }
 
         /// <summary>
@@ -137,6 +135,23 @@ namespace DebugMod
             ((SimpleInfoPanel)AllPanels[Name]).AddInfo(label, textFunc);
         }
 
+        /// <summary>
+        /// Add an info panel to the rotation. Must be done during mod initialization.
+        /// </summary>
+        /// <param name="Name">The name of the panel.</param>
+        /// <param name="p">The panel to add.</param>
+        /// <exception cref="InvalidOperationException">A panel with this name already exists.</exception>
+        [PublicAPI]
+        public static void AddInfoPanel(string Name, InfoPanel p)
+        {
+            if (AllPanels.ContainsKey(Name))
+            {
+                throw new InvalidOperationException("A panel with this name already exists");
+            }
+
+            AllPanels.Add(Name, p);
+            TogglablePanelNames.Add(Name);
+        }
         #endregion
 
         public static string GetTransState()
