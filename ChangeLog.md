@@ -1,7 +1,7 @@
 ----------------------------------------------------------------------------------------
                  Changelog from Debug v1.3.6 (Previous Major 1.4.3.2 Version)
 ----------------------------------------------------------------------------------------
-** 1221 => CP. Credits: cerpin
+* 1221 => CP. Credits: cerpin
     * Added multiple savestate and loading/saving savestates from files (took someone long enough lol. 1221 debug had it since forever)
     * Added a minimal info panel
     * Added a front and back button on keybinds panel
@@ -13,7 +13,7 @@
 * Pressing Escape when rebinding a key now unbinds it (basically addds ability to unbind keys ingame).
 * Fixed voidheart (the issue of hornet not showing up in thk phase 4 if given void heart using the mod)
 * Fixed delicate flower
-** Added a new binds:
+* Added a new binds:
     * Reset Settings
     * Move Left/Right/Up/Down by a specific amount (default 0.1)
     * Face Left/Right
@@ -61,3 +61,6 @@
 * Add ModMenu which basic buttons for reset settings, reset keybinds and show/hide debug menu (1.5 only)
 * Dont remove keys if a matching method isn't found. Makes it so removing a debug addition doesnt remove its saved keybind.
 * add option for increment/decrement charm notches
+* Added api for adding info panels, and made the bottom right info panel always visible when mininfo panel is visible
+* Bindable function to let mouse visible while unpaused
+* Show UI in cutscenes
