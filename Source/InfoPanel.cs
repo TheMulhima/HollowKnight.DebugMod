@@ -62,7 +62,7 @@ namespace DebugMod
         }
         public static void Update()
         {
-            if (DebugMod.GM.IsNonGameplayScene() || !DebugMod.settings.InfoPanelVisible)
+            if (GUIController.ForceHideUI() || !DebugMod.settings.InfoPanelVisible)
             {
                 foreach (InfoPanel infoPanel in AllPanels.Values)
                 {

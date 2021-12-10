@@ -254,7 +254,7 @@ namespace DebugMod
                 return;
             }
 
-            if (DebugMod.GM.IsNonGameplayScene())
+            if (GUIController.ForceHideUI())
             {
                 if (panel.active)
                 {

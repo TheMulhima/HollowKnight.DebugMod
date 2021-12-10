@@ -23,6 +23,15 @@ namespace DebugMod
         public GameObject canvas;
         private static GUIController _instance;
 
+        /// <summary>
+        /// If this returns true, all DebugMod UI elements will be hidden.
+        /// </summary>
+        public static bool ForceHideUI()
+        {
+            return DebugMod.GM.IsNonGameplayScene()
+                && !DebugMod.GM.IsCinematicScene(); // Show UI in cutscenes
+        }
+
         public void Awake()
         {
             hazardLocation = PlayerData.instance.hazardRespawnLocation;
@@ -48,7 +57,6 @@ namespace DebugMod
             // Modding.ModHooks.FinishedLoadingModsHook += () => InfoPanel.BuildInfoPanels(canvas);
             // Modding.ModHooks.FinishedLoadingModsHook += () => KeyBindPanel.BuildMenu(canvas);
             On.HeroController.Awake += HeroController_Awake;
-
 
             DontDestroyOnLoad(canvas);
         }
@@ -136,6 +144,13 @@ namespace DebugMod
             
             if (DebugMod.GetSceneName() == "Menu_Title") return;
             
+            // If the mouse is visible, then make sure it can be used.
+            // Normally, allowMouseInput is false until first pause and then true from then on (even when not paused)
+            if (DebugMod.settings.ShowCursorWhileUnpaused && !ForceHideUI() && !UIManager.instance.inputModule.allowMouseInput)
+            {
+                InputHandler.Instance.StartUIInput();
+            }
+
             //Handle keybinds
             foreach (KeyValuePair<string, int> bind in DebugMod.settings.binds)
             {
