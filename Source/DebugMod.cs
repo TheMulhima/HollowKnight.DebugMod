@@ -32,6 +32,7 @@ namespace DebugMod
         private static PlayMakerFSM _refKnightSlash;
         private static CameraController _refCamera;
         private static PlayMakerFSM _refDreamNail;
+        private static Collider2D _refHeroCollider;
 
         internal static GameManager GM => _gm != null ? _gm : (_gm = GameManager.instance);
         internal static InputHandler IH => _ih != null ? _ih : (_ih = GM.inputHandler);
@@ -40,6 +41,8 @@ namespace DebugMod
         internal static PlayMakerFSM RefKnightSlash => _refKnightSlash != null ? _refKnightSlash : (_refKnightSlash = RefKnight.transform.Find("Attacks/Slash").GetComponent<PlayMakerFSM>());
         internal static CameraController RefCamera => _refCamera != null ? _refCamera : (_refCamera = GM.cameraCtrl);
         internal static PlayMakerFSM RefDreamNail => _refDreamNail != null ? _refDreamNail : (_refDreamNail = FSMUtility.LocateFSM(RefKnight, "Dream Nail"));
+
+        internal static Collider2D RefHeroCollider => _refHeroCollider != null ? _refHeroCollider : (_refHeroCollider = RefKnight.GetComponent<Collider2D>());
 
         internal static DebugMod instance;
 
