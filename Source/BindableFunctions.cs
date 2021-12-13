@@ -940,14 +940,17 @@ namespace DebugMod
             if (!DebugMod.RefHeroCollider.enabled)
             {
                 DebugMod.RefHeroCollider.enabled = true;
-                Console.AddLine("Enabled hero collider" + (DebugMod.noclip ? "" : " and disabled noclip"));
+                DebugMod.RefHeroBox.enabled = true;
+                Console.AddLine("Enabled hero collider" + (DebugMod.noclip ? " and disabled noclip" : ""));
                 DebugMod.noclip = false;
             }
             else
             {
                 DebugMod.RefHeroCollider.enabled = false;
-                Console.AddLine("Disabled hero collider" + (DebugMod.noclip ? " and enabled noclip" : ""));
+                DebugMod.RefHeroBox.enabled = false;
+                Console.AddLine("Disabled hero collider" + (DebugMod.noclip ? "" : " and enabled noclip"));
                 DebugMod.noclip = true;
+                DebugMod.noclipPos = DebugMod.RefKnight.transform.position;
             }
         }
 
