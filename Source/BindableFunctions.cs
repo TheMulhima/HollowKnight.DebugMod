@@ -574,6 +574,8 @@ namespace DebugMod
                     disableMask(go);
                 else if (go.name.StartsWith("black_solid"))
                     disableMask(go);
+                else if (go.name.ToLower().Contains("vignette"))
+                    disableMask(go);
                 else if (go.LocateMyFSM("unmasker") is PlayMakerFSM)
                     disableMask(go);
                 else if (go.LocateMyFSM("remasker_inverse") is PlayMakerFSM)
