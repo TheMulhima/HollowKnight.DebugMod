@@ -311,6 +311,7 @@ namespace DebugMod
                 EnemiesPanel.Reset();
                 PlayerDeathWatcher.Reset();
                 BossHandler.LookForBoss(sceneName);
+                MethodHelpers.VisualMaskHelper.OnSceneChange(sceneTo);
             }
         }
 
