@@ -111,9 +111,22 @@ namespace DebugMod.MethodHelpers
             Console.AddLine($"Deactivated {ctr} masks" + (HeroController.instance.vignette.enabled ? " and toggling vignette off" : string.Empty));
 
             // The vignette counts as a visual mask :)
-            HeroController.instance.vignette.enabled = false;
+            ProperlyDisableVignette();
 
             return ctr;
+        }
+
+        /// <summary>
+        /// Disable the Vignette, as well as all of the renderers in its children
+        /// </summary>
+        public static void ProperlyDisableVignette()
+        {
+            // Not suitable for toggle vignette because not easily reversible
+            DebugMod.HC.vignette.enabled = false;
+            foreach (Renderer r in DebugMod.HC.vignette.GetComponentsInChildren<Renderer>())
+            {
+                r.enabled = false;
+            }
         }
     }
 }
