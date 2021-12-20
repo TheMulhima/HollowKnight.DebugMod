@@ -33,7 +33,24 @@ namespace DebugMod
             }
 
 
-            public static List<string> Categories = new();
+            public static List<string> Categories = new()
+            {
+                "GamePlay Altering",
+                "Savestates",
+                "Misc",
+                "Visual",
+                "Mod UI",
+                "Enemy Panel",
+                "Cheats",
+                "Charms",
+                "Skills",
+                "Spells",
+                "Bosses",
+                "Items",
+                "Mask & Vessels",
+                "Consumables",
+                "Dreamgate",
+            };
             public static Dictionary<string, CategoryInfo> CategoryInfos = new();
             public static int TotalPages => CategoryInfos.Select(x => x.Value.NumPages).Sum();
 
@@ -58,7 +75,7 @@ namespace DebugMod
                 {
                     info = new CategoryInfo(category);
 
-                    Categories.Add(category);
+                    if (!Categories.Contains(category)) Categories.Add(category);
                     CategoryInfos.Add(category, info);
                 }
 

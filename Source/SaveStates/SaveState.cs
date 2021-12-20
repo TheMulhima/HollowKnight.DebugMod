@@ -153,9 +153,16 @@ namespace DebugMod
             GameManager.instance.entryGateName = "dreamGate";
             GameManager.instance.startedOnThisScene = true;
 
-            USceneManager.LoadScene("Room_Sly_Storeroom");
+            //Menderbug room loads faster (Thanks Magnetic Pizza)
+            string scene = "Room_Mender_House";
+            if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "Room_Mender_House")
+            {
+                scene = "Room_Sly_Storeroom";
+            }
+            
+            USceneManager.LoadScene(scene);
 
-            yield return new WaitUntil(() => USceneManager.GetActiveScene().name == "Room_Sly_Storeroom");
+            yield return new WaitUntil(() => USceneManager.GetActiveScene().name == scene);
 
             GameManager.instance.sceneData = SceneData.instance = JsonUtility.FromJson<SceneData>(JsonUtility.ToJson(data.savedSd));
             GameManager.instance.ResetSemiPersistentItems();
@@ -202,7 +209,6 @@ namespace DebugMod
             
             FieldInfo cameraGameplayScene = typeof(CameraController).GetField("isGameplayScene", BindingFlags.Instance | BindingFlags.NonPublic);
 
-            
             cameraGameplayScene.SetValue(GameManager.instance.cameraCtrl, true);
 
             yield return null;
