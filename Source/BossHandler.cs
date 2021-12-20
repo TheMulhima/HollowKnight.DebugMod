@@ -13,7 +13,6 @@ namespace DebugMod
     public static class BossHandler
     {
         public static bool bossSub;
-        private static bool fsmToggle = false;
         public static Dictionary<string, KeyValuePair<bool, string>> bossData;
         public static Dictionary<string, string> ghostData;
         public static bool bossFound;
@@ -167,61 +166,6 @@ namespace DebugMod
             {
                 Console.AddLine("No ghost in this scene to respawn");
             }
-        }
-
-        public static void UumuuExtra()
-        {
-            if (!fsmToggle)
-            {
-                SetUumuuExtra(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
-                UnityEngine.SceneManagement.SceneManager.activeSceneChanged += SetUumuuExtra;
-                Console.AddLine("Uumuu forced extra attack ON");
-                fsmToggle = true;
-            }
-            else
-            {
-                UnityEngine.SceneManagement.SceneManager.activeSceneChanged -= SetUumuuExtra;
-                fsmToggle = false;
-                Console.AddLine("Uumuu forced extra attack OFF");
-            }
-        }
-
-        private static void SetUumuuExtra(Scene sceneFrom, Scene sceneTo) => SetUumuuExtra(sceneTo.name);
-        private static void SetUumuuExtra(string NextSceneName)
-        {
-            if (NextSceneName == "Fungus3_archive_02")
-            {
-                try
-                {
-                    if (DebugMod.GM == null)
-                    {
-                        throw new Exception("StartUumuuCoro(  ) - gamemanager is null");
-                    }
-
-                    DebugMod.GM.StartCoroutine(UumuuExtraCoro(NextSceneName));
-                }
-                catch (Exception e)
-                {
-                    DebugMod.instance.Log(e.Message);
-                }
-            }
-        }
-
-        private static IEnumerator UumuuExtraCoro(string activeScene)
-        {
-            Console.AddLine("Uumuu set extra attack coro launched");
-            while (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name != activeScene)
-            {
-                yield return null;
-            }
-
-            // Find Uumuu, their FSM, the specific State, and the Action that dictates the possibility of extra attacks
-            GameObject uumuu = GameObject.Find("Mega Jellyfish");
-            PlayMakerFSM fsm = uumuu.LocateMyFSM("Mega Jellyfish");
-            FsmState fsmState = fsm.FsmStates.First(t => t.Name == "Idle");
-            WaitRandom waitRandom = (WaitRandom) fsmState.Actions.OfType<WaitRandom>().First();
-            waitRandom.timeMax.Value = 1.6f;
-            yield break;
         }
     }
 }

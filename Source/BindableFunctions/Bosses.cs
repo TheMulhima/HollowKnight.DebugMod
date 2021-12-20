@@ -19,12 +19,7 @@ namespace DebugMod
 {
     public static partial class BindableFunctions
     {
-        [BindableMethod(name = "Force Uumuu extra attack", category = "Bosses")]
-        public static void ForceUumuuExtra() 
-        {
-            BossHandler.UumuuExtra();
-        }
-        
+
         [BindableMethod(name = "Respawn Ghost", category = "Bosses")]
         public static void RespawnGhost()
         {
