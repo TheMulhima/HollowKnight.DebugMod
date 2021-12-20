@@ -15,8 +15,8 @@
 
   <!-- Create a LocalBuildProperties.props file which defines HollowKnightFolder (references dir) 
   and OutputDirectory (where the post-build event sends the dll to) -->
-  <Import Project="LocalBuildProperties_example.props"/>
-  <Import Project="LocalBuildProperties.props"/>
+  <Import Project="LocalBuildProperties_example.props" Condition="Exists('LocalBuildProperties_example.props')"/>
+  <Import Project="LocalBuildProperties.props" Condition="Exists('LocalBuildProperties.props')"/>
   
  <ItemGroup>
      <None Remove="Images\**\*.png" />
