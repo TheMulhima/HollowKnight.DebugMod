@@ -22,14 +22,17 @@ namespace DebugMod
         [BindableMethod(name = "Kill All", category = "Cheats")]
         public static void KillAll()
         {
-            foreach (GameObject go in USceneManager.GetActiveScene().GetRootGameObjects())
+            int ctr = 0;
+
+            foreach (HealthManager hm in Object.FindObjectsOfType<HealthManager>())
             {
-                foreach (HealthManager hm in go.GetComponentsInChildren<HealthManager>())
+                if (!hm.isDead)
                 {
                     hm.Die(null, AttackTypes.Generic, true);
+                    ctr++;
                 }
             }
-            Console.AddLine("Killing all Healthmanagers in scene!");
+            Console.AddLine($"Killing {ctr} HealthManagers in scene!");
         }
 
         [BindableMethod(name = "Infinite Jump", category = "Cheats")]
