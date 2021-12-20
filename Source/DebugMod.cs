@@ -3,6 +3,7 @@ using System.IO;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using Modding;
 using MonoMod.ModInterop;
@@ -18,11 +19,20 @@ using Random = UnityEngine.Random;
 namespace DebugMod
 {
     public class DebugMod : Mod, IGlobalSettings<GlobalSettings>, ILocalSettings<SaveSettings>, ICustomMenuMod
-
     {
         public override string GetVersion()
         {
-            return "1.4.9 - 0";
+            Assembly asm = typeof(DebugMod).Assembly;
+            string ver = asm.GetName().Version.ToString();
+
+            using var sha1 = SHA1.Create();
+            using FileStream stream = File.OpenRead(asm.Location);
+
+            byte[] hashBytes = sha1.ComputeHash(stream);
+
+            string hash = BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
+
+            return $"{ver}-{hash.Substring(0, 6)}";
         }
 
         private static GameManager _gm;

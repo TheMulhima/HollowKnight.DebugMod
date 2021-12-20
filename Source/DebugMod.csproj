@@ -1,22 +1,23 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <ProjectGuid>{932ED497-4C09-461E-B198-8B44FD9B288F}</ProjectGuid>
 
     <RootNamespace>DebugMod</RootNamespace>
     <AssemblyTitle>DebugMod</AssemblyTitle>
-    <AssemblyVersion>1.4.9</AssemblyVersion>
+    <AssemblyVersion>1.4.9.1</AssemblyVersion>
     <Deterministic>true</Deterministic>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <LangVersion>latest</LangVersion>
     <TargetFramework>net472</TargetFramework>
-    <!--<HollowKnightFolder>..\..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\</HollowKnightFolder>
-    <ModsDirectory>C:\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\Mods</ModsDirectory>-->
-      <HollowKnightFolder>..\API</HollowKnightFolder>
-      <ModsDirectory>$(SolutionDir)</ModsDirectory>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>CS1591</NoWarn>
   </PropertyGroup>
-   
+
+  <!-- Create a LocalBuildProperties.props file which defines HollowKnightFolder (references dir) 
+  and OutputDirectory (where the post-build event sends the dll to) -->
+  <Import Project="LocalBuildProperties_example.props"/>
+  <Import Project="LocalBuildProperties.props"/>
+  
  <ItemGroup>
      <None Remove="Images\**\*.png" />
  </ItemGroup>
@@ -90,7 +91,7 @@
     </ItemGroup>
     
 	  <Target Name="CopyMod" AfterTargets="PostBuildEvent">
-        <Copy SourceFiles="$(TargetPath);$(TargetDir)$(TargetName).pdb;$(TargetDir)$(TargetName).xml" DestinationFolder="$(ModsDirectory)\$(TargetName)" SkipUnchangedFiles="true" />
+        <Copy SourceFiles="$(TargetPath);$(TargetDir)$(TargetName).pdb;$(TargetDir)$(TargetName).xml" DestinationFolder="$(OutputDirectory)\$(TargetName)" SkipUnchangedFiles="true" />
     </Target>
     
     <Target Name="CreateReleaseZip" AfterTargets="PostBuildEvent" Condition="'$(Configuration)' == 'Release'">

@@ -6,6 +6,9 @@
 # Output zip
 DebugMod.zip
 
+# LocalBuildProperties file
+LocalBuildProperties.props
+
 # User-specific files
 *.suo
 *.user
