@@ -64,3 +64,7 @@
 * Added api for adding info panels, and made the bottom right info panel always visible when mininfo panel is visible
 * Bindable function to let mouse visible while unpaused
 * Show UI in cutscenes
+* Bindable function to disable hero collider
+* Bindable function to deactivate visual masks, and to make it run every scene change
+* Add checksum to version string
+* Organize functions, moving some to separate modules, and code improvements
