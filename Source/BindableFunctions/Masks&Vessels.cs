@@ -133,7 +133,7 @@ namespace DebugMod
 
             Console.AddLine("Attempting to take health");
         }
-        [BindableMethod(name = "Add Lifeblodd", category = "Mask & Vessels")]
+        [BindableMethod(name = "Add Lifeblood", category = "Mask & Vessels")]
         public static void Lifeblood()
         {
             EventRegister.SendEvent("ADD BLUE HEALTH");
