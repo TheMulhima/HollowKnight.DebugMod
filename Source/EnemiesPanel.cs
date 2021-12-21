@@ -14,7 +14,8 @@ namespace DebugMod
         public static bool autoUpdate;
         private static float lastTime;
         public static List<EnemyData> enemyPool = new List<EnemyData>();
-        private static GameObject parent;
+
+        public static GameObject parent { get; private set; }
         public static bool hpBars;
         public static bool hitboxes;
         public static readonly MethodInfo takeDamage = typeof(HeroController).GetMethod("TakeDamage");
