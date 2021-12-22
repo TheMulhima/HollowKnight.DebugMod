@@ -23,6 +23,15 @@ namespace DebugMod
         public GameObject canvas;
         private static GUIController _instance;
 
+        /// <summary>
+        /// If this returns true, all DebugMod UI elements will be hidden.
+        /// </summary>
+        public static bool ForceHideUI()
+        {
+            return DebugMod.GM.IsNonGameplayScene()
+                && !DebugMod.GM.IsCinematicScene(); // Show UI in cutscenes
+        }
+
         public void Awake()
         {
             hazardLocation = PlayerData.instance.hazardRespawnLocation;
@@ -34,21 +43,30 @@ namespace DebugMod
             LoadResources();
 
             canvas = new GameObject();
-            canvas.AddComponent<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
+            canvas.AddComponent<UnityEngine.Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
             CanvasScaler scaler = canvas.AddComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1920f, 1080f);
             canvas.AddComponent<GraphicRaycaster>();
 
-            MinimalInfoPanel.BuildMenu(canvas);
             SaveStatesPanel.BuildMenu(canvas);
-            InfoPanel.BuildMenu(canvas);
             TopMenu.BuildMenu(canvas);
             EnemiesPanel.BuildMenu(canvas);
             Console.BuildMenu(canvas);
-            KeyBindPanel.BuildMenu(canvas);
+
+            // Modding.ModHooks.FinishedLoadingModsHook += () => InfoPanel.BuildInfoPanels(canvas);
+            // Modding.ModHooks.FinishedLoadingModsHook += () => KeyBindPanel.BuildMenu(canvas);
+            On.HeroController.Awake += HeroController_Awake;
 
             DontDestroyOnLoad(canvas);
+        }
+
+        private void HeroController_Awake(On.HeroController.orig_Awake orig, HeroController self)
+        {
+            orig(self);
+            InfoPanel.BuildInfoPanels(canvas);
+            KeyBindPanel.BuildMenu(canvas);
+            On.HeroController.Awake -= HeroController_Awake;
         }
 
         private void LoadResources()
@@ -122,14 +140,21 @@ namespace DebugMod
             EnemiesPanel.Update();
             Console.Update();
             KeyBindPanel.Update();
-            MinimalInfoPanel.Update();
             InfoPanel.Update();
+            
             if (DebugMod.GetSceneName() == "Menu_Title") return;
+            
+            // If the mouse is visible, then make sure it can be used.
+            // Normally, allowMouseInput is false until first pause and then true from then on (even when not paused)
+            if (DebugMod.settings.ShowCursorWhileUnpaused && !ForceHideUI() && !UIManager.instance.inputModule.allowMouseInput)
+            {
+                InputHandler.Instance.StartUIInput();
+            }
 
             //Handle keybinds
             foreach (KeyValuePair<string, int> bind in DebugMod.settings.binds)
             {
-                if (DebugMod.bindMethods.ContainsKey(bind.Key))
+                if (DebugMod.bindMethods.ContainsKey(bind.Key) || DebugMod.AdditionalBindMethods.ContainsKey(bind.Key) )
                 {
                     if ((KeyCode) bind.Value == KeyCode.None)
                     {
@@ -179,7 +204,11 @@ namespace DebugMod
                         {
                             try
                             {
-                                ((MethodInfo) DebugMod.bindMethods[bind.Key].Second).Invoke(null, null);
+                                if (DebugMod.bindMethods.ContainsKey(bind.Key))
+                                    (DebugMod.bindMethods[bind.Key].method).Invoke();
+                                if (DebugMod.AdditionalBindMethods.ContainsKey(bind.Key))
+                                    (DebugMod.AdditionalBindMethods[bind.Key].method).Invoke();
+
                             }
                             catch (Exception e)
                             {
@@ -191,7 +220,11 @@ namespace DebugMod
                         {
                             try
                             {
-                                ((MethodInfo) DebugMod.bindMethods[bind.Key].Second).Invoke(null, null);
+                                if (DebugMod.bindMethods.ContainsKey(bind.Key))
+                                    (DebugMod.bindMethods[bind.Key].method).Invoke();
+                                if (DebugMod.AdditionalBindMethods.ContainsKey(bind.Key))
+                                    (DebugMod.AdditionalBindMethods[bind.Key].method).Invoke();
+
                             }
                             catch (Exception e)
                             {
@@ -200,11 +233,6 @@ namespace DebugMod
                             }
                         }
                     }
-                }
-                else
-                {
-                    DebugMod.instance.LogWarn("Bind found without matching method, removing from binds: " + bind.Key);
-                    DebugMod.settings.binds.Remove(bind.Key);
                 }
             }
             if (SaveStateManager.inSelectSlotState && DebugMod.settings.SaveStatePanelVisible)
@@ -252,22 +280,22 @@ namespace DebugMod
             {
                 if (DebugMod.IH.inputActions.left.IsPressed)
                 {
-                    DebugMod.noclipPos = new Vector3(DebugMod.noclipPos.x - Time.deltaTime * 20f, DebugMod.noclipPos.y, DebugMod.noclipPos.z);
+                    DebugMod.noclipPos = new Vector3(DebugMod.noclipPos.x - Time.deltaTime * 20f * DebugMod.settings.NoClipSpeedModifier, DebugMod.noclipPos.y, DebugMod.noclipPos.z);
                 }
 
                 if (DebugMod.IH.inputActions.right.IsPressed)
                 {
-                    DebugMod.noclipPos = new Vector3(DebugMod.noclipPos.x + Time.deltaTime * 20f, DebugMod.noclipPos.y, DebugMod.noclipPos.z);
+                    DebugMod.noclipPos = new Vector3(DebugMod.noclipPos.x + Time.deltaTime * 20f * DebugMod.settings.NoClipSpeedModifier, DebugMod.noclipPos.y, DebugMod.noclipPos.z);
                 }
 
                 if (DebugMod.IH.inputActions.up.IsPressed)
                 {
-                    DebugMod.noclipPos = new Vector3(DebugMod.noclipPos.x, DebugMod.noclipPos.y + Time.deltaTime * 20f, DebugMod.noclipPos.z);
+                    DebugMod.noclipPos = new Vector3(DebugMod.noclipPos.x, DebugMod.noclipPos.y + Time.deltaTime * 20f * DebugMod.settings.NoClipSpeedModifier, DebugMod.noclipPos.z);
                 }
 
                 if (DebugMod.IH.inputActions.down.IsPressed)
                 {
-                    DebugMod.noclipPos = new Vector3(DebugMod.noclipPos.x, DebugMod.noclipPos.y - Time.deltaTime * 20f, DebugMod.noclipPos.z);
+                    DebugMod.noclipPos = new Vector3(DebugMod.noclipPos.x, DebugMod.noclipPos.y - Time.deltaTime * 20f * DebugMod.settings.NoClipSpeedModifier, DebugMod.noclipPos.z);
                 }
 
                 if (HeroController.instance.transitionState.ToString() == "WAITING_TO_TRANSITION")
@@ -279,11 +307,6 @@ namespace DebugMod
                     DebugMod.noclipPos = DebugMod.RefKnight.transform.position;
                 }
             }
-
-            /*if (DebugMod.IH.inputActions.pause.WasPressed && DebugMod.GM.IsGamePaused())
-            {
-                UIManager.instance.TogglePauseGame();
-            }*/
 
             if (DebugMod.cameraFollow)
             {

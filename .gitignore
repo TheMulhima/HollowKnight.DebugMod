@@ -3,6 +3,12 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
+# Output zip
+DebugMod.zip
+
+# LocalBuildProperties file
+LocalBuildProperties.props
+
 # User-specific files
 *.suo
 *.user

@@ -2,7 +2,7 @@
 using UnityEngine.UI;
 using UnityEngine.Events;
 
-namespace DebugMod
+namespace DebugMod.Canvas
 {
     public class CanvasButton
     {

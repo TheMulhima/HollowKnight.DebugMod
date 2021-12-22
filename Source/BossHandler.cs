@@ -1,6 +1,10 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
+using HutongGames.PlayMaker;
+using HutongGames.PlayMaker.Actions;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -9,7 +13,6 @@ namespace DebugMod
     public static class BossHandler
     {
         public static bool bossSub;
-
         public static Dictionary<string, KeyValuePair<bool, string>> bossData;
         public static Dictionary<string, string> ghostData;
         public static bool bossFound;
@@ -112,9 +115,7 @@ namespace DebugMod
                             {
                                 if (playMakerFSM.FsmVariables.GetFsmBool("Activated") != null)
                                 {
-                                    Modding.Logger.Log(playMakerFSM.Fsm.GetFsmBool("Activated").Value);
                                     playMakerFSM.FsmVariables.GetFsmBool("Activated").Value = false;
-                                    Modding.Logger.Log(playMakerFSM.Fsm.GetFsmBool("Activated").Value);
                                     Console.AddLine("Boss control for this scene was reset, re-enter scene or warp");
                                 }
                             }
@@ -125,7 +126,8 @@ namespace DebugMod
                         }
                     }
 
-                    GameManager.instance.StartCoroutine(ResetBoss(bossLoader != null ? bossLoader.sceneNameToLoad : null));
+                    GameManager.instance.StartCoroutine(
+                        ResetBoss(bossLoader != null ? bossLoader.sceneNameToLoad : null));
                 }
                 else
                 {

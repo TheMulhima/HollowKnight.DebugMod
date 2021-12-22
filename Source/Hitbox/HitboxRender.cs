@@ -10,13 +10,17 @@ namespace DebugMod.Hitbox
         // ReSharper disable once StructCanBeMadeReadOnly
         private struct HitboxType: IComparable<HitboxType>
         {
-            public static readonly HitboxType Knight = new(Color.yellow, 0);
-            public static readonly HitboxType Enemy = new(new Color(0.8f, 0, 0), 1);
-            public static readonly HitboxType Attack = new(Color.cyan, 2);
-            public static readonly HitboxType Terrain = new(new Color(0, 0.8f, 0), 3);
-            public static readonly HitboxType Trigger = new(new Color(0.5f, 0.5f, 1f), 4);
-            public static readonly HitboxType Other = new(new Color(0.9f, 0.6f, 0.4f), 5);
+            public static readonly HitboxType Knight = new(Color.yellow, 0);                     // yellow
+            public static readonly HitboxType Enemy = new(new Color(0.8f, 0, 0), 1);       // red      
+            public static readonly HitboxType Attack = new(Color.cyan, 2);                       // cyan
+            public static readonly HitboxType Terrain = new(new Color(0, 0.8f, 0), 3);     // green
+            public static readonly HitboxType Trigger = new(new Color(0.5f, 0.5f, 1f), 4); // blue
+            public static readonly HitboxType Breakable = new(new Color(1f, 0.75f, 0.8f), 5); // pink
+            public static readonly HitboxType Gate = new(new Color(0.0f, 0.0f, 0.5f), 6); // dark blue
+            public static readonly HitboxType HazardRespawn = new(new Color(0.5f, 0.0f, 0.5f),7); // purple 
+            public static readonly HitboxType Other = new(new Color(0.9f, 0.6f, 0.4f), 8); // orange
 
+            
             public readonly Color Color;
             public readonly int Depth;
 
@@ -39,10 +43,13 @@ namespace DebugMod.Hitbox
             {HitboxType.Attack, new HashSet<Collider2D>()},
             {HitboxType.Terrain, new HashSet<Collider2D>()},
             {HitboxType.Trigger, new HashSet<Collider2D>()},
+            {HitboxType.Breakable, new HashSet<Collider2D>()},
+            {HitboxType.Gate, new HashSet<Collider2D>()},
+            {HitboxType.HazardRespawn, new HashSet<Collider2D>()},
             {HitboxType.Other, new HashSet<Collider2D>()},
         };
 
-        private float LineWidth => Math.Max(0.7f, Screen.width / 960f * GameCameras.instance.tk2dCam.ZoomFactor);
+        public static float LineWidth => Math.Max(0.7f, Screen.width / 960f * GameCameras.instance.tk2dCam.ZoomFactor);
 
         private void Start()
         {
@@ -62,7 +69,7 @@ namespace DebugMod.Hitbox
 
         private Vector2 LocalToScreenPoint(Camera camera, Collider2D collider2D, Vector2 point)
         {
-            Vector2 result = camera.WorldToScreenPoint(collider2D.transform.TransformPoint(point + collider2D.offset));
+            Vector2 result = camera.WorldToScreenPoint((Vector2)collider2D.transform.TransformPoint(point + collider2D.offset));
             return new Vector2((int) Math.Round(result.x), (int) Math.Round(Screen.height - result.y));
         }
 
@@ -79,29 +86,41 @@ namespace DebugMod.Hitbox
                 if (collider2D.GetComponent<DamageHero>() || collider2D.gameObject.LocateMyFSM("damages_hero"))
                 {
                     colliders[HitboxType.Enemy].Add(collider2D);
-                } else if (go.GetComponent<HealthManager>()||go.LocateMyFSM("health_manager_enemy") || go.LocateMyFSM("health_manager"))
+                } 
+                else if (go.GetComponent<HealthManager>()||go.LocateMyFSM("health_manager_enemy") || go.LocateMyFSM("health_manager"))
                 {
                     colliders[HitboxType.Other].Add(collider2D);
-                } else if (go.layer == (int) PhysLayers.TERRAIN)
+                } 
+                else if (go.layer == (int) PhysLayers.TERRAIN)
                 {
-                    colliders[HitboxType.Terrain].Add(collider2D);
-                } else if (go == HeroController.instance?.gameObject && !collider2D.isTrigger)
+                    if (go.name.Contains("Breakable") || go.name.Contains("Collapse") || go.GetComponent<Breakable>() != null) colliders[HitboxType.Breakable].Add(collider2D);
+                    else colliders[HitboxType.Terrain].Add(collider2D);
+                } 
+                else if (go == HeroController.instance?.gameObject && !collider2D.isTrigger)
                 {
                     colliders[HitboxType.Knight].Add(collider2D);
-                } else if (go.GetComponent<DamageEnemies>()||go.LocateMyFSM("damages_enemy") || go.name == "Damager" && go.LocateMyFSM("Damage"))
+                } 
+                else if (go.GetComponent<DamageEnemies>()||go.LocateMyFSM("damages_enemy") || go.name == "Damager" && go.LocateMyFSM("Damage"))
                 {
                     colliders[HitboxType.Attack].Add(collider2D);
-                } else if (collider2D.isTrigger && (collider2D.GetComponent<TransitionPoint>() || collider2D.GetComponent<HazardRespawnTrigger>()))
+                } 
+                else if (collider2D.isTrigger && collider2D.GetComponent<HazardRespawnTrigger>())
                 {
-                    colliders[HitboxType.Trigger].Add(collider2D);
-                } else if (collider2D.GetComponent<Breakable>())
+                    colliders[HitboxType.HazardRespawn].Add(collider2D);
+                } 
+                else if (collider2D.isTrigger && collider2D.GetComponent<TransitionPoint>())
+                {
+                    colliders[HitboxType.Gate].Add(collider2D);
+                } 
+                else if (collider2D.GetComponent<Breakable>())
                 {
                     NonBouncer bounce = collider2D.GetComponent<NonBouncer>();
                     if (bounce == null || !bounce.active)
                     {
                         colliders[HitboxType.Trigger].Add(collider2D);
                     }
-                } else if (HitboxViewer.State == 2)
+                } 
+                else if (HitboxViewer.State == 2)
                 {
                     colliders[HitboxType.Other].Add(collider2D);
                 }
@@ -110,7 +129,7 @@ namespace DebugMod.Hitbox
 
         private void OnGUI()
         {
-            if (Event.current?.type != EventType.Repaint || GameManager.instance.isPaused || Camera.main == null)
+            if (Event.current?.type != EventType.Repaint || Camera.main == null || GameManager.instance == null || GameManager.instance.isPaused)
             {
                 return;
             }
@@ -177,9 +196,8 @@ namespace DebugMod.Hitbox
                 }
             } else if (collider2D is CircleCollider2D circleCollider2D)
             {
-                Vector2 offset = circleCollider2D.offset;
-                Vector2 center = LocalToScreenPoint(camera, collider2D, offset);
-                Vector2 right = LocalToScreenPoint(camera, collider2D, new Vector2(offset.x + circleCollider2D.radius, offset.y));
+                Vector2 center = LocalToScreenPoint(camera, collider2D, Vector2.zero);
+                Vector2 right = LocalToScreenPoint(camera, collider2D, Vector2.right * circleCollider2D.radius);
                 int radius = (int) Math.Round(Vector2.Distance(center, right));
                 Drawing.DrawCircle(center, radius, hitboxType.Color, lineWidth, true, Mathf.Clamp(radius / 16, 4, 32));
             }

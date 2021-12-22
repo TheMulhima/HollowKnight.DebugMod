@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using DebugMod.Canvas;
 using UnityEngine;
 using GlobalEnums;
 
@@ -13,7 +14,8 @@ namespace DebugMod
         public static bool autoUpdate;
         private static float lastTime;
         public static List<EnemyData> enemyPool = new List<EnemyData>();
-        private static GameObject parent;
+
+        public static GameObject parent { get; private set; }
         public static bool hpBars;
         public static bool hitboxes;
         public static readonly MethodInfo takeDamage = typeof(HeroController).GetMethod("TakeDamage");
@@ -106,7 +108,7 @@ namespace DebugMod
                 return;
             }
 
-            if (DebugMod.GM.IsNonGameplayScene())
+            if (GUIController.ForceHideUI())
             {
                 if (panel.active)
                 {
@@ -125,23 +127,25 @@ namespace DebugMod
                 panel.SetActive(false, true);
             }
 
-            if (DebugMod.settings.EnemiesPanelVisible && UIManager.instance.uiState == UIState.PLAYING && (panel.GetPanel("Pause").active || !panel.GetPanel("Play").active))
+            if (DebugMod.settings.EnemiesPanelVisible && UIManager.instance.uiState == UIState.PLAYING &&
+                (panel.GetPanel("Pause").active || !panel.GetPanel("Play").active))
             {
                 panel.GetPanel("Pause").SetActive(false, true);
                 panel.GetPanel("Play").SetActive(true, false);
             }
-            else if (DebugMod.settings.EnemiesPanelVisible && UIManager.instance.uiState == UIState.PAUSED && (!panel.GetPanel("Pause").active || panel.GetPanel("Play").active))
+            else if (DebugMod.settings.EnemiesPanelVisible && UIManager.instance.uiState == UIState.PAUSED &&
+                     (!panel.GetPanel("Pause").active || panel.GetPanel("Play").active))
             {
                 panel.GetPanel("Pause").SetActive(true, false);
                 panel.GetPanel("Play").SetActive(false, true);
             }
 
-            if (!panel.active && enemyPool.Count > 0)
+            if ((!panel.active && enemyPool.Count > 0))
             {
-                Reset();
+                if (hpBars == false) Reset();
             }
 
-            if (panel.active)
+            if (panel.active || hpBars)
             {
                 CheckForAutoUpdate();
 
@@ -190,7 +194,7 @@ namespace DebugMod
                                         }
                                         else
                                         {
-                                            if ((float)hp / (float)dat.maxHP >= (x - 2f) / 117f)
+                                            if ((float) hp / (float) dat.maxHP >= (x - 2f) / 117f)
                                             {
                                                 tex.SetPixel(x, y, Color.red);
                                             }
@@ -217,22 +221,28 @@ namespace DebugMod
 
                                 float width = Math.Abs(bounds2.max.x - bounds2.min.x);
                                 float height = Math.Abs(bounds2.max.y - bounds2.min.y);
-                                Vector2 position = Camera.main.WorldToScreenPoint(boxCollider2D.transform.position + new Vector3(boxCollider2D.offset.x, boxCollider2D.offset.y, 0f));
-                                Vector2 size = Camera.main.WorldToScreenPoint(boxCollider2D.transform.position + new Vector3(width, height, 0));
+                                Vector2 position = Camera.main.WorldToScreenPoint(boxCollider2D.transform.position +
+                                    new Vector3(boxCollider2D.offset.x, boxCollider2D.offset.y, 0f));
+                                Vector2 size = Camera.main.WorldToScreenPoint(boxCollider2D.transform.position +
+                                                                              new Vector3(width, height, 0));
                                 size -= position;
 
                                 Quaternion rot = boxCollider2D.transform.rotation;
-                                rot.eulerAngles = new Vector3(Mathf.Round(rot.eulerAngles.x / 90) * 90, Mathf.Round(rot.eulerAngles.y / 90) * 90, Mathf.Round(rot.eulerAngles.z / 90) * 90);
+                                rot.eulerAngles = new Vector3(Mathf.Round(rot.eulerAngles.x / 90) * 90,
+                                    Mathf.Round(rot.eulerAngles.y / 90) * 90, Mathf.Round(rot.eulerAngles.z / 90) * 90);
                                 Vector2 pivot = Camera.main.WorldToScreenPoint(boxCollider2D.transform.position);
-                                Vector2 pointA = Camera.main.WorldToScreenPoint((Vector2)boxCollider2D.transform.position + boxCollider2D.offset);
+                                Vector2 pointA =
+                                    Camera.main.WorldToScreenPoint((Vector2) boxCollider2D.transform.position +
+                                                                   boxCollider2D.offset);
                                 pointA.x -= size.x / 2f;
                                 pointA.y -= size.y / 2f;
                                 Vector2 pointB = pointA + size;
 
-                                pointA = (Vector2)(rot * (pointA - pivot)) + pivot;
-                                pointB = (Vector2)(rot * (pointB - pivot)) + pivot;
+                                pointA = (Vector2) (rot * (pointA - pivot)) + pivot;
+                                pointB = (Vector2) (rot * (pointB - pivot)) + pivot;
 
-                                position = new Vector2(pointA.x < pointB.x ? pointA.x : pointB.x, pointA.y > pointB.y ? pointA.y : pointB.y);
+                                position = new Vector2(pointA.x < pointB.x ? pointA.x : pointB.x,
+                                    pointA.y > pointB.y ? pointA.y : pointB.y);
                                 size = new Vector2(Math.Abs(pointA.x - pointB.x), Math.Abs(pointA.y - pointB.y));
 
                                 size.x *= 1920f / Screen.width;
@@ -241,7 +251,7 @@ namespace DebugMod
                                 position.x *= 1920f / Screen.width;
                                 position.y *= 1080f / Screen.height;
                                 position.y = 1080f - position.y;
-                                
+
                                 dat.hitbox.SetPosition(position);
                                 dat.hitbox.ResizeBG(size);
                             }
@@ -261,7 +271,8 @@ namespace DebugMod
                             enemyPos.y = 1080f - enemyPos.y;
 
                             Bounds bounds = (dat.Spr as tk2dSprite).GetBounds();
-                            enemyPos.y -= (Camera.main.WorldToScreenPoint(bounds.max).y * (1080f / Screen.height) - Camera.main.WorldToScreenPoint(bounds.min).y * (1080f / Screen.height)) / 2f;
+                            enemyPos.y -= (Camera.main.WorldToScreenPoint(bounds.max).y * (1080f / Screen.height) -
+                                           Camera.main.WorldToScreenPoint(bounds.min).y * (1080f / Screen.height)) / 2f;
                             enemyPos.x -= 60;
 
                             dat.hpBar.SetPosition(enemyPos);
@@ -309,9 +320,12 @@ namespace DebugMod
                         }
                     }
 
-                    panel.GetPanel("Pause").GetButton("Collision").SetTextColor(hitboxes ? new Color(244f / 255f, 127f / 255f, 32f / 255f) : Color.white);
-                    panel.GetPanel("Pause").GetButton("HP Bars").SetTextColor(hpBars ? new Color(244f / 255f, 127f / 255f, 32f / 255f) : Color.white);
-                    panel.GetPanel("Pause").GetButton("Auto").SetTextColor(autoUpdate ? new Color(244f / 255f, 127f / 255f, 32f / 255f) : Color.white);
+                    panel.GetPanel("Pause").GetButton("Collision")
+                        .SetTextColor(hitboxes ? new Color(244f / 255f, 127f / 255f, 32f / 255f) : Color.white);
+                    panel.GetPanel("Pause").GetButton("HP Bars")
+                        .SetTextColor(hpBars ? new Color(244f / 255f, 127f / 255f, 32f / 255f) : Color.white);
+                    panel.GetPanel("Pause").GetButton("Auto")
+                        .SetTextColor(autoUpdate ? new Color(244f / 255f, 127f / 255f, 32f / 255f) : Color.white);
                 }
 
                 if (enemyCount > 14)
@@ -347,9 +361,19 @@ namespace DebugMod
 
         public static void RefreshEnemyList()
         {
-            if (DebugMod.settings.EnemiesPanelVisible)
+            if (DebugMod.settings.EnemiesPanelVisible || hpBars)
             {
-                GameObject[] rootGameObjects = UnityEngine.SceneManagement.SceneManager.GetSceneByName(DebugMod.GetSceneName()).GetRootGameObjects();
+                GameObject[] rootGameObjects = null;
+                try
+                {
+                    rootGameObjects = UnityEngine.SceneManagement.SceneManager
+                        .GetSceneByName(DebugMod.GetSceneName()).GetRootGameObjects();
+                }
+                catch
+                {
+                    return;
+                }
+
                 if (rootGameObjects != null)
                 {
                     foreach (GameObject gameObject in rootGameObjects)
@@ -362,7 +386,7 @@ namespace DebugMod
                             int num2 = gameObject.name.IndexOf("hopper", StringComparison.OrdinalIgnoreCase);
                             if (num3 >= 0 && num2 >= 0)
                             {
-                                component = gameObject.transform.FindChild("Sprite").gameObject.gameObject.GetComponent<tk2dSprite>();
+                                component = gameObject.transform.Find("Sprite").gameObject.gameObject.GetComponent<tk2dSprite>();
                             }
                             if (healthManager != null)
                             {
@@ -428,7 +452,9 @@ namespace DebugMod
                     Console.AddLine("EnemyList updated: +" + (enemyPool.Count - count));
                 }
             }
-            else if (autoUpdate && (!DebugMod.settings.EnemiesPanelVisible || !GameManager.instance.IsGameplayScene() || HeroController.instance == null))
+            else if (autoUpdate && (
+                //!DebugMod.settings.EnemiesPanelVisible ||
+                !GameManager.instance.IsGameplayScene() || HeroController.instance == null))
             {
                 autoUpdate = false;
                 Console.AddLine("Cancelling enemy auto-scan due to weird conditions");

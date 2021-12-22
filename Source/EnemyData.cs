@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using DebugMod.Canvas;
+using UnityEngine;
 
 namespace DebugMod
 {

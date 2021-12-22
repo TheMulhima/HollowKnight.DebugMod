@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using DebugMod.Canvas;
 using UnityEngine;
 
 namespace DebugMod
@@ -27,7 +28,7 @@ namespace DebugMod
                 return;
             }
 
-            if (DebugMod.GM.IsNonGameplayScene())
+            if (GUIController.ForceHideUI())
             {
                 if (panel.active)
                 {
