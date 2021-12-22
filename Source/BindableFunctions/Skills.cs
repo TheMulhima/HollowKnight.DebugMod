@@ -45,6 +45,7 @@ namespace DebugMod
             PlayerData.instance.hasCyclone = true;
             PlayerData.instance.hasDashSlash = true;
             PlayerData.instance.hasUpwardSlash = true;
+            PlayerData.instance.hasAllNailArts = true;
 
             Console.AddLine("Giving player all skills");
         }
@@ -201,6 +202,8 @@ namespace DebugMod
             }
 
             if (!PlayerData.instance.hasUpwardSlash && !PlayerData.instance.hasDashSlash && !PlayerData.instance.hasCyclone) PlayerData.instance.hasNailArt = false;
+
+            PlayerData.instance.hasAllNailArts = PlayerData.instance.hasUpwardSlash && PlayerData.instance.hasDashSlash && PlayerData.instance.hasCyclone;
         }
 
         [BindableMethod(name = "Give Dash Slash", category = "Skills")]
@@ -219,6 +222,8 @@ namespace DebugMod
             }
 
             if (!PlayerData.instance.hasUpwardSlash && !PlayerData.instance.hasDashSlash && !PlayerData.instance.hasCyclone) PlayerData.instance.hasNailArt = false;
+
+            PlayerData.instance.hasAllNailArts = PlayerData.instance.hasUpwardSlash && PlayerData.instance.hasDashSlash && PlayerData.instance.hasCyclone;
         }
 
         [BindableMethod(name = "Give Cyclone Slash", category = "Skills")]
@@ -237,6 +242,8 @@ namespace DebugMod
             }
 
             if (!PlayerData.instance.hasUpwardSlash && !PlayerData.instance.hasDashSlash && !PlayerData.instance.hasCyclone) PlayerData.instance.hasNailArt = false;
+
+            PlayerData.instance.hasAllNailArts = PlayerData.instance.hasUpwardSlash && PlayerData.instance.hasDashSlash && PlayerData.instance.hasCyclone;
         }
     }
 }
