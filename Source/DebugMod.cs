@@ -93,8 +93,6 @@ namespace DebugMod
         
         public override void Initialize()
         {
-            instance = this;
-
             instance.Log("Initializing");
 
             float startTime = Time.realtimeSinceStartup;
@@ -182,6 +180,7 @@ namespace DebugMod
 
         public DebugMod()
         {
+            instance = this;
             // Register exports early so other mods can use them when initializing
             typeof(DebugExport).ModInterop();
 
