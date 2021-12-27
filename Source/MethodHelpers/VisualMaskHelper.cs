@@ -35,6 +35,14 @@ namespace DebugMod.MethodHelpers
             }
             else
             {
+                if (MasksDeactivated)
+                {
+                    // We need to reactivate the renderers attached to the vignette
+                    foreach (Renderer r in DebugMod.HC.vignette.GetComponentsInChildren<Renderer>(true))
+                    {
+                        r.enabled = true;
+                    }
+                }
                 MasksDeactivated = false;
             }
         }
