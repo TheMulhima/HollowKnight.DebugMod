@@ -54,19 +54,10 @@ namespace DebugMod
             EnemiesPanel.BuildMenu(canvas);
             Console.BuildMenu(canvas);
 
-            // Modding.ModHooks.FinishedLoadingModsHook += () => InfoPanel.BuildInfoPanels(canvas);
-            // Modding.ModHooks.FinishedLoadingModsHook += () => KeyBindPanel.BuildMenu(canvas);
-            On.HeroController.Awake += HeroController_Awake;
+            Modding.ModHooks.FinishedLoadingModsHook += () => InfoPanel.BuildInfoPanels(canvas);
+            Modding.ModHooks.FinishedLoadingModsHook += () => KeyBindPanel.BuildMenu(canvas);
 
             DontDestroyOnLoad(canvas);
-        }
-
-        private void HeroController_Awake(On.HeroController.orig_Awake orig, HeroController self)
-        {
-            orig(self);
-            InfoPanel.BuildInfoPanels(canvas);
-            KeyBindPanel.BuildMenu(canvas);
-            On.HeroController.Awake -= HeroController_Awake;
         }
 
         private void LoadResources()
