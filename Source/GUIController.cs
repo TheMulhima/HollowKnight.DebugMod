@@ -249,7 +249,12 @@ namespace DebugMod
                 }
             }
 
-            if (DebugMod.infiniteSoul && PlayerData.instance.MPCharge < PlayerData.instance.maxMP && PlayerData.instance.health > 0 && !HeroController.instance.cState.dead && GameManager.instance.IsGameplayScene())
+            if (DebugMod.infiniteSoul 
+                && PlayerData.instance.MPCharge < PlayerData.instance.maxMP 
+                && PlayerData.instance.health > 0 
+                && HeroController.instance != null
+                && !HeroController.instance.cState.dead
+                && GameManager.instance.IsGameplayScene())
             {
                 PlayerData.instance.MPCharge = PlayerData.instance.maxMP - 1;
                 if (PlayerData.instance.MPReserveMax > 0)
