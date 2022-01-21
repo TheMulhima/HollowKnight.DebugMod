@@ -282,16 +282,6 @@ namespace DebugMod
         {
             return new SaveState.SaveStateData(this.data);
         }
-
-        private class BoolPtr
-        {
-            public bool value;
-
-            public BoolPtr(bool value)
-            {
-                this.value = value;
-            }
-        }
         
         #endregion
     }
