@@ -2,9 +2,12 @@
 using System.Collections;
 using System.IO;
 using System.Reflection;
+using System.Threading;
+using DebugMod.Hitbox;
 using GlobalEnums;
 using Modding;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using USceneManager = UnityEngine.SceneManagement.SceneManager;
 
 namespace DebugMod
@@ -26,7 +29,7 @@ namespace DebugMod
             public FieldInfo cameraLockArea;
             public string filePath;
             public bool isKinematized;
-            
+            public string[] loadedScenes;
 
             internal SaveStateData() { }
             
@@ -41,6 +44,8 @@ namespace DebugMod
                 savePos = _data.savePos;
                 lockArea = _data.lockArea;
                 isKinematized = _data.isKinematized;
+                loadedScenes = new string[_data.loadedScenes.Length];
+                Array.Copy(_data.loadedScenes, loadedScenes, _data.loadedScenes.Length);
             }
         }
 
@@ -64,6 +69,12 @@ namespace DebugMod
             data.cameraLockArea = (data.cameraLockArea ?? typeof(CameraController).GetField("currentLockArea", BindingFlags.Instance | BindingFlags.NonPublic));
             data.lockArea = data.cameraLockArea.GetValue(GameManager.instance.cameraCtrl);
             data.isKinematized = HeroController.instance.GetComponent<Rigidbody2D>().isKinematic;
+            int nLoadedScenes = USceneManager.sceneCount;
+            data.loadedScenes = new string[nLoadedScenes];
+            for (int i = 0; i < nLoadedScenes; i++)
+            {
+                data.loadedScenes[i] = USceneManager.GetSceneAt(i).name;
+            }
         }
 
         public void NewSaveStateToFile(int paramSlot)
@@ -100,15 +111,15 @@ namespace DebugMod
 
         #region loading
 
-        public void LoadTempState()
+        public void LoadTempState(bool loadDuped)
         {
-            GameManager.instance.StartCoroutine(LoadStateCoro());
+            GameManager.instance.StartCoroutine(LoadStateCoro(loadDuped));
         }
 
-        public void NewLoadStateFromFile()
+        public void NewLoadStateFromFile(bool loadDuped)
         {
             LoadStateFromFile(SaveStateManager.currentStateSlot);
-            LoadTempState();
+            LoadTempState(loadDuped);
         }
 
         public void LoadStateFromFile(int paramSlot)
@@ -131,6 +142,9 @@ namespace DebugMod
                         data.savePos = tmpData.savePos;
                         data.saveScene = tmpData.saveScene;
                         data.lockArea = tmpData.lockArea;
+                        data.isKinematized = tmpData.isKinematized;
+                        data.loadedScenes = new string[tmpData.loadedScenes.Length];
+                        Array.Copy(tmpData.loadedScenes, data.loadedScenes, tmpData.loadedScenes.Length);
                         DebugMod.instance.Log("Load SaveState ready: " + data.saveStateIdentifier);
                     }
                     catch (Exception ex)
@@ -146,7 +160,7 @@ namespace DebugMod
             }
         }
 
-        private IEnumerator LoadStateCoro()
+        private IEnumerator LoadStateCoro(bool loadDuped)
         {
             if (data.savedPd == null || string.IsNullOrEmpty(data.saveScene)) yield break;
             
@@ -154,15 +168,15 @@ namespace DebugMod
             GameManager.instance.startedOnThisScene = true;
 
             //Menderbug room loads faster (Thanks Magnetic Pizza)
-            string scene = "Room_Mender_House";
+            string dummySceneName = "Room_Mender_House";
             if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "Room_Mender_House")
             {
-                scene = "Room_Sly_Storeroom";
+                dummySceneName = "Room_Sly_Storeroom";
             }
             
-            USceneManager.LoadScene(scene);
+            USceneManager.LoadScene(dummySceneName);
 
-            yield return new WaitUntil(() => USceneManager.GetActiveScene().name == scene);
+            yield return new WaitUntil(() => USceneManager.GetActiveScene().name == dummySceneName);
 
             GameManager.instance.sceneData = SceneData.instance = JsonUtility.FromJson<SceneData>(JsonUtility.ToJson(data.savedSd));
             GameManager.instance.ResetSemiPersistentItems();
@@ -184,17 +198,29 @@ namespace DebugMod
                     AlwaysUnloadUnusedAssets = true
                 }
             );
+            
+            yield return new WaitUntil(() => USceneManager.GetActiveScene().name == data.saveScene);
+            
+            if (loadDuped)
+            {
+                var GM = GameManager.instance;
+                for (int i = 1; i < data.loadedScenes.Length; i++)
+                {
+                    AsyncOperation loadop = USceneManager.LoadSceneAsync(data.loadedScenes[i], LoadSceneMode.Additive);
+                    loadop.allowSceneActivation = true;
+                    yield return loadop;
+                    GM.RefreshTilemapInfo(data.loadedScenes[i]);
+                }
+            }
 
             ReflectionHelper.SetField(GameManager.instance.cameraCtrl, "isGameplayScene", true);
-
+            
             GameManager.instance.cameraCtrl.PositionToHero(false);
 
             if (data.lockArea != null)
             {
                 GameManager.instance.cameraCtrl.LockToArea(data.lockArea as CameraLockArea);
             }
-
-            yield return new WaitUntil(() => USceneManager.GetActiveScene().name == data.saveScene);
             
             GameManager.instance.cameraCtrl.FadeSceneIn();
 
@@ -216,11 +242,18 @@ namespace DebugMod
             HeroController.instance.gameObject.transform.position = data.savePos;
             HeroController.instance.transitionState = HeroTransitionState.WAITING_TO_TRANSITION;
             HeroController.instance.GetComponent<Rigidbody2D>().isKinematic = data.isKinematized;
+
+            if (loadDuped && DebugMod.settings.ShowHitBoxes > 0)
+            {
+                int cs = DebugMod.settings.ShowHitBoxes;
+                DebugMod.settings.ShowHitBoxes = 0;
+                yield return new WaitUntil(() => HitboxViewer.State == 0);
+                DebugMod.settings.ShowHitBoxes = cs;
+            }
             
             typeof(HeroController)
                 .GetMethod("FinishedEnteringScene", BindingFlags.NonPublic | BindingFlags.Instance)?
                 .Invoke(HeroController.instance, new object[] {true, false});
-        
         }
         #endregion
 
@@ -248,6 +281,16 @@ namespace DebugMod
         public SaveState.SaveStateData DeepCopy()
         {
             return new SaveState.SaveStateData(this.data);
+        }
+
+        private class BoolPtr
+        {
+            public bool value;
+
+            public BoolPtr(bool value)
+            {
+                this.value = value;
+            }
         }
         
         #endregion

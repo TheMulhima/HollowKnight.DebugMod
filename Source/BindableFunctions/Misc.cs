@@ -12,6 +12,7 @@ using HutongGames.PlayMaker.Actions;
 using Modding;
 using Newtonsoft.Json;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 using USceneManager = UnityEngine.SceneManagement.SceneManager;
 
@@ -231,6 +232,28 @@ namespace DebugMod
         {
             if (Time.timeScale != 0) ToggleFrameAdvance();
             GameManager.instance.StartCoroutine(AdvanceMyFrame());
+        }
+
+        [BindableMethod(name = "Dupe Active Room", category = "Misc")]
+        public static void DupeActiveRoom()
+        {
+            GameManager.instance.StartCoroutine(LoadRoom(USceneManager.GetActiveScene().name));
+        }
+
+        private static IEnumerator LoadRoom(string sceneName)
+        {
+            var loadop = USceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
+            loadop.allowSceneActivation = true;
+            yield return loadop;
+            GameManager.instance.RefreshTilemapInfo(sceneName);
+            
+            if (DebugMod.settings.ShowHitBoxes > 0)
+            {
+                int cs = DebugMod.settings.ShowHitBoxes;
+                DebugMod.settings.ShowHitBoxes = 0;
+                yield return new WaitUntil(() => HitboxViewer.State == 0);
+                DebugMod.settings.ShowHitBoxes = cs;
+            }
         }
 
         private static IEnumerator AdvanceMyFrame()
