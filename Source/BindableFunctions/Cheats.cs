@@ -129,7 +129,7 @@ namespace DebugMod
         {
             var rb2d = HeroController.instance.GetComponent<Rigidbody2D>();
             rb2d.isKinematic = !rb2d.isKinematic;
-            Console.AddLine($"{(rb2d.isKinematic ? "Enabled" : "Disabled")} collision");
+            Console.AddLine($"{(rb2d.isKinematic ? "Disabled" : "Enabled")} collision");
         }
 
         [BindableMethod(name = "Dreamgate Invulnerability", category = "Cheats")]
@@ -140,6 +140,14 @@ namespace DebugMod
             HeroController.instance.gameObject.LocateMyFSM("Roar Lock").FsmVariables.FindFsmBool("No Roar").Value =
                 true;
             Console.AddLine("Given dreamgate invulnerability");
+        }
+        
+        [BindableMethod(name = "Reset QM Storage", category = "Cheats")]
+        public static void ResetQuickMapStorage()
+        {
+            var mapFSM = DebugMod.RefKnight.LocateMyFSM("Map Control");
+            mapFSM.FsmVariables.FindFsmGameObject("Inventory").Value = null;
+            Console.AddLine("Reset quick map storage");
         }
     }
 }
