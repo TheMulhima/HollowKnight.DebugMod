@@ -12,7 +12,6 @@ using HutongGames.PlayMaker.Actions;
 using Modding;
 using Newtonsoft.Json;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 using USceneManager = UnityEngine.SceneManagement.SceneManager;
 
@@ -30,12 +29,6 @@ namespace DebugMod
         public static void LoadState()
         {
             DebugMod.saveStateManager.LoadState(SaveStateType.Memory, false);
-        }
-
-        [BindableMethod(name = "Quickslot (load duped)", category = "Savestates")]
-        public static void LoadStateDuped()
-        {
-            DebugMod.saveStateManager.LoadState(SaveStateType.Memory, true);
         }
 
         [BindableMethod(name = "Quickslot save to file", category = "Savestates")]
@@ -61,12 +54,6 @@ namespace DebugMod
         public static void LoadFromFile()
         {
             DebugMod.saveStateManager.LoadState(SaveStateType.SkipOne, false);
-        }
-
-        [BindableMethod(name = "Load duped state from file", category = "Savestates")]
-        public static void LoadFromFileDuped()
-        {
-            DebugMod.saveStateManager.LoadState(SaveStateType.SkipOne, true);
         }
 
         [BindableMethod(name = "Next Save Page", category = "Savestates")]
