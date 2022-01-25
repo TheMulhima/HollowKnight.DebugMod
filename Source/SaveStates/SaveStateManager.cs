@@ -103,14 +103,15 @@ namespace DebugMod
 
         #region loading
 
-        public void LoadState(SaveStateType stateType)
+        //loadDuped is used by external mods
+        public void LoadState(SaveStateType stateType, bool loadDuped = false)
         {
             switch (stateType)
             {
                 case SaveStateType.Memory:
                     if (quickState.IsSet())
                     {
-                        quickState.LoadTempState();
+                        quickState.LoadTempState(loadDuped);
                     }
                     else
                     {
@@ -174,7 +175,7 @@ namespace DebugMod
                     }
                     else
                     {
-                        LoadCoroHelper(stateType);
+                        LoadCoroHelper(stateType, false);
                     }
                 }
             }
@@ -221,7 +222,8 @@ namespace DebugMod
             }
         }
 
-        private void LoadCoroHelper(SaveStateType stateType)
+        //loadDuped is used by external mods
+        private void LoadCoroHelper(SaveStateType stateType, bool loadDuped)
         {
             switch (stateType)
             {
@@ -240,7 +242,7 @@ namespace DebugMod
                         saveStateFiles.Remove(currentStateSlot);
                     }
                     saveStateFiles.Add(currentStateSlot, new SaveState());
-                    saveStateFiles[currentStateSlot].NewLoadStateFromFile();
+                    saveStateFiles[currentStateSlot].NewLoadStateFromFile(loadDuped);
                     break;
                 default:
                     break;
