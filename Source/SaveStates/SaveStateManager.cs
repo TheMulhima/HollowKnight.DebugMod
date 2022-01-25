@@ -103,7 +103,8 @@ namespace DebugMod
 
         #region loading
 
-        public void LoadState(SaveStateType stateType, bool loadDuped)
+        //loadDuped is used by external mods
+        public void LoadState(SaveStateType stateType, bool loadDuped = false)
         {
             switch (stateType)
             {
@@ -221,6 +222,7 @@ namespace DebugMod
             }
         }
 
+        //loadDuped is used by external mods
         private void LoadCoroHelper(SaveStateType stateType, bool loadDuped)
         {
             switch (stateType)

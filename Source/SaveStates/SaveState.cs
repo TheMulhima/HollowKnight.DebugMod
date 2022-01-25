@@ -110,12 +110,14 @@ namespace DebugMod
 
         #region loading
 
-        public void LoadTempState(bool loadDuped)
+        //loadDuped is used by external mods
+        public void LoadTempState(bool loadDuped = false)
         {
             GameManager.instance.StartCoroutine(LoadStateCoro(loadDuped));
         }
 
-        public void NewLoadStateFromFile(bool loadDuped)
+        //loadDuped is used by external mods
+        public void NewLoadStateFromFile(bool loadDuped = false)
         {
             LoadStateFromFile(SaveStateManager.currentStateSlot);
             LoadTempState(loadDuped);
@@ -159,6 +161,7 @@ namespace DebugMod
             }
         }
 
+        //loadDuped is used by external mods
         private IEnumerator LoadStateCoro(bool loadDuped)
         {
             if (data.savedPd == null || string.IsNullOrEmpty(data.saveScene)) yield break;

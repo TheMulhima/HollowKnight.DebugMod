@@ -28,7 +28,7 @@ namespace DebugMod
         [BindableMethod(name = "Quickslot (load)", category = "Savestates")]
         public static void LoadState()
         {
-            DebugMod.saveStateManager.LoadState(SaveStateType.Memory, false);
+            DebugMod.saveStateManager.LoadState(SaveStateType.Memory);
         }
 
         [BindableMethod(name = "Quickslot save to file", category = "Savestates")]
@@ -40,7 +40,7 @@ namespace DebugMod
         [BindableMethod(name = "Load file to quickslot", category = "Savestates")]
         public static void CurrentSlotToSaveMemory()
         {
-            DebugMod.saveStateManager.LoadState(SaveStateType.File, false);
+            DebugMod.saveStateManager.LoadState(SaveStateType.File);
         }
 
         [BindableMethod(name = "Save new state to file", category = "Savestates")]
@@ -53,7 +53,7 @@ namespace DebugMod
         [BindableMethod(name = "Load new state from file", category = "Savestates")]
         public static void LoadFromFile()
         {
-            DebugMod.saveStateManager.LoadState(SaveStateType.SkipOne, false);
+            DebugMod.saveStateManager.LoadState(SaveStateType.SkipOne);
         }
 
         [BindableMethod(name = "Next Save Page", category = "Savestates")]
