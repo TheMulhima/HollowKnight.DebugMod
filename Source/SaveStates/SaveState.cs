@@ -166,6 +166,10 @@ namespace DebugMod
         {
             if (data.savedPd == null || string.IsNullOrEmpty(data.saveScene)) yield break;
             
+            //remove dialogues if exists
+            PlayMakerFSM.BroadcastEvent("BOX DOWN DREAM");
+            PlayMakerFSM.BroadcastEvent("CONVO CANCEL");
+            
             GameManager.instance.entryGateName = "dreamGate";
             GameManager.instance.startedOnThisScene = true;
 
