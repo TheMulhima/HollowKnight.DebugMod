@@ -94,10 +94,10 @@ namespace DebugMod
         public override void Initialize()
         {
             instance.Log("Initializing");
-
+            instance.Log("Start load local dict");
+            Localization.LoadLocaltext();
             float startTime = Time.realtimeSinceStartup;
             instance.Log("Building MethodInfo dict...");
-            
             bindMethods.Clear();
             foreach (MethodInfo method in typeof(BindableFunctions).GetMethods(BindingFlags.Public | BindingFlags.Static))
             {
@@ -106,8 +106,8 @@ namespace DebugMod
                 if (attributes.Any())
                 {
                     BindableMethod attr = (BindableMethod)attributes[0];
-                    string name = attr.name;
-                    string cat = attr.category;
+                    string name = attr.name.Localize();
+                    string cat = attr.category.Localize();
 
                     bindMethods.Add(name, (cat, (Action)Delegate.CreateDelegate(typeof(Action), method)));
                 }

@@ -27,7 +27,7 @@ namespace DebugMod
 
             panel = new CanvasPanel(canvas, new Texture2D(1, 1), new Vector2(1920f - GUIController.Instance.images["EnemiesPBg"].width, 481f), Vector2.zero, new Rect(0, 0, 1, 1));
 
-            panel.AddText("Panel Label", "Enemies", new Vector2(125f, -25f), Vector2.zero, GUIController.Instance.trajanBold, 30);
+            panel.AddText("Panel Label", "Enemies".Localize(), new Vector2(125f, -25f), Vector2.zero, GUIController.Instance.trajanBold, 30);
 
             panel.AddText("Enemy Names", "", new Vector2(90f, 20f), Vector2.zero, GUIController.Instance.arial);
             panel.AddText("Enemy HP", "", new Vector2(300f, 20f), Vector2.zero, GUIController.Instance.arial);
@@ -42,10 +42,10 @@ namespace DebugMod
                 panel.GetPanel("Pause").AddButton("Inf" + i, GUIController.Instance.images["ButtonInf"], new Vector2(60f, 20f + (i - 1) * 15f), new Vector2(12f, 12f), InfClicked, new Rect(0, 0, GUIController.Instance.images["ButtonInf"].width, GUIController.Instance.images["ButtonInf"].height));
             }
 
-            panel.GetPanel("Pause").AddButton("Collision", GUIController.Instance.images["ButtonRect"], new Vector2(30f, 250f), Vector2.zero, CollisionClicked, new Rect(0, 0, GUIController.Instance.images["ButtonRect"].width, GUIController.Instance.images["ButtonRect"].height), GUIController.Instance.trajanBold, "Collision");
-            panel.GetPanel("Pause").AddButton("HP Bars", GUIController.Instance.images["ButtonRect"], new Vector2(125f, 250f), Vector2.zero, HPBarsClicked, new Rect(0, 0, GUIController.Instance.images["ButtonRect"].width, GUIController.Instance.images["ButtonRect"].height), GUIController.Instance.trajanBold, "HP Bars");
-            panel.GetPanel("Pause").AddButton("Auto", GUIController.Instance.images["ButtonRect"], new Vector2(220f, 250f), Vector2.zero, AutoClicked, new Rect(0, 0, GUIController.Instance.images["ButtonRect"].width, GUIController.Instance.images["ButtonRect"].height), GUIController.Instance.trajanBold, "Auto");
-            panel.GetPanel("Pause").AddButton("Scan", GUIController.Instance.images["ButtonRect"], new Vector2(315f, 250f), Vector2.zero, ScanClicked, new Rect(0, 0, GUIController.Instance.images["ButtonRect"].width, GUIController.Instance.images["ButtonRect"].height), GUIController.Instance.trajanBold, "Scan");
+            panel.GetPanel("Pause").AddButton("Collision", GUIController.Instance.images["ButtonRect"], new Vector2(30f, 250f), Vector2.zero, CollisionClicked, new Rect(0, 0, GUIController.Instance.images["ButtonRect"].width, GUIController.Instance.images["ButtonRect"].height), GUIController.Instance.trajanBold, "Collision".Localize());
+            panel.GetPanel("Pause").AddButton("HP Bars", GUIController.Instance.images["ButtonRect"], new Vector2(125f, 250f), Vector2.zero, HPBarsClicked, new Rect(0, 0, GUIController.Instance.images["ButtonRect"].width, GUIController.Instance.images["ButtonRect"].height), GUIController.Instance.trajanBold, "HP Bars".Localize());
+            panel.GetPanel("Pause").AddButton("Auto", GUIController.Instance.images["ButtonRect"], new Vector2(220f, 250f), Vector2.zero, AutoClicked, new Rect(0, 0, GUIController.Instance.images["ButtonRect"].width, GUIController.Instance.images["ButtonRect"].height), GUIController.Instance.trajanBold, "Auto".Localize());
+            panel.GetPanel("Pause").AddButton("Scan", GUIController.Instance.images["ButtonRect"], new Vector2(315f, 250f), Vector2.zero, ScanClicked, new Rect(0, 0, GUIController.Instance.images["ButtonRect"].width, GUIController.Instance.images["ButtonRect"].height), GUIController.Instance.trajanBold, "Scan".Localize() );
 
             panel.FixRenderOrder();
         }

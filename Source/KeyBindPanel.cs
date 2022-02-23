@@ -35,21 +35,21 @@ namespace DebugMod
 
             public static List<string> Categories = new()
             {
-                "GamePlay Altering",
-                "Savestates",
-                "Misc",
-                "Visual",
-                "Mod UI",
-                "Enemy Panel",
-                "Cheats",
-                "Charms",
-                "Skills",
-                "Spells",
-                "Bosses",
-                "Items",
-                "Mask & Vessels",
-                "Consumables",
-                "Dreamgate",
+                "GamePlay Altering".Localize(),
+                "Savestates".Localize(),
+                "Misc".Localize(),
+                "Visual".Localize(),
+                "Mod UI".Localize(),
+                "Enemy Panel".Localize(),
+                "Cheats".Localize(),
+                "Charms".Localize(),
+                "Skills".Localize(),
+                "Spells".Localize(),
+                "Bosses".Localize(),
+                "Items".Localize(),
+                "Mask & Vessels".Localize(),
+                "Consumables".Localize(),
+                "Dreamgate".Localize(),
             };
             public static Dictionary<string, CategoryInfo> CategoryInfos = new();
             public static int TotalPages => CategoryInfos.Select(x => x.Value.NumPages).Sum();
@@ -104,7 +104,7 @@ namespace DebugMod
                 Vector2.zero,
                 new Rect(0, 0, GUIController.Instance.images["HelpBG"].width,
                     GUIController.Instance.images["HelpBG"].height));
-            panel.AddText("Label", "Binds", new Vector2(130f, -25f), Vector2.zero, GUIController.Instance.trajanBold,
+            panel.AddText("Label", "Binds".Localize(), new Vector2(130f, -25f), Vector2.zero, GUIController.Instance.trajanBold,
                 30);
 
             panel.AddText("Category", "", new Vector2(25f, 25f), Vector2.zero, GUIController.Instance.trajanNormal, 20);
