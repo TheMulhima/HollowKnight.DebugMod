@@ -81,25 +81,13 @@ namespace DebugMod
             Console.AddLine("HP for enemy: " + dat.gameObject.name + " is now 9999");
         }
 
-        private static void CollisionClicked(string buttonName)
-        {
-            BindableFunctions.ToggleEnemyCollision();
-        }
+        private static void CollisionClicked(string buttonName) => BindableFunctions.ToggleEnemyCollision();
+        private static void HPBarsClicked(string buttonName) => BindableFunctions.ToggleEnemyHPBars();
 
-        private static void HPBarsClicked(string buttonName)
-        {
-            BindableFunctions.ToggleEnemyHPBars();
-        }
+        private static void AutoClicked(string buttonName) => BindableFunctions.ToggleEnemyAutoScan();
 
-        private static void AutoClicked(string buttonName)
-        {
-            BindableFunctions.ToggleEnemyAutoScan();
-        }
-
-        private static void ScanClicked(string buttonName)
-        {
-            BindableFunctions.EnemyScan();
-        }
+        private static void ScanClicked(string buttonName) => BindableFunctions.EnemyScan();
+        
 
         public static void Update()
         {
@@ -432,7 +420,7 @@ namespace DebugMod
             if (DebugMod.settings.EnemiesPanelVisible && HeroController.instance != null && !HeroController.instance.cState.transitioning && DebugMod.GM.IsGameplayScene())
             {
                 int count = enemyPool.Count;
-                int layerMask = 133120;
+                int layerMask = 1 << (int) PhysLayers.ENEMIES;
                 Collider2D[] array = Physics2D.OverlapBoxAll(DebugMod.RefKnight.transform.position, new Vector2(boxSize, boxSize), 1f, layerMask);
                 if (array == null) return;
                 
