@@ -143,11 +143,11 @@ namespace DebugMod
             }
 
             //Handle keybinds
-            foreach (KeyValuePair<string, int> bind in DebugMod.settings.binds)
+            foreach (KeyValuePair<string, KeyCode> bind in DebugMod.settings.binds)
             {
                 if (DebugMod.bindMethods.ContainsKey(bind.Key) || DebugMod.AdditionalBindMethods.ContainsKey(bind.Key) )
                 {
-                    if ((KeyCode) bind.Value == KeyCode.None)
+                    if (bind.Value == KeyCode.None)
                     {
                         foreach (KeyCode kc in Enum.GetValues(typeof(KeyCode)))
                         {
@@ -156,9 +156,9 @@ namespace DebugMod
                                 // Fix UX
                                 if (KeyBindPanel.keyWarning != kc)
                                 {
-                                    foreach (KeyValuePair<string, int> kvp in DebugMod.settings.binds)
+                                    foreach (KeyValuePair<string, KeyCode> kvp in DebugMod.settings.binds)
                                     {
-                                        if (kvp.Value == (int) kc)
+                                        if (kvp.Value == kc)
                                         {
                                             Console.AddLine(kc.ToString() + " already bound to " + kvp.Key +
                                                             ", press again to confirm");
@@ -179,7 +179,7 @@ namespace DebugMod
                                 }
                                 else if (kc != KeyCode.Escape)
                                 {
-                                    DebugMod.settings.binds[bind.Key] = (int) kc;
+                                    DebugMod.settings.binds[bind.Key] = kc;
                                 }
 
                                 KeyBindPanel.UpdateHelpText();
@@ -187,7 +187,7 @@ namespace DebugMod
                             }
                         }
                     }
-                    else if (Input.GetKeyDown((KeyCode) bind.Value))
+                    else if (Input.GetKeyDown(bind.Value))
                     {
                         //This makes sure atleast you can close the UI when the KeyBindLock is active.
                         //Im sure theres a better way to do this but idk. 

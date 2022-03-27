@@ -1,8 +1,8 @@
 using System;
 using System.IO;
 using System.Collections.Generic;
-using Modding;
-
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using UnityEngine;
 
 namespace DebugMod
@@ -19,7 +19,8 @@ namespace DebugMod
     public class GlobalSettings
     {
         //Save members
-        public Dictionary<string, int> binds = new Dictionary<string, int>();
+        [JsonProperty(ItemConverterType = typeof(StringEnumConverter))]
+        public Dictionary<string, KeyCode> binds = new Dictionary<string, KeyCode>();
 
         public readonly string ModBaseDirectory = Path.Combine(Application.persistentDataPath, "DebugModData");
 

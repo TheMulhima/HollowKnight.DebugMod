@@ -200,11 +200,11 @@ namespace DebugMod
 
                 if (DebugMod.settings.binds.ContainsKey(bindStr))
                 {
-                    KeyCode code = ((KeyCode)DebugMod.settings.binds[bindStr]);
+                    KeyCode code = DebugMod.settings.binds[bindStr];
 
                     if (code != KeyCode.None)
                     {
-                        updatedText += ((KeyCode)DebugMod.settings.binds[bindStr]).ToString();
+                        updatedText += DebugMod.settings.binds[bindStr].ToString();
                     }
                     else
                     {
@@ -254,11 +254,11 @@ namespace DebugMod
 
             if (DebugMod.settings.binds.ContainsKey(bindName))
             {
-                DebugMod.settings.binds[bindName] = (int)KeyCode.None;
+                DebugMod.settings.binds[bindName] = KeyCode.None;
             }
             else
             {
-                DebugMod.settings.binds.Add(bindName, (int)KeyCode.None);
+                DebugMod.settings.binds.Add(bindName, KeyCode.None);
             }
 
             UpdateHelpText();

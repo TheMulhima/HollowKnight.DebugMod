@@ -61,7 +61,15 @@ namespace DebugMod
         //internal static int NailDamage;
         
         public static GlobalSettings settings { get; set; } = new GlobalSettings();
-        public void OnLoadGlobal(GlobalSettings s) => DebugMod.settings = s;
+        public void OnLoadGlobal(GlobalSettings s)
+        {
+            DebugMod.settings = s;
+            if (settings.binds is null)
+            {
+                settings.binds = new();
+                DebugMod.ResetKeyBinds();
+            }
+        }
         public GlobalSettings OnSaveGlobal() => DebugMod.settings;
         public SaveSettings LocalSaveData { get; set; } = new SaveSettings();
         public void OnLoadLocal(SaveSettings s) => this.LocalSaveData = s;
@@ -252,20 +260,20 @@ namespace DebugMod
         {
             settings.binds.Clear();
 
-            settings.binds.Add("Toggle All UI", (int) KeyCode.F1);
-            settings.binds.Add("Toggle Info", (int) KeyCode.F2);
-            settings.binds.Add("Toggle Menu", (int) KeyCode.F3);
-            settings.binds.Add("Toggle Console", (int) KeyCode.F4);
-            settings.binds.Add("Full/Min Info Switch", (int) KeyCode.F6);
-            settings.binds.Add("Force Camera Follow", (int) KeyCode.F8);
-            settings.binds.Add("Toggle Enemy Panel", (int) KeyCode.F9);
-            settings.binds.Add("Toggle Binds", (int) KeyCode.BackQuote);
-            settings.binds.Add("Nail Damage +4", (int) KeyCode.Equals);
-            settings.binds.Add("Nail Damage -4", (int) KeyCode.Minus);
-            settings.binds.Add("Increase Timescale", (int) KeyCode.KeypadPlus);
-            settings.binds.Add("Decrease Timescale", (int) KeyCode.KeypadMinus);
-            settings.binds.Add("Zoom In", (int) KeyCode.PageUp);
-            settings.binds.Add("Zoom Out", (int) KeyCode.PageDown);
+            settings.binds.Add("Toggle All UI", KeyCode.F1);
+            settings.binds.Add("Toggle Info", KeyCode.F2);
+            settings.binds.Add("Toggle Menu", KeyCode.F3);
+            settings.binds.Add("Toggle Console", KeyCode.F4);
+            settings.binds.Add("Full/Min Info Switch", KeyCode.F6);
+            settings.binds.Add("Force Camera Follow", KeyCode.F8);
+            settings.binds.Add("Toggle Enemy Panel", KeyCode.F9);
+            settings.binds.Add("Toggle Binds", KeyCode.BackQuote);
+            settings.binds.Add("Nail Damage +4", KeyCode.Equals);
+            settings.binds.Add("Nail Damage -4", KeyCode.Minus);
+            settings.binds.Add("Increase Timescale", KeyCode.KeypadPlus);
+            settings.binds.Add("Decrease Timescale", KeyCode.KeypadMinus);
+            settings.binds.Add("Zoom In", KeyCode.PageUp);
+            settings.binds.Add("Zoom Out", KeyCode.PageDown);
         }
         private void SaveSettings()
         {

@@ -151,9 +151,9 @@ namespace DebugMod
                     throw new ArgumentException("Helper func SelectSlot requires `bool` and `SaveStateType` to proceed the savestate process");
             }
 
-            if (DebugMod.settings.binds.TryGetValue(currentStateOperation, out int keycode))
+            if (DebugMod.settings.binds.TryGetValue(currentStateOperation, out KeyCode keycode))
             {
-                DebugMod.alphaKeyDict.Add((KeyCode)keycode, keycode);
+                DebugMod.alphaKeyDict.Add(keycode, (int)keycode);
             }
             else
             {
