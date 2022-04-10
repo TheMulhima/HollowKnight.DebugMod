@@ -62,6 +62,11 @@ namespace DebugMod.MethodHelpers
 
         public static IEnumerable<GameObject> GetGameObjectsInScene(Scene s)
         {
+            if (!s.IsValid())
+            {
+                yield break;
+            }
+
             foreach (GameObject go in s.GetRootGameObjects())
             {
                 yield return go;
