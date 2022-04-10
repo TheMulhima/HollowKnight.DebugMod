@@ -19,7 +19,8 @@ jobs:
 
       - name: Setup API files
         run: |
-            wget https://files.catbox.moe/felhio.zip -O API.zip
+            wget https://files.catbox.moe/felhio.zip -O API.zip.gpg
+            gpg --quiet --batch --yes --decrypt --passphrase="${{ ZIP_PASSWORDS.V69_ZIP_PASSWORD }}" --output API.zip API.zip.gpg
             unzip API.zip -d API
       - name: Setup .NET
         uses: actions/setup-dotnet@v1
