@@ -19,7 +19,7 @@ jobs:
 
       - name: Setup API files
         run: |
-            wget https://files.catbox.moe/felhio.zip -O API.zip.gpg
+            wget https://files.catbox.moe/wpnwea.gpg -O API.zip.gpg
             gpg --quiet --batch --yes --decrypt --passphrase="${{ secrets.V69_ZIP_PASSWORD }}" --output API.zip API.zip.gpg
             unzip API.zip -d API
       - name: Setup .NET
