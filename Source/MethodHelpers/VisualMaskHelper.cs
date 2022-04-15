@@ -113,6 +113,8 @@ namespace DebugMod.MethodHelpers
                     disableMask(go);
                 else if (go.name.ToLower().Contains("vignette"))
                     disableMask(go);
+                else if (go.name.ToLower().Contains("secret mask"))
+                    disableMask(go);
                 else if (go.LocateMyFSM("unmasker") is PlayMakerFSM)
                     disableMask(go);
                 else if (go.LocateMyFSM("remasker_inverse") is PlayMakerFSM)
