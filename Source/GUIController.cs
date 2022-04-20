@@ -96,7 +96,6 @@ namespace DebugMod
 
             foreach (string res in resourceNames)
             {
-                //DebugMod.instance.Log(res + "\n\n");
                 if (res.StartsWith("DebugMod.Images."))
                 {
                     try
@@ -112,7 +111,7 @@ namespace DebugMod
                         string internalName = split[split.Length - 2];
                         images.Add(internalName, tex);
 
-                        DebugMod.instance.Log("Loaded image: " + internalName);
+                        DebugMod.instance.LogDebug("Loaded image: " + internalName);
                     }
                     catch (Exception e)
                     {
