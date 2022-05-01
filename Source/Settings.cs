@@ -22,6 +22,7 @@ namespace DebugMod
         [JsonProperty(ItemConverterType = typeof(StringEnumConverter))]
         public Dictionary<string, KeyCode> binds = new Dictionary<string, KeyCode>();
 
+        [JsonIgnore]
         public readonly string ModBaseDirectory = Path.Combine(Application.persistentDataPath, "DebugModData");
 
         public bool ConsoleVisible = true;
