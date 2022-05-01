@@ -343,7 +343,7 @@ namespace DebugMod
             }
             catch (Exception ex)
             {
-                DebugMod.instance.LogError(string.Format(ex.Source, ex.Message));
+                DebugMod.instance.LogError(ex);
                 //throw ex;
             }
         }

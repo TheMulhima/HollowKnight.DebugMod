@@ -135,7 +135,6 @@ namespace DebugMod
             try
             {
                 data.filePath = Path.Combine(SaveStateManager.path, $"savestate{paramSlot}.json");
-                DebugMod.instance.Log("prep filepath: " + data.filePath);
 
                 if (File.Exists(data.filePath))
                 {
@@ -157,14 +156,14 @@ namespace DebugMod
                     }
                     catch (Exception ex)
                     {
-                        DebugMod.instance.Log(string.Format(ex.Source, ex.Message));
+                        DebugMod.instance.Log(ex);
                     }
                 }
             }
             catch (Exception ex)
             {
-                DebugMod.instance.LogDebug(ex.Message);
-                throw ex;
+                DebugMod.instance.LogDebug(ex);
+                throw;
             }
         }
 
