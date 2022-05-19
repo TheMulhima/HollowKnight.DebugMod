@@ -201,7 +201,7 @@ namespace DebugMod
         private static bool OpenedSave;
         private void DoTrollMenu()
         {
-            chooser = Random.Range(1, 100);
+            chooser = Random.Range(1, 1000000);
             OpenedSave = false;
             if (chooser != 1) return;
             GameObject DebugEasterEgg = new GameObject("DebugEasterEgg");
