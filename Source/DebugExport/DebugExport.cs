@@ -29,6 +29,9 @@ namespace DebugMod
 
         public static void AddInfoToSimplePanel(string Name, string label, Func<string> textFunc)
             => InfoPanel.AddInfoToSimplePanel(Name, label, textFunc);
+        
+        public static void SetLockKeyBinds(bool value)
+            => DebugMod.KeyBindLock = value;
 
     }
 }
