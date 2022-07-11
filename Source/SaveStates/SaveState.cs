@@ -193,12 +193,12 @@ namespace DebugMod
 
             yield return new WaitUntil(() => USceneManager.GetActiveScene().name == dummySceneName);
 
-            GameManager.instance.sceneData = SceneData.instance = JsonUtility.FromJson<SceneData>(JsonUtility.ToJson(data.savedSd));
+            JsonUtility.FromJsonOverwrite(JsonUtility.ToJson(data.savedSd), SceneData.instance);
             GameManager.instance.ResetSemiPersistentItems();
 
             yield return null;
 
-            PlayerData.instance = GameManager.instance.playerData = HeroController.instance.playerData = JsonUtility.FromJson<PlayerData>(JsonUtility.ToJson(data.savedPd));
+            JsonUtility.FromJsonOverwrite(JsonUtility.ToJson(data.savedPd), PlayerData.instance);
 
             GameManager.instance.BeginSceneTransition
             (
