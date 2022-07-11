@@ -16,6 +16,9 @@ namespace DebugMod
     /// </summary>
     internal class SaveState
     {
+        // Some mods (ItemChanger) check type to detect vanilla scene loads.
+        private class DebugModSaveStateSceneLoadInfo : GameManager.SceneLoadInfo { }
+
         [Serializable]
         public class SaveStateData
         {
@@ -199,7 +202,7 @@ namespace DebugMod
 
             GameManager.instance.BeginSceneTransition
             (
-                new GameManager.SceneLoadInfo
+                new DebugModSaveStateSceneLoadInfo
                 {
                     SceneName = data.saveScene,
                     HeroLeaveDirection = GatePosition.unknown,
