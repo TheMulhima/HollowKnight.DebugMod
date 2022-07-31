@@ -293,7 +293,7 @@ namespace DebugMod
                     DebugMod.noclipPos = new Vector3(DebugMod.noclipPos.x, DebugMod.noclipPos.y - Time.deltaTime * 20f * DebugMod.settings.NoClipSpeedModifier, DebugMod.noclipPos.z);
                 }
 
-                if (HeroController.instance.transitionState.ToString() == "WAITING_TO_TRANSITION")
+                if (HeroController.instance.transitionState == GlobalEnums.HeroTransitionState.WAITING_TO_TRANSITION)
                 {
                     DebugMod.RefKnight.transform.position = DebugMod.noclipPos;
                 }
