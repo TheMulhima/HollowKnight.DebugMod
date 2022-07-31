@@ -239,14 +239,14 @@ namespace DebugMod
             
             GameManager.instance.cameraCtrl.FadeSceneIn();
 
-			HeroController.instance.TakeMP(1);
-			HeroController.instance.AddMPChargeSpa(1);
-			HeroController.instance.TakeHealth(1);
-			HeroController.instance.AddHealth(1);
+            HeroController.instance.TakeMP(1);
+            HeroController.instance.AddMPChargeSpa(1);
+            HeroController.instance.TakeHealth(1);
+            HeroController.instance.AddHealth(1);
             
             HeroController.instance.geoCounter.geoTextMesh.text = data.savedPd.geo.ToString();
-			
-			GameCameras.instance.hudCanvas.gameObject.SetActive(true);
+            
+            GameCameras.instance.hudCanvas.gameObject.SetActive(true);
             
             FieldInfo cameraGameplayScene = typeof(CameraController).GetField("isGameplayScene", BindingFlags.Instance | BindingFlags.NonPublic);
 
