@@ -165,7 +165,7 @@ namespace DebugMod
                     }
                     catch (Exception ex)
                     {
-                        DebugMod.instance.Log(ex);
+                        DebugMod.instance.LogError("Error applying save state data: " + ex);
                     }
                 }
             }
