@@ -46,8 +46,11 @@ namespace DebugMod
                 savePos = _data.savePos;
                 lockArea = _data.lockArea;
                 isKinematized = _data.isKinematized;
-                loadedScenes = new string[_data.loadedScenes.Length];
-                Array.Copy(_data.loadedScenes, loadedScenes, _data.loadedScenes.Length);
+                if (_data.loadedScenes is not null)
+                {
+                    loadedScenes = new string[_data.loadedScenes.Length];
+                    Array.Copy(_data.loadedScenes, loadedScenes, _data.loadedScenes.Length);
+                }
             }
         }
 
