@@ -156,8 +156,11 @@ namespace DebugMod
                         data.saveScene = tmpData.saveScene;
                         data.lockArea = tmpData.lockArea;
                         data.isKinematized = tmpData.isKinematized;
-                        data.loadedScenes = new string[tmpData.loadedScenes.Length];
-                        Array.Copy(tmpData.loadedScenes, data.loadedScenes, tmpData.loadedScenes.Length);
+                        if (tmpData.loadedScenes is not null)
+                        {
+                            data.loadedScenes = new string[tmpData.loadedScenes.Length];
+                            Array.Copy(tmpData.loadedScenes, data.loadedScenes, tmpData.loadedScenes.Length);
+                        }
                         DebugMod.instance.Log("Load SaveState ready: " + data.saveStateIdentifier);
                     }
                     catch (Exception ex)
