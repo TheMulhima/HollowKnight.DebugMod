@@ -13,6 +13,7 @@ using Modding;
 using Newtonsoft.Json;
 using UnityEngine;
 using Object = UnityEngine.Object;
+using SetSpriteRenderer = On.HutongGames.PlayMaker.Actions.SetSpriteRenderer;
 using USceneManager = UnityEngine.SceneManagement.SceneManager;
 
 namespace DebugMod
@@ -74,11 +75,40 @@ namespace DebugMod
             Console.AddLine($"Shade Reach Showing {displaytext}");
         }
 
+        private static bool vignetteEnabled, vignetteOverridden = false;
+
         [BindableMethod(name = "Toggle Vignette", category = "Visual")]
         public static void ToggleVignette()
         {
-            HeroController.instance.vignette.enabled = !HeroController.instance.vignette.enabled;
-            Console.AddLine("Vignette toggled " + (HeroController.instance.vignette.enabled ? "On" : "Off"));
+            bool newState = !HeroController.instance.vignette.enabled;
+            HeroController.instance.vignette.enabled = newState;
+            Console.AddLine("Vignette toggled " + (newState ? "On" : "Off"));
+            
+            if (!vignetteOverridden)
+            {
+                On.HeroController.SceneInit += CorrectVignetteState;
+                SetSpriteRenderer.OnEnter += CorrectVignetteFsm;
+                vignetteOverridden = true;
+                vignetteEnabled = newState;
+            }
+            else
+            {
+                On.HeroController.SceneInit -= CorrectVignetteState;
+                SetSpriteRenderer.OnEnter -= CorrectVignetteFsm;
+                vignetteOverridden = false;
+            }
+        }
+
+        private static void CorrectVignetteFsm(SetSpriteRenderer.orig_OnEnter orig, HutongGames.PlayMaker.Actions.SetSpriteRenderer self)
+        {
+            if (self.Fsm.Name != "Darkness Control" || self.Owner != HeroController.instance.vignette.gameObject)
+                orig(self);
+        }
+
+        private static void CorrectVignetteState(On.HeroController.orig_SceneInit orig, HeroController self)
+        {
+            orig(self);
+            self.vignette.enabled = vignetteEnabled;
         }
 
         [BindableMethod(name = "Deactivate Visual Masks", category = "Visual")]
