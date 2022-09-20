@@ -179,6 +179,7 @@ namespace DebugMod
 
             BossHandler.PopulateBossLists();
             GUIController.Instance.BuildMenus();
+            SceneWatcher.Init();
 
             KeyBindLock = false;
             TimeScaleActive = false;
