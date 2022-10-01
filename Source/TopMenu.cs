@@ -168,11 +168,11 @@ namespace DebugMod
         private static void MakeList()
         {
             //currently only 5 slots available
-            AllPossibleLocations.Add(new Vector2(546,28f));
-            AllPossibleLocations.Add(new Vector2(646,68f));
+            AllPossibleLocations.Add(new Vector2(546,68f));
             AllPossibleLocations.Add(new Vector2(646,28f));
-            AllPossibleLocations.Add(new Vector2(746,68f));
+            AllPossibleLocations.Add(new Vector2(646,68f));
             AllPossibleLocations.Add(new Vector2(746,28f));
+            AllPossibleLocations.Add(new Vector2(746,68f));
         }
 
         public static void Update()
