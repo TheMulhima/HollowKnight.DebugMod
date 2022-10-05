@@ -204,7 +204,7 @@ namespace DebugMod
             JsonUtility.FromJsonOverwrite(JsonUtility.ToJson(data.savedPd), PlayerData.instance);
 
             var sceneData = data.loadedScenes.Zip(data.loadedSceneActiveScenes,
-                (name, gameplay) => new SceneWatcher.SceneData(name, gameplay)).ToArray();
+                (name, gameplay) => new SceneWatcher.LoadedSceneInfo(name, gameplay)).ToArray();
             
             sceneData[0].LoadHook();
 
@@ -281,7 +281,7 @@ namespace DebugMod
             typeof(HeroController)
                 .GetMethod("FinishedEnteringScene", BindingFlags.NonPublic | BindingFlags.Instance)?
                 .Invoke(HeroController.instance, new object[] {true, false});
-            ReflectionHelper.CallMethod(GameManager.instance, "UpdateUIStateFromGameState", Array.Empty<object>());
+            ReflectionHelper.CallMethod(GameManager.instance, "UpdateUIStateFromGameState");
         }
         #endregion
 

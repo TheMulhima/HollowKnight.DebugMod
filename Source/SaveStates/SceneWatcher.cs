@@ -9,8 +9,8 @@ namespace DebugMod
 {
     public static class SceneWatcher
     {
-        private static List<SceneData> scenes;
-        public static ReadOnlyCollection<SceneData> LoadedScenes => scenes.AsReadOnly();
+        private static List<LoadedSceneInfo> scenes;
+        public static ReadOnlyCollection<LoadedSceneInfo> LoadedScenes => scenes.AsReadOnly();
 
         private static Dictionary<Scene, int> scenesWithManager;
 
@@ -19,7 +19,7 @@ namespace DebugMod
             if (mode == LoadSceneMode.Single)
                 scenes.Clear();
 
-            SceneData d = new SceneData(scene.name, scene.name);
+            LoadedSceneInfo d = new LoadedSceneInfo(scene.name, scene.name);
             scenes.Add(d);
 
             if (checkSceneManager && Object.FindObjectsOfType<SceneManager>().Any(m => m.gameObject.scene == scene))
@@ -43,16 +43,16 @@ namespace DebugMod
                     return;
 
                 int id = scenesWithManager[self.gameObject.scene];
-                SceneData data = scenes.FirstOrDefault(d => d.id == id);
+                LoadedSceneInfo lsi = scenes.FirstOrDefault(i => i.id == id);
                 scenesWithManager.Remove(self.gameObject.scene);
                 
-                if (data != null)
-                    data.activeSceneWhenLoaded = GameManager.instance.sceneName;
+                if (lsi != null)
+                    lsi.activeSceneWhenLoaded = GameManager.instance.sceneName;
             };
             USceneManager.sceneUnloaded += s => scenes.RemoveAt(scenes.FindIndex(d => d.name == s.name));
         }
         
-        public class SceneData
+        public class LoadedSceneInfo
         {
             private static int counter = 0;
             
@@ -60,7 +60,7 @@ namespace DebugMod
             public string activeSceneWhenLoaded { get; internal set; }
             public readonly int id;
 
-            public SceneData(string name, string activeSceneName)
+            public LoadedSceneInfo(string name, string activeSceneName)
             {
                 this.name = name;
                 this.id = counter++;

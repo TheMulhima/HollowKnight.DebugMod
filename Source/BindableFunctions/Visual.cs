@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using DebugMod.Hitbox;
+using DebugMod.MethodHelpers;
 using DebugMod.MonoBehaviours;
 using GlobalEnums;
 using HutongGames.PlayMaker;
@@ -75,46 +76,16 @@ namespace DebugMod
             Console.AddLine($"Shade Reach Showing {displaytext}");
         }
 
-        private static bool vignetteEnabled, vignetteOverridden = false;
-
         [BindableMethod(name = "Toggle Vignette", category = "Visual")]
         public static void ToggleVignette()
         {
-            bool newState = !HeroController.instance.vignette.enabled;
-            HeroController.instance.vignette.enabled = newState;
-            Console.AddLine("Vignette toggled " + (newState ? "On" : "Off"));
-            
-            if (!vignetteOverridden)
-            {
-                On.HeroController.SceneInit += CorrectVignetteState;
-                SetSpriteRenderer.OnEnter += CorrectVignetteFsm;
-                vignetteOverridden = true;
-                vignetteEnabled = newState;
-            }
-            else
-            {
-                On.HeroController.SceneInit -= CorrectVignetteState;
-                SetSpriteRenderer.OnEnter -= CorrectVignetteFsm;
-                vignetteOverridden = false;
-            }
-        }
-
-        private static void CorrectVignetteFsm(SetSpriteRenderer.orig_OnEnter orig, HutongGames.PlayMaker.Actions.SetSpriteRenderer self)
-        {
-            if (self.Fsm.Name != "Darkness Control" || self.Owner != HeroController.instance.vignette.gameObject)
-                orig(self);
-        }
-
-        private static void CorrectVignetteState(On.HeroController.orig_SceneInit orig, HeroController self)
-        {
-            orig(self);
-            self.vignette.enabled = vignetteEnabled;
+            VisualMaskHelper.ToggleVignette();
         }
 
         [BindableMethod(name = "Deactivate Visual Masks", category = "Visual")]
         public static void DoDeactivateVisualMasks()
         {
-            MethodHelpers.VisualMaskHelper.InvokedBindableFunction();
+            MethodHelpers.VisualMaskHelper.ToggleAllMasks();
         }
 
         [BindableMethod(name = "Toggle Hero Light", category = "Visual")]
