@@ -59,10 +59,16 @@ namespace DebugMod
 
                 loadedSceneActiveScenes = new string[loadedScenes.Length];
                 if (_data.loadedSceneActiveScenes is not null)
+                {
                     Array.Copy(_data.loadedSceneActiveScenes, loadedSceneActiveScenes, loadedSceneActiveScenes.Length);
+                }
                 else
+                {
                     for (int i = 0; i < loadedScenes.Length; i++)
+                    {
                         loadedSceneActiveScenes[i] = loadedScenes[i];
+                    }
+                }
             }
         }
 
@@ -203,8 +209,10 @@ namespace DebugMod
 
             JsonUtility.FromJsonOverwrite(JsonUtility.ToJson(data.savedPd), PlayerData.instance);
 
-            var sceneData = data.loadedScenes.Zip(data.loadedSceneActiveScenes,
-                (name, gameplay) => new SceneWatcher.LoadedSceneInfo(name, gameplay)).ToArray();
+            SceneWatcher.LoadedSceneInfo[] sceneData = data
+                .loadedScenes
+                .Zip(data.loadedSceneActiveScenes, (name, gameplay) => new SceneWatcher.LoadedSceneInfo(name, gameplay))
+                .ToArray();
             
             sceneData[0].LoadHook();
 
