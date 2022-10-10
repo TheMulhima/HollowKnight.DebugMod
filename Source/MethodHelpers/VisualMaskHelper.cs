@@ -23,11 +23,8 @@ namespace DebugMod.MethodHelpers
             else
             {
                 Console.AddLine("No longer disabling all visual masks; reload the room to see changes");
-                if (VignetteDisabled)
-                {
-                    Console.AddLine("Vignette was disabled; re-enabling");
-                    VignetteDisabled = false;
-                }
+                // Cannot reactivate most visual masks because it's impractical to find all that should be active;
+                // could reactivate the vignette, but do not for consistency.
             }
         }
 
