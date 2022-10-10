@@ -14,7 +14,6 @@ using Modding;
 using Newtonsoft.Json;
 using UnityEngine;
 using Object = UnityEngine.Object;
-using SetSpriteRenderer = On.HutongGames.PlayMaker.Actions.SetSpriteRenderer;
 using USceneManager = UnityEngine.SceneManagement.SceneManager;
 
 namespace DebugMod
