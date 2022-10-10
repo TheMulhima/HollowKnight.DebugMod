@@ -61,7 +61,9 @@ namespace DebugMod.MethodHelpers
             }
             
             if (VignetteDisabled)
+            {
                 DelayInvoke(3, () => DisableVignette(false));
+            }
         }
 
         public static void DelayInvoke(int delay, Action method)
@@ -69,7 +71,9 @@ namespace DebugMod.MethodHelpers
             IEnumerator coro()
             {
                 for (int i = 0; i < delay; i++)
+                {
                     yield return null;
+                }
                 method();
             }
             GameManager.instance.StartCoroutine(coro());
@@ -147,14 +151,17 @@ namespace DebugMod.MethodHelpers
         }
 
         /// <summary>
-        /// Disable the Vignette, as well as all of the renderers in its children
+        /// Disable the Vignette, as well as all renderers in its children.
         /// </summary>
-        public static void DisableVignette(bool thorough)
+        /// <param name="includeChildren">If this is false, do not disable renderer's in the vignette's children.</param>
+        public static void DisableVignette(bool includeChildren = true)
         {
             DebugMod.HC.vignette.enabled = false;
             
-            if (!thorough)
+            if (!includeChildren)
+            {
                 return;
+            }
             
             // Not suitable for toggle vignette because not easily reversible
             foreach (Renderer r in DebugMod.HC.vignette.GetComponentsInChildren<Renderer>())
