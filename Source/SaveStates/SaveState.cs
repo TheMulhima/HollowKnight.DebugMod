@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using DebugMod.Hitbox;
 using GlobalEnums;
@@ -32,10 +33,10 @@ namespace DebugMod
             public string filePath;
             public bool isKinematized;
             public string[] loadedScenes;
+            public string[] loadedSceneActiveScenes;
 
             internal SaveStateData() { }
-            
-            
+
             internal SaveStateData(SaveStateData _data)
             {
                 saveStateIdentifier = _data.saveStateIdentifier;
@@ -50,6 +51,23 @@ namespace DebugMod
                 {
                     loadedScenes = new string[_data.loadedScenes.Length];
                     Array.Copy(_data.loadedScenes, loadedScenes, _data.loadedScenes.Length);
+                }
+                else
+                {
+                    loadedScenes = new[] { saveScene };
+                }
+
+                loadedSceneActiveScenes = new string[loadedScenes.Length];
+                if (_data.loadedSceneActiveScenes is not null)
+                {
+                    Array.Copy(_data.loadedSceneActiveScenes, loadedSceneActiveScenes, loadedSceneActiveScenes.Length);
+                }
+                else
+                {
+                    for (int i = 0; i < loadedScenes.Length; i++)
+                    {
+                        loadedSceneActiveScenes[i] = loadedScenes[i];
+                    }
                 }
             }
         }
@@ -74,12 +92,9 @@ namespace DebugMod
             data.cameraLockArea = (data.cameraLockArea ?? typeof(CameraController).GetField("currentLockArea", BindingFlags.Instance | BindingFlags.NonPublic));
             data.lockArea = data.cameraLockArea.GetValue(GameManager.instance.cameraCtrl);
             data.isKinematized = HeroController.instance.GetComponent<Rigidbody2D>().isKinematic;
-            int nLoadedScenes = USceneManager.sceneCount;
-            data.loadedScenes = new string[nLoadedScenes];
-            for (int i = 0; i < nLoadedScenes; i++)
-            {
-                data.loadedScenes[i] = USceneManager.GetSceneAt(i).name;
-            }
+            var scenes = SceneWatcher.LoadedScenes;
+            data.loadedScenes = scenes.Select(s => s.name).ToArray();
+            data.loadedSceneActiveScenes = scenes.Select(s => s.activeSceneWhenLoaded).ToArray();
         }
 
         public void NewSaveStateToFile(int paramSlot)
@@ -148,19 +163,7 @@ namespace DebugMod
                     SaveStateData tmpData = JsonUtility.FromJson<SaveStateData>(File.ReadAllText(data.filePath));
                     try
                     {
-                        data.saveStateIdentifier = tmpData.saveStateIdentifier;
-                        data.cameraLockArea = tmpData.cameraLockArea;
-                        data.savedPd = tmpData.savedPd;
-                        data.savedSd = tmpData.savedSd;
-                        data.savePos = tmpData.savePos;
-                        data.saveScene = tmpData.saveScene;
-                        data.lockArea = tmpData.lockArea;
-                        data.isKinematized = tmpData.isKinematized;
-                        if (tmpData.loadedScenes is not null)
-                        {
-                            data.loadedScenes = new string[tmpData.loadedScenes.Length];
-                            Array.Copy(tmpData.loadedScenes, data.loadedScenes, tmpData.loadedScenes.Length);
-                        }
+                        data = new SaveStateData(tmpData);
                         DebugMod.instance.Log("Load SaveState ready: " + data.saveStateIdentifier);
                     }
                     catch (Exception ex)
@@ -206,6 +209,13 @@ namespace DebugMod
 
             JsonUtility.FromJsonOverwrite(JsonUtility.ToJson(data.savedPd), PlayerData.instance);
 
+            SceneWatcher.LoadedSceneInfo[] sceneData = data
+                .loadedScenes
+                .Zip(data.loadedSceneActiveScenes, (name, gameplay) => new SceneWatcher.LoadedSceneInfo(name, gameplay))
+                .ToArray();
+            
+            sceneData[0].LoadHook();
+
             GameManager.instance.BeginSceneTransition
             (
                 new DebugModSaveStateSceneLoadInfo
@@ -222,21 +232,25 @@ namespace DebugMod
             
             yield return new WaitUntil(() => USceneManager.GetActiveScene().name == data.saveScene);
             
-            if (loadDuped)
-            {
-                var GM = GameManager.instance;
-                for (int i = 1; i < data.loadedScenes.Length; i++)
-                {
-                    AsyncOperation loadop = USceneManager.LoadSceneAsync(data.loadedScenes[i], LoadSceneMode.Additive);
-                    loadop.allowSceneActivation = true;
-                    yield return loadop;
-                    GM.RefreshTilemapInfo(data.loadedScenes[i]);
-                }
-            }
+            GameManager.instance.cameraCtrl.PositionToHero(false);
 
             ReflectionHelper.SetField(GameManager.instance.cameraCtrl, "isGameplayScene", true);
             
-            GameManager.instance.cameraCtrl.PositionToHero(false);
+            if (loadDuped)
+            {
+                yield return new WaitUntil(() => GameManager.instance.IsInSceneTransition == false);
+                for (int i = 1; i < sceneData.Length; i++)
+                {
+                    On.GameManager.UpdateSceneName += sceneData[i].UpdateSceneNameOverride;
+                    AsyncOperation loadop = USceneManager.LoadSceneAsync(sceneData[i].name, LoadSceneMode.Additive);
+                    loadop.allowSceneActivation = true;
+                    yield return loadop;
+                    On.GameManager.UpdateSceneName -= sceneData[i].UpdateSceneNameOverride;
+                    GameManager.instance.RefreshTilemapInfo(sceneData[i].name);
+                    GameManager.instance.cameraCtrl.SceneInit();
+                }
+                GameManager.instance.BeginScene();
+            }
 
             if (data.lockArea != null)
             {
@@ -275,6 +289,7 @@ namespace DebugMod
             typeof(HeroController)
                 .GetMethod("FinishedEnteringScene", BindingFlags.NonPublic | BindingFlags.Instance)?
                 .Invoke(HeroController.instance, new object[] {true, false});
+            ReflectionHelper.CallMethod(GameManager.instance, "UpdateUIStateFromGameState");
         }
         #endregion
 

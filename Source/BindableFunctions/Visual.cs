@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using DebugMod.Hitbox;
+using DebugMod.MethodHelpers;
 using DebugMod.MonoBehaviours;
 using GlobalEnums;
 using HutongGames.PlayMaker;
@@ -77,14 +78,13 @@ namespace DebugMod
         [BindableMethod(name = "Toggle Vignette", category = "Visual")]
         public static void ToggleVignette()
         {
-            HeroController.instance.vignette.enabled = !HeroController.instance.vignette.enabled;
-            Console.AddLine("Vignette toggled " + (HeroController.instance.vignette.enabled ? "On" : "Off"));
+            VisualMaskHelper.ToggleVignette();
         }
 
         [BindableMethod(name = "Deactivate Visual Masks", category = "Visual")]
         public static void DoDeactivateVisualMasks()
         {
-            MethodHelpers.VisualMaskHelper.InvokedBindableFunction();
+            MethodHelpers.VisualMaskHelper.ToggleAllMasks();
         }
 
         [BindableMethod(name = "Toggle Hero Light", category = "Visual")]

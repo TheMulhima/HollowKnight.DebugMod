@@ -4,7 +4,7 @@
 
     <RootNamespace>DebugMod</RootNamespace>
     <AssemblyTitle>DebugMod</AssemblyTitle>
-    <AssemblyVersion>1.4.9.7</AssemblyVersion>
+    <AssemblyVersion>1.4.9.8</AssemblyVersion>
     <Deterministic>true</Deterministic>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <LangVersion>latest</LangVersion>
@@ -15,8 +15,8 @@
 
   <!-- Create a LocalBuildProperties.props file which defines HollowKnightFolder (references dir) 
   and OutputDirectory (where the post-build event sends the dll to) -->
-  <Import Project="LocalBuildProperties_example.props" Condition="Exists('LocalBuildProperties_example.props')"/>
-  <Import Project="LocalBuildProperties.props" Condition="Exists('LocalBuildProperties.props')"/>
+  <Import Project="LocalBuildProperties_example.props" Condition="Exists('LocalBuildProperties_example.props')" />
+  <Import Project="LocalBuildProperties.props" Condition="Exists('LocalBuildProperties.props')" />
   
  <ItemGroup>
      <None Remove="Images\**\*.png" />
