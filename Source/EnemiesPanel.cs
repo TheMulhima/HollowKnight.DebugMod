@@ -202,7 +202,7 @@ namespace DebugMod
 
                         if (hitboxes)
                         {
-                            if (dat.boxCollider2D is var boxCollider2D && boxCollider2D != null)
+                            if (dat.boxCollider2D is BoxCollider2D boxCollider2D && boxCollider2D != null)
                             {
                                 Bounds bounds2 = boxCollider2D.bounds;
 
