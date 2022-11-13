@@ -16,6 +16,11 @@ namespace DebugAddition
             public static Action<string, float, float, float, string, Func<string>> AddInfoToPanel = null;
             public static Action<string, float> CreateSimpleInfoPanel = null;
             public static Action<string, string, Func<string>> AddInfoToSimplePanel = null;
+            public static Action<bool> SetLockKeyBinds;
+            public static Action<Action> AddToOnGiveAllCharm;
+            public static Action<Action> RemoveFromOnGiveAllCharm;
+            public static Action<Action> AddToOnRemoveAllCharm;
+            public static Action<Action> RemoveFromOnRemoveAllCharm;
         }
         static DebugMod()
         {
@@ -43,5 +48,20 @@ namespace DebugAddition
 
         public static void AddInfoToSimplePanel(string Name, string label, Func<string> textFunc)
             => DebugImport.AddInfoToSimplePanel?.Invoke(Name, label, textFunc);
+
+        public static void SetLockKeyBinds(bool value)
+            => DebugModImport.SetLockKeyBinds?.Invoke(value);
+
+        public static void AddToOnGiveAllCharm(Action onGiveCharms)
+            => DebugModImport.AddToOnGiveAllCharm?.Invoke(onGiveCharms);
+        
+        public static void RemoveFromOnGiveAllCharm(Action onGiveCharms)
+           => DebugModImport.RemoveFromOnGiveAllCharm?.Invoke(onGiveCharms);
+        
+        public static void AddToOnRemoveAllCharm(Action onRemoveCharms)
+            => DebugModImport.AddToOnRemoveAllCharm?.Invoke(onGiveCharms);
+        
+        public static void RemoveFromOnRemoveAllCharm(Action onRemoveCharms)
+            => DebugModImport.RemoveFromOnRemoveAllCharm?.Invoke(onGiveCharms);
     }
 }

@@ -19,6 +19,10 @@ namespace DebugMod
 {
     public static partial class BindableFunctions
     {
+
+        public static event Action OnGiveAllCharms;
+        public static event Action OnRemoveAllCharms;
+        
         private static void UpdateCharmsEffects()
         {
             PlayMakerFSM.BroadcastEvent("CHARM INDICATOR CHECK");
@@ -45,6 +49,22 @@ namespace DebugMod
             PlayerData.instance.grimmChildLevel = 5;
             PlayerData.instance.charmCost_40 = 3;
             PlayerData.instance.charmSlots = 11;
+
+            if (OnGiveAllCharms != null)
+            {
+                foreach (Action toInvoke in OnGiveAllCharms.GetInvocationList())
+                {
+                    try
+                    {
+                        toInvoke();
+                    }
+                    catch (Exception ex)
+                    {
+                        DebugMod.instance.LogError(ex);
+                    }
+                }
+            }
+
             UpdateCharmsEffects();
 
             Console.AddLine("Added all charms to inventory");
@@ -71,6 +91,21 @@ namespace DebugMod
             PlayerData.instance.charmCost_40 = 2;
             PlayerData.instance.charmSlots = 3;
             PlayerData.instance.equippedCharms.Clear();
+            
+            if (OnRemoveAllCharms != null)
+            {
+                foreach (Action toInvoke in OnRemoveAllCharms.GetInvocationList())
+                {
+                    try
+                    {
+                        toInvoke();
+                    }
+                    catch (Exception ex)
+                    {
+                        DebugMod.instance.LogError(ex);
+                    }
+                }
+            }
             
             UpdateCharmsEffects();
             Console.AddLine("Removed all charms from inventory");
