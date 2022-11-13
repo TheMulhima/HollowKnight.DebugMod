@@ -50,18 +50,18 @@ namespace DebugAddition
             => DebugImport.AddInfoToSimplePanel?.Invoke(Name, label, textFunc);
 
         public static void SetLockKeyBinds(bool value)
-            => DebugModImport.SetLockKeyBinds?.Invoke(value);
+            => DebugImport.SetLockKeyBinds?.Invoke(value);
 
         public static void AddToOnGiveAllCharm(Action onGiveCharms)
-            => DebugModImport.AddToOnGiveAllCharm?.Invoke(onGiveCharms);
+            => DebugImport.AddToOnGiveAllCharm?.Invoke(onGiveCharms);
         
         public static void RemoveFromOnGiveAllCharm(Action onGiveCharms)
-           => DebugModImport.RemoveFromOnGiveAllCharm?.Invoke(onGiveCharms);
+           => DebugImport.RemoveFromOnGiveAllCharm?.Invoke(onGiveCharms);
         
         public static void AddToOnRemoveAllCharm(Action onRemoveCharms)
-            => DebugModImport.AddToOnRemoveAllCharm?.Invoke(onGiveCharms);
+            => DebugImport.AddToOnRemoveAllCharm?.Invoke(onRemoveCharms);
         
         public static void RemoveFromOnRemoveAllCharm(Action onRemoveCharms)
-            => DebugModImport.RemoveFromOnRemoveAllCharm?.Invoke(onGiveCharms);
+            => DebugImport.RemoveFromOnRemoveAllCharm?.Invoke(onRemoveCharms);
     }
 }
