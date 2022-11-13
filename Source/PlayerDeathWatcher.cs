@@ -2,21 +2,26 @@
 {
     public static class PlayerDeathWatcher
     {
+        static PlayerDeathWatcher()
+        {
+            Modding.ModHooks.BeforePlayerDeadHook += SetPlayerDead;
+        }
+
         public static bool playerDead;
+        
+        private static void SetPlayerDead()
+        {
+            playerDead = true;
+            LogDeathDetails();
+        }
 
         public static void Reset()
         {
             playerDead = false;
         }
 
-        public static bool PlayerDied()
-        {
-            return (!playerDead && PlayerData.instance.health <= 0 && DebugMod.GM.IsGameplayScene());
-        }
-
         public static void LogDeathDetails()
         {
-            playerDead = true;
             Console.AddLine(string.Concat(new string[]
             {
                 "Hero death detected. Game playtime: ",

@@ -309,11 +309,6 @@ namespace DebugMod
                 DebugMod.RefCamera.SnapTo(DebugMod.RefKnight.transform.position.x, DebugMod.RefKnight.transform.position.y);
             }
 
-            if (PlayerDeathWatcher.PlayerDied())
-            {
-                PlayerDeathWatcher.LogDeathDetails();
-            }
-
             if (PlayerData.instance.hazardRespawnLocation != hazardLocation)
             {
                 hazardLocation = PlayerData.instance.hazardRespawnLocation;
