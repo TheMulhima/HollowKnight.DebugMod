@@ -4,7 +4,7 @@
 
     <RootNamespace>DebugMod</RootNamespace>
     <AssemblyTitle>DebugMod</AssemblyTitle>
-    <AssemblyVersion>1.4.9.8</AssemblyVersion>
+    <AssemblyVersion>1.4.9.9</AssemblyVersion>
     <Deterministic>true</Deterministic>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <LangVersion>latest</LangVersion>
