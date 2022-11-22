@@ -11,6 +11,9 @@ namespace DebugMod
     {
         public static void AddActionToKeyBindList(Action method, string name, string category) 
             => DebugMod.AddActionToKeyBindList(method, name, category);
+        
+        public static void AddActionToKeyBindList(Action method, string name, string category, bool allowLock) 
+            => DebugMod.AddActionToKeyBindList(method, name, category, allowLock);
 
         public static void LogToConsole(string msg)
             => Console.AddLine(msg);

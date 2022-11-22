@@ -91,8 +91,8 @@ namespace DebugMod
         internal static float CurrentTimeScale = 1f;
         internal static bool PauseGameNoUIActive = false;
 
-        internal static Dictionary<string, (string category, Action method)> bindMethods = new();
-        internal static Dictionary<string, (string category, Action method)> AdditionalBindMethods = new();
+        internal static Dictionary<string, (string category, bool allowLock, Action method)> bindMethods = new();
+        internal static Dictionary<string, (string category, bool allowLock, Action method)> AdditionalBindMethods = new();
 
         internal static Dictionary<KeyCode, int> alphaKeyDict = new Dictionary<KeyCode, int>();
 
@@ -116,8 +116,9 @@ namespace DebugMod
                     BindableMethod attr = (BindableMethod)attributes[0];
                     string name = attr.name;
                     string cat = attr.category;
+                    bool allowLock = attr.allowLock;
 
-                    bindMethods.Add(name, (cat, (Action)Delegate.CreateDelegate(typeof(Action), method)));
+                    bindMethods.Add(name, (cat, allowLock, (Action)Delegate.CreateDelegate(typeof(Action), method)));
                 }
             }
             
@@ -394,9 +395,10 @@ namespace DebugMod
                 {
                     string name = attr.name;
                     string cat = attr.category;
+                    bool allowLock = attr.allowLock;
 
                     instance.Log($"Recieved Action: {name} (from {BindableFunctionsClass.Name})");
-                    AdditionalBindMethods.Add(name, (cat, (Action)Delegate.CreateDelegate(typeof(Action), method)));
+                    AdditionalBindMethods.Add(name, (cat, allowLock, (Action)Delegate.CreateDelegate(typeof(Action), method)));
                 } 
             }
         }
@@ -407,8 +409,17 @@ namespace DebugMod
         [PublicAPI]
         public static void AddActionToKeyBindList(Action method, string name, string category)
         {
-            instance.Log($"Recieved Action: {name}");
-            AdditionalBindMethods.Add(name, (category, method));
+            AddActionToKeyBindList(method, name, category, true);   
+        }
+
+        /// <summary>
+        /// Add an action to the keybinds list.
+        /// </summary>
+        [PublicAPI]
+        public static void AddActionToKeyBindList(Action method, string name, string category, bool allowLock)
+        {
+            instance.Log($"Received Action: {name}");
+            AdditionalBindMethods.Add(name, (category, allowLock, method));
         }
 
 
