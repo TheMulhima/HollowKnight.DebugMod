@@ -86,7 +86,7 @@ namespace DebugMod
         internal static Vector3 noclipPos;
         internal static bool cameraFollow;
         internal static SaveStateManager saveStateManager;
-        internal static bool KeyBindLock;
+        public static bool KeyBindLock;
         internal static bool TimeScaleActive;
         internal static float CurrentTimeScale = 1f;
         internal static bool PauseGameNoUIActive = false;
