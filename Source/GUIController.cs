@@ -23,6 +23,13 @@ namespace DebugMod
         public GameObject canvas;
         private static GUIController _instance;
 
+        private readonly Array allKeyCodes = Enum.GetValues(typeof(KeyCode));
+
+        private readonly List<KeyCode> UnbindableKeys = new List<KeyCode>()
+        {
+            KeyCode.Mouse0
+        };
+
         /// <summary>
         /// If this returns true, all DebugMod UI elements will be hidden.
         /// </summary>
@@ -142,17 +149,22 @@ namespace DebugMod
             }
 
             //Handle keybinds
-            foreach (var (bindName, bindKeyCode) in DebugMod.settings.binds)
+            //foreach (KeyValuePair<string, KeyCode> bind in DebugMod.settings.binds)
+            for(int i = 0; i < DebugMod.settings.binds.Count; i++)
             {
+                var bind = DebugMod.settings.binds.ElementAt(i);
+                string bindName = bind.Key;
+                KeyCode bindKeyCode  = bind.Value;
+                
                 if (DebugMod.bindMethods.ContainsKey(bindName) || DebugMod.AdditionalBindMethods.ContainsKey(bindName))
                 {
+                    //check for keys that are waiting to be bound
                     if (bindKeyCode == KeyCode.None)
                     {
-                        foreach (KeyCode kc in Enum.GetValues(typeof(KeyCode)))
+                        foreach (KeyCode kc in allKeyCodes)
                         {
-                            if (Input.GetKeyDown(kc) && kc != KeyCode.Mouse0)
+                            if (Input.GetKeyDown(kc) && !UnbindableKeys.Contains(kc))
                             {
-                                // Fix UX
                                 if (KeyBindPanel.keyWarning != kc)
                                 {
                                     foreach (KeyValuePair<string, KeyCode> kvp in DebugMod.settings.binds)
@@ -174,6 +186,7 @@ namespace DebugMod
                                 if (kc == KeyCode.Escape)
                                 {
                                     DebugMod.settings.binds.Remove(bindName);
+                                    i--;
                                     DebugMod.instance.LogWarn($"The key {Enum.GetName(typeof(KeyCode),kc)} has been unbound from {bindName}");
                                 }
                                 else if (kc != KeyCode.Escape)
@@ -215,6 +228,7 @@ namespace DebugMod
                     }
                 }
             }
+            
             if (SaveStateManager.inSelectSlotState && DebugMod.settings.SaveStatePanelVisible)
             {
                 foreach (KeyValuePair<KeyCode, int> entry in DebugMod.alphaKeyDict)
