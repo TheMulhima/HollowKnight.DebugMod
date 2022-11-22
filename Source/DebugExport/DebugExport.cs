@@ -35,6 +35,9 @@ namespace DebugMod
         
         public static void SetLockKeyBinds(bool value)
             => DebugMod.KeyBindLock = value;
+        
+        public static bool GetLockKeyBinds()
+            => DebugMod.KeyBindLock;
 
         public static void AddToOnGiveAllCharm(Action onGiveCharms)
             => BindableFunctions.OnGiveAllCharms += onGiveCharms;

@@ -10,6 +10,7 @@ namespace DebugAddition
         private static class DebugImport
         {
             public static Action<Action, string, string> AddActionToKeyBindList = null;
+            public static Action<Action, string, string, bool> AddActionToKeyBindList = null;
             public static Action<string> LogToConsole = null;
             public static Func<bool, string> GetStringForBool = null;
             public static Action<string, bool> CreateCustomInfoPanel = null;
@@ -17,6 +18,7 @@ namespace DebugAddition
             public static Action<string, float> CreateSimpleInfoPanel = null;
             public static Action<string, string, Func<string>> AddInfoToSimplePanel = null;
             public static Action<bool> SetLockKeyBinds;
+            public static Func<bool> GetLockKeyBinds;
             public static Action<Action> AddToOnGiveAllCharm;
             public static Action<Action> RemoveFromOnGiveAllCharm;
             public static Action<Action> AddToOnRemoveAllCharm;
@@ -30,6 +32,10 @@ namespace DebugAddition
 
         public static void AddActionToKeyBindList(Action method, string name, string category)
             => DebugImport.AddActionToKeyBindList?.Invoke(method, name, category);
+			
+			
+        public static void AddActionToKeyBindList(Action method, string name, string category, bool allowLock)
+            => DebugImport.AddActionToKeyBindList?.Invoke(method, name, category, allowLock);
 
         public static void LogToConsole(string msg)
             => DebugImport.LogToConsole?.Invoke(msg);
@@ -51,6 +57,9 @@ namespace DebugAddition
 
         public static void SetLockKeyBinds(bool value)
             => DebugImport.SetLockKeyBinds?.Invoke(value);
+			
+        public static bool GetLockKeyBinds()
+            => DebugImport.GetLockKeyBinds?.Invoke();
 
         public static void AddToOnGiveAllCharm(Action onGiveCharms)
             => DebugImport.AddToOnGiveAllCharm?.Invoke(onGiveCharms);
