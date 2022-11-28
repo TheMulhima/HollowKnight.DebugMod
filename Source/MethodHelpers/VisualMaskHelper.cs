@@ -12,6 +12,8 @@ namespace DebugMod.MethodHelpers
         private static bool MasksDisabled = false;
         private static bool VignetteDisabled = false;
 
+        private static bool ReEnableVignette = false;
+
         public static void ToggleAllMasks()
         {
             MasksDisabled = !MasksDisabled;
@@ -24,7 +26,8 @@ namespace DebugMod.MethodHelpers
             {
                 Console.AddLine("No longer disabling all visual masks; reload the room to see changes");
                 // Cannot reactivate most visual masks because it's impractical to find all that should be active;
-                // could reactivate the vignette, but do not for consistency.
+                // Need to manually reenable the vignette, but do not do so immediately for consistency
+                ReEnableVignette = true;
             }
         }
 
@@ -60,6 +63,16 @@ namespace DebugMod.MethodHelpers
             if (VignetteDisabled)
             {
                 DelayInvoke(3, () => DisableVignette(false));
+            }
+
+            if (ReEnableVignette)
+            {
+                // Should not wait before reactivating these
+                foreach (Renderer r in DebugMod.HC.vignette.GetComponentsInChildren<Renderer>())
+                {
+                    Console.AddLine(r.name);
+                    r.enabled = true;
+                }
             }
         }
 
@@ -150,7 +163,7 @@ namespace DebugMod.MethodHelpers
         /// <summary>
         /// Disable the Vignette, as well as all renderers in its children.
         /// </summary>
-        /// <param name="includeChildren">If this is false, do not disable renderer's in the vignette's children.</param>
+        /// <param name="includeChildren">If this is false, do not disable renderers in the vignette's children.</param>
         public static void DisableVignette(bool includeChildren = true)
         {
             DebugMod.HC.vignette.enabled = false;
@@ -163,6 +176,7 @@ namespace DebugMod.MethodHelpers
             // Not suitable for toggle vignette because not easily reversible
             foreach (Renderer r in DebugMod.HC.vignette.GetComponentsInChildren<Renderer>())
             {
+                Console.AddLine(r.name);
                 r.enabled = false;
             }
         }
