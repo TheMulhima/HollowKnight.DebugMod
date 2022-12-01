@@ -9,7 +9,6 @@ namespace DebugAddition
         [ModImportName("DebugMod")]
         private static class DebugImport
         {
-            public static Action<Action, string, string> AddActionToKeyBindList = null;
             public static Action<Action, string, string, bool> AddActionToKeyBindList = null;
             public static Action<string> LogToConsole = null;
             public static Func<bool, string> GetStringForBool = null;
@@ -28,9 +27,6 @@ namespace DebugAddition
             // MonoMod will automatically fill in the actions in DebugImport the first time they're used
             typeof(DebugImport).ModInterop();
         }
-
-        public static void AddActionToKeyBindList(Action method, string name, string category)
-            => DebugImport.AddActionToKeyBindList?.Invoke(method, name, category);
 			
         public static void AddActionToKeyBindList(Action method, string name, string category, bool allowLock)
             => DebugImport.AddActionToKeyBindList?.Invoke(method, name, category, allowLock);
