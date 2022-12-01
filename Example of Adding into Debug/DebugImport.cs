@@ -27,7 +27,14 @@ namespace DebugAddition
             // MonoMod will automatically fill in the actions in DebugImport the first time they're used
             typeof(DebugImport).ModInterop();
         }
-			
+
+        /// <summary>
+        /// Add an action to the keybinds list.
+        /// </summary>
+        /// <param name="method">The method to run when keybind is pressed</param>
+        /// <param name="name">The name of the keybind</param>
+        /// <param name="category">The page on the keybind list containing this bind</param>
+        /// <param name="allowLock">Whether or not this keybind can be unusable when lock keybinds is active (should usually default to true). if allow lock is set to false, lock keybinds will not affect this</param>
         public static void AddActionToKeyBindList(Action method, string name, string category, bool allowLock)
             => DebugImport.AddActionToKeyBindList?.Invoke(method, name, category, allowLock);
 
