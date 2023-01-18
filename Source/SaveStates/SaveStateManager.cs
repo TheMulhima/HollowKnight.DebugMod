@@ -104,7 +104,7 @@ namespace DebugMod
         #region loading
 
         //loadDuped is used by external mods
-        public void LoadState(SaveStateType stateType, bool loadDuped = false)
+        public void LoadState(SaveStateType stateType, bool loadDuped = false, string operationName = null)
         {
             switch (stateType)
             {
@@ -122,7 +122,7 @@ namespace DebugMod
                     if (!inSelectSlotState)
                     {
                         RefreshStateMenu();
-                        GameManager.instance.StartCoroutine(SelectSlot(false, stateType));
+                        GameManager.instance.StartCoroutine(SelectSlot(false, stateType, loadDuped, operationName));
                     }
                     break;
                 default:
@@ -133,22 +133,30 @@ namespace DebugMod
         #endregion
 
         #region helper functionality
-        private IEnumerator SelectSlot(bool save, SaveStateType stateType)
+        private IEnumerator SelectSlot(bool save, SaveStateType stateType, bool loadDuped = false, string operationName = null)
         {
-            switch (stateType)
+            if (operationName == null)
             {
-                case SaveStateType.Memory:
-                    currentStateOperation = save ? "Quickslot (save)" : "Quickslot (load)";
-                    break;
-                case SaveStateType.File:
-                    currentStateOperation = save ? "Quickslot save to file" : "Load file to quickslot";
-                    break;
-                case SaveStateType.SkipOne:
-                    currentStateOperation = save ? "Save new state to file" : "Load new state from file";
-                    break;
-                default:
-                    //DebugMod.instance.LogError("SelectSlot ended started");
-                    throw new ArgumentException("Helper func SelectSlot requires `bool` and `SaveStateType` to proceed the savestate process");
+                switch (stateType)
+                {
+                    case SaveStateType.Memory:
+                        currentStateOperation = save ? "Quickslot (save)" : "Quickslot (load)";
+                        break;
+                    case SaveStateType.File:
+                        currentStateOperation = save ? "Quickslot save to file" : "Load file to quickslot";
+                        break;
+                    case SaveStateType.SkipOne:
+                        currentStateOperation = save ? "Save new state to file" : "Load new state from file";
+                        break;
+                    default:
+                        //DebugMod.instance.LogError("SelectSlot ended started");
+                        throw new ArgumentException(
+                            "Helper func SelectSlot requires `bool` and `SaveStateType` to proceed the savestate process");
+                }
+            }
+            else
+            {
+                currentStateOperation = operationName;
             }
 
             if (DebugMod.settings.binds.TryGetValue(currentStateOperation, out KeyCode keycode))
@@ -175,7 +183,7 @@ namespace DebugMod
                     }
                     else
                     {
-                        LoadCoroHelper(stateType, false);
+                        LoadCoroHelper(stateType, loadDuped);
                     }
                 }
             }
