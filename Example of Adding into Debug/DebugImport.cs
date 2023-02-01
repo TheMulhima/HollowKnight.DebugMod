@@ -16,11 +16,11 @@ namespace DebugAddition
             public static Action<string, float, float, float, string, Func<string>> AddInfoToPanel = null;
             public static Action<string, float> CreateSimpleInfoPanel = null;
             public static Action<string, string, Func<string>> AddInfoToSimplePanel = null;
-            public static Action<bool> SetLockKeyBinds;
-            public static Action<Action> AddToOnGiveAllCharm;
-            public static Action<Action> RemoveFromOnGiveAllCharm;
-            public static Action<Action> AddToOnRemoveAllCharm;
-            public static Action<Action> RemoveFromOnRemoveAllCharm;
+            public static Action<bool> SetLockKeyBinds = null;
+            public static Action<Action> AddToOnGiveAllCharm = null;
+            public static Action<Action> RemoveFromOnGiveAllCharm = null;
+            public static Action<Action> AddToOnRemoveAllCharm = null;
+            public static Action<Action> RemoveFromOnRemoveAllCharm = null;
         }
         static DebugMod()
         {
