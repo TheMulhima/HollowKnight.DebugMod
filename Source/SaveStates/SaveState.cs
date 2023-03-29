@@ -134,13 +134,13 @@ namespace DebugMod
         //loadDuped is used by external mods
         public void LoadTempState(bool loadDuped = false)
         {
-            if (!PlayerDeathWatcher.playerDead && !HeroController.instance.cState.transitioning)
+            if (!PlayerDeathWatcher.playerDead && !HeroController.instance.cState.transitioning && (HeroController.instance.transform.parent==null))
             {
                 GameManager.instance.StartCoroutine(LoadStateCoro(loadDuped));
             }
             else
             {
-                Console.AddLine("SaveStates cannot be loaded when dead or transitioning");
+                Console.AddLine("SaveStates cannot be loaded when dead, transitioning, or on elevators");
             }
         }
 
