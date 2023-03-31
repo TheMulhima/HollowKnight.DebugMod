@@ -34,6 +34,24 @@ namespace DebugMod
             public bool isKinematized;
             public string[] loadedScenes;
             public string[] loadedSceneActiveScenes;
+            public int specialIndex;
+            public bool isColoScene;
+            public string coloWave;
+
+            //not sure where to define this, maybe separate class and file, doesnt need to be in this class
+            public readonly string[] specialScenes =
+            {
+            //Colos (0-2)
+            "Room_Colosseum_Bronze",
+            "Room_Colosseum_Silver",
+            "Room_Colosseum_Gold"
+            //Panths ()
+
+
+            };
+
+
+
 
             internal SaveStateData() { }
 
@@ -41,6 +59,12 @@ namespace DebugMod
             {
                 saveStateIdentifier = _data.saveStateIdentifier;
                 saveScene = _data.saveScene;
+
+                //Special Case Variables
+                specialIndex = _data.specialIndex;
+                isColoScene = _data.isColoScene;
+                coloWave = _data.coloWave;
+
                 cameraLockArea = _data.cameraLockArea;
                 savedPd = _data.savedPd;
                 savedSd = _data.savedSd;
@@ -69,6 +93,7 @@ namespace DebugMod
                         loadedSceneActiveScenes[i] = loadedScenes[i];
                     }
                 }
+
             }
         }
 
@@ -77,8 +102,51 @@ namespace DebugMod
 
         internal SaveState()
         {
+
             data = new SaveStateData();
         }
+
+
+        #region Colosseums
+
+
+
+
+        public string GrabSpecialSceneData(string curScene)
+        {
+            switch (curScene)
+
+            {
+                case "Room_Colosseum_Bronze": //0
+                    data.isColoScene = true;
+                    data.coloWave = GrabCurrentWave("Bronze");
+                    break;
+
+                case "Room_Colosseum_Silver": //1
+                    data.isColoScene = true;
+                    break;
+
+                case "Room_Colosseum_Gold": //2
+                    data.isColoScene = true;
+                    break;
+
+
+                default:
+                    Console.AddLine("Saved Scene has no Special Definition");
+                    break;
+
+
+            }
+            return curScene;
+        }
+
+        public string GrabCurrentWave(string coloLevel)
+        {
+            string wave = "2";
+            return wave;
+        }
+
+        #endregion
 
         #region saving
 
@@ -95,6 +163,12 @@ namespace DebugMod
             var scenes = SceneWatcher.LoadedScenes;
             data.loadedScenes = scenes.Select(s => s.name).ToArray();
             data.loadedSceneActiveScenes = scenes.Select(s => s.activeSceneWhenLoaded).ToArray();
+            //heres cc's stuff
+            data.specialIndex = Array.IndexOf(data.specialScenes, data.saveScene);
+            if (data.specialIndex > -1)
+            {
+                GrabSpecialSceneData(data.saveScene);
+            }
         }
 
         public void NewSaveStateToFile(int paramSlot)
@@ -117,8 +191,8 @@ namespace DebugMod
                 }
 
                 string saveStateFile = Path.Combine(SaveStateManager.path, $"savestate{paramSlot}.json");
-                File.WriteAllText (saveStateFile,
-                    JsonUtility.ToJson( data, prettyPrint: true )
+                File.WriteAllText(saveStateFile,
+                    JsonUtility.ToJson(data, prettyPrint: true)
                 );
             }
             catch (Exception ex)
@@ -134,7 +208,7 @@ namespace DebugMod
         //loadDuped is used by external mods
         public void LoadTempState(bool loadDuped = false)
         {
-            if (!PlayerDeathWatcher.playerDead && !HeroController.instance.cState.transitioning && (HeroController.instance.transform.parent==null))
+            if (!PlayerDeathWatcher.playerDead && !HeroController.instance.cState.transitioning && (HeroController.instance.transform.parent == null))
             {
                 GameManager.instance.StartCoroutine(LoadStateCoro(loadDuped));
             }
@@ -183,11 +257,11 @@ namespace DebugMod
         private IEnumerator LoadStateCoro(bool loadDuped)
         {
             if (data.savedPd == null || string.IsNullOrEmpty(data.saveScene)) yield break;
-            
+
             //remove dialogues if exists
             PlayMakerFSM.BroadcastEvent("BOX DOWN DREAM");
             PlayMakerFSM.BroadcastEvent("CONVO CANCEL");
-            
+
             GameManager.instance.entryGateName = "dreamGate";
             GameManager.instance.startedOnThisScene = true;
 
@@ -197,7 +271,7 @@ namespace DebugMod
             {
                 dummySceneName = "Room_Sly_Storeroom";
             }
-            
+
             USceneManager.LoadScene(dummySceneName);
 
             yield return new WaitUntil(() => USceneManager.GetActiveScene().name == dummySceneName);
@@ -213,7 +287,7 @@ namespace DebugMod
                 .loadedScenes
                 .Zip(data.loadedSceneActiveScenes, (name, gameplay) => new SceneWatcher.LoadedSceneInfo(name, gameplay))
                 .ToArray();
-            
+
             sceneData[0].LoadHook();
 
             GameManager.instance.BeginSceneTransition
@@ -229,13 +303,13 @@ namespace DebugMod
                     AlwaysUnloadUnusedAssets = true
                 }
             );
-            
+
             yield return new WaitUntil(() => USceneManager.GetActiveScene().name == data.saveScene);
-            
+
             GameManager.instance.cameraCtrl.PositionToHero(false);
 
             ReflectionHelper.SetField(GameManager.instance.cameraCtrl, "isGameplayScene", true);
-            
+
             if (loadDuped)
             {
                 yield return new WaitUntil(() => GameManager.instance.IsInSceneTransition == false);
@@ -256,18 +330,18 @@ namespace DebugMod
             {
                 GameManager.instance.cameraCtrl.LockToArea(data.lockArea as CameraLockArea);
             }
-            
+
             GameManager.instance.cameraCtrl.FadeSceneIn();
 
             HeroController.instance.TakeMP(1);
             HeroController.instance.AddMPChargeSpa(1);
             HeroController.instance.TakeHealth(1);
             HeroController.instance.AddHealth(1);
-            
+
             HeroController.instance.geoCounter.geoTextMesh.text = data.savedPd.geo.ToString();
-            
+
             GameCameras.instance.hudCanvas.gameObject.SetActive(true);
-            
+
             FieldInfo cameraGameplayScene = typeof(CameraController).GetField("isGameplayScene", BindingFlags.Instance | BindingFlags.NonPublic);
 
             cameraGameplayScene.SetValue(GameManager.instance.cameraCtrl, true);
@@ -285,10 +359,10 @@ namespace DebugMod
                 yield return new WaitUntil(() => HitboxViewer.State == 0);
                 DebugMod.settings.ShowHitBoxes = cs;
             }
-            
+
             typeof(HeroController)
                 .GetMethod("FinishedEnteringScene", BindingFlags.NonPublic | BindingFlags.Instance)?
-                .Invoke(HeroController.instance, new object[] {true, false});
+                .Invoke(HeroController.instance, new object[] { true, false });
             ReflectionHelper.CallMethod(GameManager.instance, "UpdateUIStateFromGameState");
         }
         #endregion
@@ -318,7 +392,7 @@ namespace DebugMod
         {
             return new SaveState.SaveStateData(this.data);
         }
-        
+
         #endregion
     }
 }
