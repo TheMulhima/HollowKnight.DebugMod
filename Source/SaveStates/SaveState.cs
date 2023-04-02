@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections;
+using System.Drawing.Text;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using DebugMod.Hitbox;
 using GlobalEnums;
+using HutongGames.PlayMaker;
 using Modding;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -16,7 +18,9 @@ namespace DebugMod
     /// Handles struct SaveStateData and individual SaveState operations
     /// </summary>
     internal class SaveState
+
     {
+        public bool loadingSavestate;
         // Some mods (ItemChanger) check type to detect vanilla scene loads.
         private class DebugModSaveStateSceneLoadInfo : GameManager.SceneLoadInfo { }
 
@@ -34,6 +38,7 @@ namespace DebugMod
             public bool isKinematized;
             public string[] loadedScenes;
             public string[] loadedSceneActiveScenes;
+            //Special Case Variables
             public int specialIndex;
             public bool isColoScene;
             public string coloWave;
@@ -107,15 +112,14 @@ namespace DebugMod
         }
 
 
-        #region Colosseums
+        #region colosseums
 
 
 
 
-        public string GrabSpecialSceneData(string curScene)
+        public void SaveSpecialScene(string curScene)
         {
             switch (curScene)
-
             {
                 case "Room_Colosseum_Bronze": //0
                     data.isColoScene = true;
@@ -137,14 +141,53 @@ namespace DebugMod
 
 
             }
-            return curScene;
         }
 
-        public string GrabCurrentWave(string coloLevel)
+        private void LoadSpecialScene(string curScene)
         {
-            string wave = "2";
+            string startWave;
+            if (data.isColoScene && (data.coloWave != null) && (data.coloWave != "Init") && (data.coloWave != "Idle"))
+            {
+                startWave = data.coloWave;
+            }
+            else { startWave = null; }
+            switch (curScene)
+            {
+                case "Room_Colosseum_Bronze": //0
+                    OverrideColoWaves("Bronze", startWave);
+                    break;
+
+                case "Room_Colosseum_Silver": //1
+                    break;
+
+                case "Room_Colosseum_Gold": //2
+                    break;
+
+
+                default:
+                    Console.AddLine("Saved Scene has no Special Definition");
+                    break;
+            }
+        }
+
+        private string GrabCurrentWave(string coloLevel)
+        {
+            GameObject waveController = GameObject.Find("Colosseum Manager");
+            PlayMakerFSM waveFSM = waveController.LocateMyFSM("Battle Control");
+            string wave = waveFSM.ActiveStateName;
             return wave;
         }
+
+        private void OverrideColoWaves(string coloLevel, string startWave)
+        {
+            GameObject waveController = GameObject.Find("Colosseum Manager");
+            PlayMakerFSM fsm = waveController.LocateMyFSM("Battle Control");
+            FsmState idle = fsm.FsmStates.First(t => t.Name == "Idle");
+            FsmState newWave = fsm.FsmStates.First(t => t.Name == startWave);
+            idle.Transitions.First(tr => tr.EventName == "WAVES START").ToFsmState = newWave;
+        }
+
+
 
         #endregion
 
@@ -167,7 +210,7 @@ namespace DebugMod
             data.specialIndex = Array.IndexOf(data.specialScenes, data.saveScene);
             if (data.specialIndex > -1)
             {
-                GrabSpecialSceneData(data.saveScene);
+                SaveSpecialScene(data.saveScene);
             }
         }
 
@@ -208,7 +251,7 @@ namespace DebugMod
         //loadDuped is used by external mods
         public void LoadTempState(bool loadDuped = false)
         {
-            if (!PlayerDeathWatcher.playerDead && !HeroController.instance.cState.transitioning && (HeroController.instance.transform.parent == null))
+            if (!PlayerDeathWatcher.playerDead && !HeroController.instance.cState.transitioning && (HeroController.instance.transform.parent == null) && (loadingSavestate != true))
             {
                 GameManager.instance.StartCoroutine(LoadStateCoro(loadDuped));
             }
@@ -256,6 +299,8 @@ namespace DebugMod
         //loadDuped is used by external mods
         private IEnumerator LoadStateCoro(bool loadDuped)
         {
+            //var used to prevent savesloads
+            loadingSavestate = true;
             if (data.savedPd == null || string.IsNullOrEmpty(data.saveScene)) yield break;
 
             //remove dialogues if exists
@@ -335,8 +380,23 @@ namespace DebugMod
 
             HeroController.instance.TakeMP(1);
             HeroController.instance.AddMPChargeSpa(1);
-            HeroController.instance.TakeHealth(1);
-            HeroController.instance.AddHealth(1);
+
+            //removes inf hp to preserve correct hp amount, might be more elegant way to do this
+            if (DebugMod.infiniteHP)
+            {
+                DebugMod.infiniteHP = false;
+                HeroController.instance.AddHealth(1);
+                HeroController.instance.TakeHealth(1);
+                DebugMod.infiniteHP = true;
+            }
+            else
+            {
+                HeroController.instance.AddHealth(1);
+                HeroController.instance.TakeHealth(1);
+            }
+
+           //update nail damage on save load
+            PlayMakerFSM.BroadcastEvent("UPDATE NAIL DAMAGE");
 
             HeroController.instance.geoCounter.geoTextMesh.text = data.savedPd.geo.ToString();
 
@@ -360,10 +420,17 @@ namespace DebugMod
                 DebugMod.settings.ShowHitBoxes = cs;
             }
 
+            if(data.specialIndex > -1)
+            {
+                LoadSpecialScene(data.saveScene);
+            }
+
             typeof(HeroController)
                 .GetMethod("FinishedEnteringScene", BindingFlags.NonPublic | BindingFlags.Instance)?
                 .Invoke(HeroController.instance, new object[] { true, false });
             ReflectionHelper.CallMethod(GameManager.instance, "UpdateUIStateFromGameState");
+            //var used to prevent saves/loads
+            loadingSavestate = false;
         }
         #endregion
 
