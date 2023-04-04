@@ -4,9 +4,11 @@ using System.Drawing.Text;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Security.Claims;
 using DebugMod.Hitbox;
 using GlobalEnums;
 using HutongGames.PlayMaker;
+using HutongGames.PlayMaker.Actions;
 using Modding;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -17,9 +19,9 @@ namespace DebugMod
     /// <summary>
     /// Handles struct SaveStateData and individual SaveState operations
     /// </summary>
-    internal class SaveState
+     internal class SaveState
 
-    {
+     {
         public bool loadingSavestate;
         // Some mods (ItemChanger) check type to detect vanilla scene loads.
         private class DebugModSaveStateSceneLoadInfo : GameManager.SceneLoadInfo { }
@@ -41,19 +43,9 @@ namespace DebugMod
             //Special Case Variables
             public int specialIndex;
             public bool isColoScene;
-            public string coloWave;
+            public string roomSpecificData;
 
-            //not sure where to define this, maybe separate class and file, doesnt need to be in this class
-            public readonly string[] specialScenes =
-            {
-            //Colos (0-2)
-            "Room_Colosseum_Bronze",
-            "Room_Colosseum_Silver",
-            "Room_Colosseum_Gold"
-            //Panths ()
-
-
-            };
+ 
 
 
 
@@ -68,7 +60,7 @@ namespace DebugMod
                 //Special Case Variables
                 specialIndex = _data.specialIndex;
                 isColoScene = _data.isColoScene;
-                coloWave = _data.coloWave;
+                roomSpecificData = _data.roomSpecificData;
 
                 cameraLockArea = _data.cameraLockArea;
                 savedPd = _data.savedPd;
@@ -112,84 +104,7 @@ namespace DebugMod
         }
 
 
-        #region colosseums
 
-
-
-
-        public void SaveSpecialScene(string curScene)
-        {
-            switch (curScene)
-            {
-                case "Room_Colosseum_Bronze": //0
-                    data.isColoScene = true;
-                    data.coloWave = GrabCurrentWave("Bronze");
-                    break;
-
-                case "Room_Colosseum_Silver": //1
-                    data.isColoScene = true;
-                    break;
-
-                case "Room_Colosseum_Gold": //2
-                    data.isColoScene = true;
-                    break;
-
-
-                default:
-                    Console.AddLine("Saved Scene has no Special Definition");
-                    break;
-
-
-            }
-        }
-
-        private void LoadSpecialScene(string curScene)
-        {
-            string startWave;
-            if (data.isColoScene && (data.coloWave != null) && (data.coloWave != "Init") && (data.coloWave != "Idle"))
-            {
-                startWave = data.coloWave;
-            }
-            else { startWave = null; }
-            switch (curScene)
-            {
-                case "Room_Colosseum_Bronze": //0
-                    OverrideColoWaves("Bronze", startWave);
-                    break;
-
-                case "Room_Colosseum_Silver": //1
-                    break;
-
-                case "Room_Colosseum_Gold": //2
-                    break;
-
-
-                default:
-                    Console.AddLine("Saved Scene has no Special Definition");
-                    break;
-            }
-        }
-
-        private string GrabCurrentWave(string coloLevel)
-        {
-            GameObject waveController = GameObject.Find("Colosseum Manager");
-            PlayMakerFSM waveFSM = waveController.LocateMyFSM("Battle Control");
-            string wave = waveFSM.ActiveStateName;
-            return wave;
-        }
-
-        private void OverrideColoWaves(string coloLevel, string startWave)
-        {
-            GameObject waveController = GameObject.Find("Colosseum Manager");
-            PlayMakerFSM fsm = waveController.LocateMyFSM("Battle Control");
-            FsmState idle = fsm.FsmStates.First(t => t.Name == "Idle");
-            FsmState newWave = fsm.FsmStates.First(t => t.Name == startWave);
-            idle.Transitions.First(tr => tr.EventName == "WAVES START").ToFsmState = newWave;
-        }
-
-
-
-        #endregion
 
         #region saving
 
@@ -207,10 +122,10 @@ namespace DebugMod
             data.loadedScenes = scenes.Select(s => s.name).ToArray();
             data.loadedSceneActiveScenes = scenes.Select(s => s.activeSceneWhenLoaded).ToArray();
             //heres cc's stuff
-            data.specialIndex = Array.IndexOf(data.specialScenes, data.saveScene);
+            data.specialIndex = Array.IndexOf(SpecialSavestate.specialScenes, data.saveScene);
             if (data.specialIndex > -1)
             {
-                SaveSpecialScene(data.saveScene);
+                SpecialSavestate.SaveSpecialScene(data.saveScene, data);
             }
         }
 
@@ -299,8 +214,19 @@ namespace DebugMod
         //loadDuped is used by external mods
         private IEnumerator LoadStateCoro(bool loadDuped)
         {
-            //var used to prevent savesloads
+            //var used to prevent saves/loads, double saves softlock in menderbug and double loads result a black screen requiring another load
             loadingSavestate = true;
+            System.Diagnostics.Stopwatch loadingStateTimer = new System.Diagnostics.Stopwatch();
+            loadingStateTimer.Start();
+
+            //code taken from benchwarp, ask homothety i dont know whats important here
+            //HeroController.instance.TakeMPQuick(PlayerData.instance.MPCharge); // actually broadcasts the event
+            //HeroController.instance.SetMPCharge(0);
+            //PlayerData.instance.MPReserve = 0;
+            //PlayMakerFSM.BroadcastEvent("MP DRAIN"); // This is the main fsm path for removing soul from the orb
+            //PlayMakerFSM.BroadcastEvent("MP LOSE"); // This is an alternate path (used for bindings and other things) that actually plays an animation?
+            //PlayMakerFSM.BroadcastEvent("MP RESERVE DOWN");
+
             if (data.savedPd == null || string.IsNullOrEmpty(data.saveScene)) yield break;
 
             //remove dialogues if exists
@@ -395,8 +321,15 @@ namespace DebugMod
                 HeroController.instance.TakeHealth(1);
             }
 
-           //update nail damage on save load
-            PlayMakerFSM.BroadcastEvent("UPDATE NAIL DAMAGE");
+
+            GameManager.instance.SetPlayerDataBool(nameof(PlayerData.atBench), false);
+
+            HeroController.instance.CharmUpdate();                            
+
+            //PlayMakerFSM.BroadcastEvent("CHARM INDICATOR CHECK");    //update twister       
+            //PlayMakerFSM.BroadcastEvent("CHARM EQUIP CHECK");        //might be redundant         
+            //PlayMakerFSM.BroadcastEvent("UPDATE NAIL DAMAGE");       //update nail
+            //PlayMakerFSM.BroadcastEvent("UPDATE BLUE HEALTH");       //update lifeblood
 
             HeroController.instance.geoCounter.geoTextMesh.text = data.savedPd.geo.ToString();
 
@@ -412,6 +345,10 @@ namespace DebugMod
             HeroController.instance.transitionState = HeroTransitionState.WAITING_TO_TRANSITION;
             HeroController.instance.GetComponent<Rigidbody2D>().isKinematic = data.isKinematized;
 
+            loadingStateTimer.Stop();
+            //var used to prevent saves/loads
+            loadingSavestate = false;
+
             if (loadDuped && DebugMod.settings.ShowHitBoxes > 0)
             {
                 int cs = DebugMod.settings.ShowHitBoxes;
@@ -422,15 +359,17 @@ namespace DebugMod
 
             if(data.specialIndex > -1)
             {
-                LoadSpecialScene(data.saveScene);
+                SpecialSavestate.LoadSpecialScene(data.saveScene, data);
             }
+
 
             typeof(HeroController)
                 .GetMethod("FinishedEnteringScene", BindingFlags.NonPublic | BindingFlags.Instance)?
                 .Invoke(HeroController.instance, new object[] { true, false });
             ReflectionHelper.CallMethod(GameManager.instance, "UpdateUIStateFromGameState");
-            //var used to prevent saves/loads
-            loadingSavestate = false;
+            TimeSpan loadingStateTime = loadingStateTimer.Elapsed;
+            Console.AddLine("Loaded savestate in " + loadingStateTime.ToString(@"ss\.fff") + "s");
+
         }
         #endregion
 
