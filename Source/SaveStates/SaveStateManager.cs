@@ -83,7 +83,7 @@ namespace DebugMod
         #region saving
         public void SaveState(SaveStateType stateType)
         {
-            if (quickState.loadingSavestate!=true)
+            if (!quickState.loadingSavestate)
             {
                 switch (stateType)
                 {
@@ -97,7 +97,6 @@ namespace DebugMod
                             GameManager.instance.StartCoroutine(SelectSlot(true, stateType));
                         }
                         break;
-                    default: break;
                 }
             }
             else

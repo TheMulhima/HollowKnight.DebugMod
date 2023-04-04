@@ -138,8 +138,10 @@ namespace DebugMod
         //loadDuped is used by external mods
         public void LoadTempState(bool loadDuped = false)
         {
-            if (!PlayerDeathWatcher.playerDead && !HeroController.instance.cState.transitioning && (HeroController.instance.transform.parent==null) && (loadingSavestate != true))
-
+            if (PlayerDeathWatcher.playerDead && 
+                !HeroController.instance.cState.transitioning && 
+                HeroController.instance.transform.parent == null && // checks if in elevator/conveyor
+                !loadingSavestate)
             {
                 GameManager.instance.StartCoroutine(LoadStateCoro(loadDuped));
             }
@@ -187,17 +189,21 @@ namespace DebugMod
         //loadDuped is used by external mods
         private IEnumerator LoadStateCoro(bool loadDuped)
         {
-            //var used to prevent saves/loads, double saves softlock in menderbug and double loads result a black screen requiring another load
+            //var used to prevent saves/loads, double saves softlock in menderbug and double loads
+            //prevents a black screen requiring another load
             loadingSavestate = true;
             System.Diagnostics.Stopwatch loadingStateTimer = new System.Diagnostics.Stopwatch();
             loadingStateTimer.Start();
 
             //code taken from Homothety Benchwarp
-            HeroController.instance.TakeMPQuick(PlayerData.instance.MPCharge); // actually broadcasts the event
+            //actually broadcasts the event
+            HeroController.instance.TakeMPQuick(PlayerData.instance.MPCharge);
             HeroController.instance.SetMPCharge(0);
             PlayerData.instance.MPReserve = 0;
-            PlayMakerFSM.BroadcastEvent("MP DRAIN"); // This is the main fsm path for removing soul from the orb
-            PlayMakerFSM.BroadcastEvent("MP LOSE"); // This is an alternate path (used for bindings and other things) that actually plays an animation?
+            // This is the main fsm path for removing soul from the orb
+            PlayMakerFSM.BroadcastEvent("MP DRAIN");
+            // This is an alternate path (used for bindings and other things) that actually plays an animation?
+            PlayMakerFSM.BroadcastEvent("MP LOSE");
             PlayMakerFSM.BroadcastEvent("MP RESERVE DOWN");
 
             if (data.savedPd == null || string.IsNullOrEmpty(data.saveScene)) yield break;
@@ -210,11 +216,10 @@ namespace DebugMod
             GameManager.instance.startedOnThisScene = true;
 
             //Menderbug room loads faster (Thanks Magnetic Pizza)
-            string dummySceneName = "Room_Mender_House";
-            if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "Room_Mender_House")
-            {
-                dummySceneName = "Room_Sly_Storeroom";
-            }
+            string dummySceneName = 
+                UnityEngine.SceneManagement.SceneManager.GetActiveScene().name != "Room_Mender_House" ?
+                    "Room_Mender_House": 
+                    "Room_Sly_Storeroom";
 
             USceneManager.LoadScene(dummySceneName);
 
@@ -280,19 +285,12 @@ namespace DebugMod
             HeroController.instance.TakeMP(1);
             HeroController.instance.AddMPChargeSpa(1);
 
-            //removes inf hp to preserve correct hp amount, might be more elegant way to do this
-            if (DebugMod.infiniteHP)
-            {
-                DebugMod.infiniteHP = false;
-                HeroController.instance.AddHealth(1);
-                HeroController.instance.TakeHealth(1);
-                DebugMod.infiniteHP = true;
-            }
-            else
-            {
-                HeroController.instance.AddHealth(1);
-                HeroController.instance.TakeHealth(1);
-            }
+            //preserve correct hp amount
+            bool isInfiniteHp = DebugMod.infiniteHP;
+            DebugMod.infiniteHP = false;
+            HeroController.instance.AddHealth(1);
+            HeroController.instance.TakeHealth(1);
+            DebugMod.infiniteHP = isInfiniteHp;
 
             GameManager.instance.SetPlayerDataBool(nameof(PlayerData.atBench), false);
 
@@ -328,9 +326,7 @@ namespace DebugMod
                 DebugMod.settings.ShowHitBoxes = cs;
             }
 
-            typeof(HeroController)
-                .GetMethod("FinishedEnteringScene", BindingFlags.NonPublic | BindingFlags.Instance)?
-                .Invoke(HeroController.instance, new object[] { true, false });
+            ReflectionHelper.CallMethod(HeroController.instance, "FinishedEnteringScene", true, false);
             ReflectionHelper.CallMethod(GameManager.instance, "UpdateUIStateFromGameState");
             TimeSpan loadingStateTime = loadingStateTimer.Elapsed;
             Console.AddLine("Loaded savestate in " + loadingStateTime.ToString(@"ss\.fff") + "s");
