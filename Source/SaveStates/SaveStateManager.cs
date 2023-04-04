@@ -83,19 +83,26 @@ namespace DebugMod
         #region saving
         public void SaveState(SaveStateType stateType)
         {
-            switch (stateType)
+            if (quickState.loadingSavestate!=true)
             {
-                case SaveStateType.Memory:
-                    quickState.SaveTempState();
-                    break;
-                case SaveStateType.File or SaveStateType.SkipOne:
-                    if (!inSelectSlotState)
-                    {
-                        RefreshStateMenu();
-                        GameManager.instance.StartCoroutine(SelectSlot(true, stateType));
-                    }
-                    break;
-                default: break;
+                switch (stateType)
+                {
+                    case SaveStateType.Memory:
+                        quickState.SaveTempState();
+                        break;
+                    case SaveStateType.File or SaveStateType.SkipOne:
+                        if (!inSelectSlotState)
+                        {
+                            RefreshStateMenu();
+                            GameManager.instance.StartCoroutine(SelectSlot(true, stateType));
+                        }
+                        break;
+                    default: break;
+                }
+            }
+            else
+            {
+                Console.AddLine("Cannot save new states while loading");
             }
         }
 

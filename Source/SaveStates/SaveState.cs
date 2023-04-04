@@ -20,6 +20,9 @@ namespace DebugMod
         // Some mods (ItemChanger) check type to detect vanilla scene loads.
         private class DebugModSaveStateSceneLoadInfo : GameManager.SceneLoadInfo { }
 
+        //used to stop double loads/saves
+        public bool loadingSavestate;
+
         [Serializable]
         public class SaveStateData
         {
@@ -34,6 +37,7 @@ namespace DebugMod
             public bool isKinematized;
             public string[] loadedScenes;
             public string[] loadedSceneActiveScenes;
+
 
             internal SaveStateData() { }
 
@@ -134,7 +138,7 @@ namespace DebugMod
         //loadDuped is used by external mods
         public void LoadTempState(bool loadDuped = false)
         {
-            if (!PlayerDeathWatcher.playerDead && !HeroController.instance.cState.transitioning && (HeroController.instance.transform.parent==null))
+            if (!PlayerDeathWatcher.playerDead && !HeroController.instance.cState.transitioning && (HeroController.instance.transform.parent==null) && (loadingSavestate != true))
             {
                 GameManager.instance.StartCoroutine(LoadStateCoro(loadDuped));
             }
@@ -182,12 +186,25 @@ namespace DebugMod
         //loadDuped is used by external mods
         private IEnumerator LoadStateCoro(bool loadDuped)
         {
+            //var used to prevent saves/loads, double saves softlock in menderbug and double loads result a black screen requiring another load
+            loadingSavestate = true;
+            System.Diagnostics.Stopwatch loadingStateTimer = new System.Diagnostics.Stopwatch();
+            loadingStateTimer.Start();
+
+            //code taken from Homothety Benchwarp
+            HeroController.instance.TakeMPQuick(PlayerData.instance.MPCharge); // actually broadcasts the event
+            HeroController.instance.SetMPCharge(0);
+            PlayerData.instance.MPReserve = 0;
+            PlayMakerFSM.BroadcastEvent("MP DRAIN"); // This is the main fsm path for removing soul from the orb
+            PlayMakerFSM.BroadcastEvent("MP LOSE"); // This is an alternate path (used for bindings and other things) that actually plays an animation?
+            PlayMakerFSM.BroadcastEvent("MP RESERVE DOWN");
+
             if (data.savedPd == null || string.IsNullOrEmpty(data.saveScene)) yield break;
-            
+
             //remove dialogues if exists
             PlayMakerFSM.BroadcastEvent("BOX DOWN DREAM");
             PlayMakerFSM.BroadcastEvent("CONVO CANCEL");
-            
+
             GameManager.instance.entryGateName = "dreamGate";
             GameManager.instance.startedOnThisScene = true;
 
@@ -197,7 +214,7 @@ namespace DebugMod
             {
                 dummySceneName = "Room_Sly_Storeroom";
             }
-            
+
             USceneManager.LoadScene(dummySceneName);
 
             yield return new WaitUntil(() => USceneManager.GetActiveScene().name == dummySceneName);
@@ -213,7 +230,7 @@ namespace DebugMod
                 .loadedScenes
                 .Zip(data.loadedSceneActiveScenes, (name, gameplay) => new SceneWatcher.LoadedSceneInfo(name, gameplay))
                 .ToArray();
-            
+
             sceneData[0].LoadHook();
 
             GameManager.instance.BeginSceneTransition
@@ -229,13 +246,13 @@ namespace DebugMod
                     AlwaysUnloadUnusedAssets = true
                 }
             );
-            
+
             yield return new WaitUntil(() => USceneManager.GetActiveScene().name == data.saveScene);
-            
+
             GameManager.instance.cameraCtrl.PositionToHero(false);
 
             ReflectionHelper.SetField(GameManager.instance.cameraCtrl, "isGameplayScene", true);
-            
+
             if (loadDuped)
             {
                 yield return new WaitUntil(() => GameManager.instance.IsInSceneTransition == false);
@@ -256,18 +273,38 @@ namespace DebugMod
             {
                 GameManager.instance.cameraCtrl.LockToArea(data.lockArea as CameraLockArea);
             }
-            
+
             GameManager.instance.cameraCtrl.FadeSceneIn();
 
             HeroController.instance.TakeMP(1);
             HeroController.instance.AddMPChargeSpa(1);
-            HeroController.instance.TakeHealth(1);
-            HeroController.instance.AddHealth(1);
-            
+
+            //removes inf hp to preserve correct hp amount, might be more elegant way to do this
+            if (DebugMod.infiniteHP)
+            {
+                DebugMod.infiniteHP = false;
+                HeroController.instance.AddHealth(1);
+                HeroController.instance.TakeHealth(1);
+                DebugMod.infiniteHP = true;
+            }
+            else
+            {
+                HeroController.instance.AddHealth(1);
+                HeroController.instance.TakeHealth(1);
+            }
+
+            GameManager.instance.SetPlayerDataBool(nameof(PlayerData.atBench), false);
+
+            HeroController.instance.CharmUpdate();
+
+            PlayMakerFSM.BroadcastEvent("CHARM INDICATOR CHECK");    //update twister             
+            PlayMakerFSM.BroadcastEvent("UPDATE NAIL DAMAGE");       //update nail
+            PlayMakerFSM.BroadcastEvent("UPDATE BLUE HEALTH");       //update lifeblood
+
             HeroController.instance.geoCounter.geoTextMesh.text = data.savedPd.geo.ToString();
-            
+
             GameCameras.instance.hudCanvas.gameObject.SetActive(true);
-            
+
             FieldInfo cameraGameplayScene = typeof(CameraController).GetField("isGameplayScene", BindingFlags.Instance | BindingFlags.NonPublic);
 
             cameraGameplayScene.SetValue(GameManager.instance.cameraCtrl, true);
@@ -278,6 +315,10 @@ namespace DebugMod
             HeroController.instance.transitionState = HeroTransitionState.WAITING_TO_TRANSITION;
             HeroController.instance.GetComponent<Rigidbody2D>().isKinematic = data.isKinematized;
 
+            loadingStateTimer.Stop();
+            //var used to prevent saves/loads
+            loadingSavestate = false;
+
             if (loadDuped && DebugMod.settings.ShowHitBoxes > 0)
             {
                 int cs = DebugMod.settings.ShowHitBoxes;
@@ -285,11 +326,13 @@ namespace DebugMod
                 yield return new WaitUntil(() => HitboxViewer.State == 0);
                 DebugMod.settings.ShowHitBoxes = cs;
             }
-            
+
             typeof(HeroController)
                 .GetMethod("FinishedEnteringScene", BindingFlags.NonPublic | BindingFlags.Instance)?
-                .Invoke(HeroController.instance, new object[] {true, false});
+                .Invoke(HeroController.instance, new object[] { true, false });
             ReflectionHelper.CallMethod(GameManager.instance, "UpdateUIStateFromGameState");
+            TimeSpan loadingStateTime = loadingStateTimer.Elapsed;
+            Console.AddLine("Loaded savestate in " + loadingStateTime.ToString(@"ss\.fff") + "s");
         }
         #endregion
 
