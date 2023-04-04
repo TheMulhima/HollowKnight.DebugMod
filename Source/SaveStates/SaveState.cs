@@ -45,11 +45,6 @@ namespace DebugMod
             public bool isColoScene;
             public string roomSpecificData;
 
- 
-
-
-
-
             internal SaveStateData() { }
 
             internal SaveStateData(SaveStateData _data)
@@ -102,9 +97,6 @@ namespace DebugMod
 
             data = new SaveStateData();
         }
-
-
-
 
         #region saving
 
@@ -220,12 +212,12 @@ namespace DebugMod
             loadingStateTimer.Start();
 
             //code taken from benchwarp, ask homothety i dont know whats important here
-            //HeroController.instance.TakeMPQuick(PlayerData.instance.MPCharge); // actually broadcasts the event
-            //HeroController.instance.SetMPCharge(0);
-            //PlayerData.instance.MPReserve = 0;
-            //PlayMakerFSM.BroadcastEvent("MP DRAIN"); // This is the main fsm path for removing soul from the orb
-            //PlayMakerFSM.BroadcastEvent("MP LOSE"); // This is an alternate path (used for bindings and other things) that actually plays an animation?
-            //PlayMakerFSM.BroadcastEvent("MP RESERVE DOWN");
+            HeroController.instance.TakeMPQuick(PlayerData.instance.MPCharge); // actually broadcasts the event
+            HeroController.instance.SetMPCharge(0);
+            PlayerData.instance.MPReserve = 0;
+            PlayMakerFSM.BroadcastEvent("MP DRAIN"); // This is the main fsm path for removing soul from the orb
+            PlayMakerFSM.BroadcastEvent("MP LOSE"); // This is an alternate path (used for bindings and other things) that actually plays an animation?
+            PlayMakerFSM.BroadcastEvent("MP RESERVE DOWN");
 
             if (data.savedPd == null || string.IsNullOrEmpty(data.saveScene)) yield break;
 
@@ -321,15 +313,13 @@ namespace DebugMod
                 HeroController.instance.TakeHealth(1);
             }
 
-
             GameManager.instance.SetPlayerDataBool(nameof(PlayerData.atBench), false);
 
             HeroController.instance.CharmUpdate();                            
 
-            //PlayMakerFSM.BroadcastEvent("CHARM INDICATOR CHECK");    //update twister       
-            //PlayMakerFSM.BroadcastEvent("CHARM EQUIP CHECK");        //might be redundant         
-            //PlayMakerFSM.BroadcastEvent("UPDATE NAIL DAMAGE");       //update nail
-            //PlayMakerFSM.BroadcastEvent("UPDATE BLUE HEALTH");       //update lifeblood
+            PlayMakerFSM.BroadcastEvent("CHARM INDICATOR CHECK");    //update twister             
+            PlayMakerFSM.BroadcastEvent("UPDATE NAIL DAMAGE");       //update nail
+            PlayMakerFSM.BroadcastEvent("UPDATE BLUE HEALTH");       //update lifeblood
 
             HeroController.instance.geoCounter.geoTextMesh.text = data.savedPd.geo.ToString();
 
@@ -362,14 +352,12 @@ namespace DebugMod
                 SpecialSavestate.LoadSpecialScene(data.saveScene, data);
             }
 
-
             typeof(HeroController)
                 .GetMethod("FinishedEnteringScene", BindingFlags.NonPublic | BindingFlags.Instance)?
                 .Invoke(HeroController.instance, new object[] { true, false });
             ReflectionHelper.CallMethod(GameManager.instance, "UpdateUIStateFromGameState");
             TimeSpan loadingStateTime = loadingStateTimer.Elapsed;
             Console.AddLine("Loaded savestate in " + loadingStateTime.ToString(@"ss\.fff") + "s");
-
         }
         #endregion
 
