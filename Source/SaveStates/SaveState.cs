@@ -21,7 +21,7 @@ namespace DebugMod
         private class DebugModSaveStateSceneLoadInfo : GameManager.SceneLoadInfo { }
 
         //used to stop double loads/saves
-        public bool loadingSavestate;
+        public static bool loadingSavestate {get; private set;}
 
         [Serializable]
         public class SaveStateData

@@ -81,9 +81,9 @@ namespace DebugMod
         }
 
         #region saving
-        public void SaveState(SaveStateType stateType)
+        public void SaveSaveState(SaveStateType stateType)
         {
-            if (!quickState.loadingSavestate)
+            if (!SaveState.loadingSavestate)
             {
                 switch (stateType)
                 {
@@ -110,7 +110,7 @@ namespace DebugMod
         #region loading
 
         //loadDuped is used by external mods
-        public void LoadState(SaveStateType stateType, bool loadDuped = false, string operationName = null)
+        public void LoadSaveState(SaveStateType stateType, bool loadDuped = false, string operationName = null)
         {
             switch (stateType)
             {
