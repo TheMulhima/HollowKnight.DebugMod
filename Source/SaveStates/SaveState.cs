@@ -139,6 +139,7 @@ namespace DebugMod
         public void LoadTempState(bool loadDuped = false)
         {
             if (!PlayerDeathWatcher.playerDead && !HeroController.instance.cState.transitioning && (HeroController.instance.transform.parent==null) && (loadingSavestate != true))
+
             {
                 GameManager.instance.StartCoroutine(LoadStateCoro(loadDuped));
             }
