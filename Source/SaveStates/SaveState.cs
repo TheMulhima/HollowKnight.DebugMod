@@ -29,6 +29,7 @@ namespace DebugMod
         {
             public string saveStateIdentifier;
             public string saveScene;
+            public int useRoomSpecific = 0;
             public PlayerData savedPd;
             public object lockArea;
             public SceneData savedSd;
@@ -52,6 +53,8 @@ namespace DebugMod
                 savePos = _data.savePos;
                 lockArea = _data.lockArea;
                 isKinematized = _data.isKinematized;
+                useRoomSpecific = _data.useRoomSpecific;
+
                 if (_data.loadedScenes is not null)
                 {
                     loadedScenes = new string[_data.loadedScenes.Length];
@@ -97,9 +100,11 @@ namespace DebugMod
             data.cameraLockArea = (data.cameraLockArea ?? typeof(CameraController).GetField("currentLockArea", BindingFlags.Instance | BindingFlags.NonPublic));
             data.lockArea = data.cameraLockArea.GetValue(GameManager.instance.cameraCtrl);
             data.isKinematized = HeroController.instance.GetComponent<Rigidbody2D>().isKinematic;
+            data.useRoomSpecific = 0;
             var scenes = SceneWatcher.LoadedScenes;
             data.loadedScenes = scenes.Select(s => s.name).ToArray();
             data.loadedSceneActiveScenes = scenes.Select(s => s.activeSceneWhenLoaded).ToArray();
+
         }
 
         public void NewSaveStateToFile(int paramSlot)
@@ -333,6 +338,12 @@ namespace DebugMod
             typeof(GameManager)
                 .GetMethod("UpdateUIStateFromGameState", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)?
                 .Invoke(GameManager.instance, new object[] {});
+            
+            if (data.useRoomSpecific != 0)
+            {
+                RoomSpecific.DoRoomSpecific(data.saveScene.ToLower() /* they changed capitalization across versions */, data.useRoomSpecific);
+            }
+            
             TimeSpan loadingStateTime = loadingStateTimer.Elapsed;
             Console.AddLine("Loaded savestate in " + loadingStateTime + "s");
         }
