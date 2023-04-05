@@ -116,7 +116,8 @@ namespace DebugMod
             GameCameras.instance.hudCanvas.gameObject.SetActive(false);
             GameCameras.instance.hudCanvas.gameObject.SetActive(true);
         }
-
+        
+        // speedrun QOL doesn't exist in 1.4
         [BindableMethod(name = "Toggle Bench Storage", category = "Cheats")]
         public static void ToggleBenchStorage()
         {

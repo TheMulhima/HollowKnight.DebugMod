@@ -104,7 +104,7 @@ namespace DebugMod
             }
             HeroController.instance.AddHealth(1);
 
-            Console.AddLine("Added Heaalth");
+            Console.AddLine("Added Health");
         }
         [BindableMethod(name = "Take Health", category = "Mask & Vessels")]
         public static void TakeHealth()
@@ -124,16 +124,16 @@ namespace DebugMod
         {
             HeroController.instance.AddMPCharge(33);
 
-            Console.AddLine("Added Heaalth");
+            Console.AddLine("Added Soul");
         }
         [BindableMethod(name = "Take Soul", category = "Mask & Vessels")]
         public static void TakeSoul()
         {
             HeroController.instance.TakeMP(33);
 
-            Console.AddLine("Attempting to take health");
+            Console.AddLine("Attempting to take soul");
         }
-        [BindableMethod(name = "Add Lifeblodd", category = "Mask & Vessels")]
+        [BindableMethod(name = "Add Lifeblood", category = "Mask & Vessels")]
         public static void Lifeblood()
         {
             EventRegister.SendEvent("ADD BLUE HEALTH");

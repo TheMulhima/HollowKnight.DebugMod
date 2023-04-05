@@ -2,13 +2,14 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using Modding;
-
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using UnityEngine;
 
 namespace DebugMod
 {
     //Empty class required for DebugMod class definition
-    public class SaveSettings:ModSettings {}
+    public class SaveSettings : ModSettings {}
 
     [Serializable]
     public class KeyBinds
@@ -16,10 +17,11 @@ namespace DebugMod
         public Dictionary<string, string> binds_to_file = new Dictionary<string, string>();
     }
     
-    public class GlobalSettings:ModSettings
+    public class GlobalSettings : ModSettings
     {
         //Save members
-        public Dictionary<string, int> binds = new Dictionary<string, int>();
+        [JsonProperty(ItemConverterType = typeof(StringEnumConverter))]
+        public Dictionary<string, KeyCode> binds = new Dictionary<string, KeyCode>();
 
         public readonly string ModBaseDirectory = Path.Combine(Application.persistentDataPath, "DebugModData");
 

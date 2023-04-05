@@ -11,6 +11,9 @@ namespace DebugMod
     {
         public static void AddActionToKeyBindList(Action method, string name, string category) 
             => DebugMod.AddActionToKeyBindList(method, name, category);
+        
+        public static void AddActionToKeyBindList(Action method, string name, string category, bool allowLock) 
+            => DebugMod.AddActionToKeyBindList(method, name, category, allowLock);
 
         public static void LogToConsole(string msg)
             => Console.AddLine(msg);
@@ -29,6 +32,20 @@ namespace DebugMod
 
         public static void AddInfoToSimplePanel(string Name, string label, Func<string> textFunc)
             => InfoPanel.AddInfoToSimplePanel(Name, label, textFunc);
+        
+        public static void SetLockKeyBinds(bool value)
+            => DebugMod.KeyBindLock = value;
 
+        public static void AddToOnGiveAllCharm(Action onGiveCharms)
+            => BindableFunctions.OnGiveAllCharms += onGiveCharms;
+        
+        public static void RemoveFromOnGiveAllCharm(Action onGiveCharms)
+            => BindableFunctions.OnGiveAllCharms -= onGiveCharms;
+        
+        public static void AddToOnRemoveAllCharm(Action onRemoveCharms)
+            => BindableFunctions.OnRemoveAllCharms += onRemoveCharms;
+        
+        public static void RemoveFromOnRemoveAllCharm(Action onRemoveCharms)
+            => BindableFunctions.OnRemoveAllCharms -= onRemoveCharms;
     }
 }

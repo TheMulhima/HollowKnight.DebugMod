@@ -9,18 +9,20 @@ namespace DebugMod
         public int maxHP;
         // public PlayMakerFSM FSM;
         public HealthManager HM;
-        public Component Spr;
+        public tk2dSprite Spr;
         public CanvasPanel hpBar;
         public CanvasPanel hitbox;
         public GameObject gameObject;
+        public BoxCollider2D boxCollider2D;
 
-        public EnemyData(int hp, HealthManager hm, Component spr, GameObject parent = null, GameObject go = null)
+        public EnemyData(int hp, HealthManager hm, tk2dSprite spr, GameObject parent, GameObject go)
         {
             HP = hp;
             maxHP = hp;
             HM = hm;
             Spr = spr;
             gameObject = go;
+            boxCollider2D = Spr?.boxCollider2D ?? gameObject?.GetComponent<BoxCollider2D>();
 
             Texture2D tex = new Texture2D(120, 40);
 
@@ -61,5 +63,8 @@ namespace DebugMod
             HP = health;
             HM.hp = health;
         }
+
+        // Use tk2d bounds if available, otherwise the collider, otherwise a small box of size (1, 1)
+        public Bounds GetBounds() => Spr?.GetBounds() ?? boxCollider2D?.bounds ?? new Bounds(gameObject.transform.position, new(1, 1, 0));
     }
 }

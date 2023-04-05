@@ -157,44 +157,37 @@ namespace DebugMod.Hitbox
             GUI.depth = hitboxType.Depth;
             if (collider2D is BoxCollider2D or EdgeCollider2D or PolygonCollider2D)
             {
-                List<Vector2> points = null;
                 switch (collider2D)
                 {
                     case BoxCollider2D boxCollider2D:
-                    {
                         Vector2 halfSize = boxCollider2D.size / 2f;
                         Vector2 topLeft = new(-halfSize.x, halfSize.y);
                         Vector2 topRight = halfSize;
                         Vector2 bottomRight = new(halfSize.x, -halfSize.y);
                         Vector2 bottomLeft = -halfSize;
-                        points = new List<Vector2>
+                        List<Vector2> boxPoints = new List<Vector2>
                         {
                             topLeft, topRight, bottomRight, bottomLeft, topLeft
                         };
+                        DrawPointSequence(boxPoints, camera, collider2D, hitboxType, lineWidth);
                         break;
-                    }
                     case EdgeCollider2D edgeCollider2D:
-                        points = new List<Vector2>(edgeCollider2D.points);
+                        DrawPointSequence(new(edgeCollider2D.points), camera, collider2D, hitboxType, lineWidth);
                         break;
                     case PolygonCollider2D polygonCollider2D:
-                    {
-                        points = new List<Vector2>(polygonCollider2D.points);
-                        if (points.Count > 0)
+                        for (int i = 0; i < polygonCollider2D.pathCount; i++)
                         {
-                            points.Add(points[0]);
+                            List<Vector2> polygonPoints = new(polygonCollider2D.GetPath(i));
+                            if (polygonPoints.Count > 0)
+                            {
+                                polygonPoints.Add(polygonPoints[0]);
+                            }
+                            DrawPointSequence(polygonPoints, camera, collider2D, hitboxType, lineWidth);
                         }
-
                         break;
-                    }
                 }
-
-                for (int i = 0; i < points.Count - 1; i++)
-                {
-                    Vector2 pointA = LocalToScreenPoint(camera, collider2D, points[i]);
-                    Vector2 pointB = LocalToScreenPoint(camera, collider2D, points[i + 1]);
-                    Drawing.DrawLine(pointA, pointB, hitboxType.Color, lineWidth, true);
-                }
-            } else if (collider2D is CircleCollider2D circleCollider2D)
+            } 
+            else if (collider2D is CircleCollider2D circleCollider2D)
             {
                 Vector2 center = LocalToScreenPoint(camera, collider2D, Vector2.zero);
                 Vector2 right = LocalToScreenPoint(camera, collider2D, Vector2.right * circleCollider2D.radius);
@@ -203,6 +196,16 @@ namespace DebugMod.Hitbox
             }
 
             GUI.depth = origDepth;
+        }
+
+        private void DrawPointSequence(List<Vector2> points, Camera camera, Collider2D collider2D, HitboxType hitboxType, float lineWidth)
+        {
+            for (int i = 0; i < points.Count - 1; i++)
+            {
+                Vector2 pointA = LocalToScreenPoint(camera, collider2D, points[i]);
+                Vector2 pointB = LocalToScreenPoint(camera, collider2D, points[i + 1]);
+                Drawing.DrawLine(pointA, pointB, hitboxType.Color, lineWidth, true);
+            }
         }
     }
 }
