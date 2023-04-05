@@ -176,14 +176,6 @@ namespace DebugMod
                     SaveStateData tmpData = JsonUtility.FromJson<SaveStateData>(File.ReadAllText(data.filePath));
                     try
                     {
-                        data.saveStateIdentifier = tmpData.saveStateIdentifier;
-                        data.cameraLockArea = tmpData.cameraLockArea;
-                        data.savedPd = tmpData.savedPd;
-                        data.savedSd = tmpData.savedSd;
-                        data.savePos = tmpData.savePos;
-                        data.saveScene = tmpData.saveScene;
-                        data.lockArea = tmpData.lockArea;
-                        data.useRoomSpecific = tmpData.useRoomSpecific;
                         data = new SaveStateData(tmpData);
                         DebugMod.instance.Log("Load SaveState ready: " + data.saveStateIdentifier);
                     }
