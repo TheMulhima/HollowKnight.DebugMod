@@ -81,21 +81,27 @@ namespace DebugMod
         }
 
         #region saving
-        public void SaveState(SaveStateType stateType)
+        public void SaveSaveState(SaveStateType stateType)
         {
-            switch (stateType)
+            if (!SaveState.loadingSavestate)
             {
-                case SaveStateType.Memory:
-                    quickState.SaveTempState();
-                    break;
-                case SaveStateType.File or SaveStateType.SkipOne:
-                    if (!inSelectSlotState)
-                    {
-                        RefreshStateMenu();
-                        GameManager.instance.StartCoroutine(SelectSlot(true, stateType));
-                    }
-                    break;
-                default: break;
+                switch (stateType)
+                {
+                    case SaveStateType.Memory:
+                        quickState.SaveTempState();
+                        break;
+                    case SaveStateType.File or SaveStateType.SkipOne:
+                        if (!inSelectSlotState)
+                        {
+                            RefreshStateMenu();
+                            GameManager.instance.StartCoroutine(SelectSlot(true, stateType));
+                        }
+                        break;
+                }
+            }
+            else
+            {
+                Console.AddLine("Cannot save new states while loading");
             }
         }
 
@@ -104,7 +110,7 @@ namespace DebugMod
         #region loading
 
         //loadDuped is used by external mods
-        public void LoadState(SaveStateType stateType, bool loadDuped = false, string operationName = null)
+        public void LoadSaveState(SaveStateType stateType, bool loadDuped = false, string operationName = null)
         {
             switch (stateType)
             {
