@@ -19,6 +19,7 @@ namespace DebugMod
         {
             public string saveStateIdentifier;
             public string saveScene;
+            public int useRoomSpecific = 0;
             public PlayerData savedPd;
             public object lockArea;
             public SceneData savedSd;
@@ -41,6 +42,7 @@ namespace DebugMod
                 savePos = _data.savePos;
                 lockArea = _data.lockArea;
                 isKinematized = _data.isKinematized;
+                useRoomSpecific = _data.useRoomSpecific;
             }
         }
 
@@ -64,6 +66,7 @@ namespace DebugMod
             data.cameraLockArea = (data.cameraLockArea ?? typeof(CameraController).GetField("currentLockArea", BindingFlags.Instance | BindingFlags.NonPublic));
             data.lockArea = data.cameraLockArea.GetValue(GameManager.instance.cameraCtrl);
             data.isKinematized = HeroController.instance.GetComponent<Rigidbody2D>().isKinematic;
+            data.useRoomSpecific = 0;
         }
 
         public void NewSaveStateToFile(int paramSlot)
@@ -131,6 +134,7 @@ namespace DebugMod
                         data.savePos = tmpData.savePos;
                         data.saveScene = tmpData.saveScene;
                         data.lockArea = tmpData.lockArea;
+                        data.useRoomSpecific = tmpData.useRoomSpecific;
                         DebugMod.instance.Log("Load SaveState ready: " + data.saveStateIdentifier);
                     }
                     catch (Exception ex)
@@ -220,7 +224,11 @@ namespace DebugMod
             typeof(HeroController)
                 .GetMethod("FinishedEnteringScene", BindingFlags.NonPublic | BindingFlags.Instance)?
                 .Invoke(HeroController.instance, new object[] {true, false});
-        
+
+            if (data.useRoomSpecific != 0)
+            {
+                RoomSpecific.DoRoomSpecific(data.saveScene.ToLower() /* they changed capitalization across versions */, data.useRoomSpecific);
+            }
         }
         #endregion
 
