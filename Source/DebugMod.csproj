@@ -4,7 +4,7 @@
 
     <RootNamespace>DebugMod</RootNamespace>
     <AssemblyTitle>DebugMod</AssemblyTitle>
-    <AssemblyVersion>1.4.9.1</AssemblyVersion>
+    <AssemblyVersion>1.4.10.0</AssemblyVersion>
     <Deterministic>true</Deterministic>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <LangVersion>latest</LangVersion>
@@ -30,14 +30,11 @@
         <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
           <HintPath>$(HollowKnightFolder)\Assembly-CSharp.dll</HintPath>
         </Reference>
+        <Reference Include="Mono.Cecil, Version=0.11.3.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e">
+          <HintPath>$(HollowKnightFolder)\Mono.Cecil.dll</HintPath>
+        </Reference>
         <Reference Include="PlayMaker, Version=1.6.0.0, Culture=neutral, PublicKeyToken=null">
           <HintPath>$(HollowKnightFolder)\PlayMaker.dll</HintPath>
-        </Reference>
-        <Reference Include="System, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-          <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Hollow Knight 1.4 Modded\hollow_knight_Data\Managed\System.dll</HintPath>
-        </Reference>
-        <Reference Include="System.Core, Version=3.5.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-          <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Hollow Knight 1.4 Modded\hollow_knight_Data\Managed\System.Core.dll</HintPath>
         </Reference>
         <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
           <HintPath>$(HollowKnightFolder)\UnityEngine.dll</HintPath>
@@ -68,9 +65,6 @@
         </Reference>
         <Reference Include="UnityEngine.UIModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
           <HintPath>$(HollowKnightFolder)\UnityEngine.UIModule.dll</HintPath>
-        </Reference>
-        <Reference Include="UnityEngine.InputModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-            <HintPath>$(HollowKnightFolder)\UnityEngine.InputModule.dll</HintPath>
         </Reference>
         <Reference Include="netstandard, Version=2.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51">
             <HintPath>$(HollowKnightFolder)\netstandard.dll</HintPath>

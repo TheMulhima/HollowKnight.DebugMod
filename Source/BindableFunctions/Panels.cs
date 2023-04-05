@@ -19,8 +19,7 @@ namespace DebugMod
 {
     public static partial class BindableFunctions
     {
-
-        [BindableMethod(name = "Toggle All UI", category = "Mod UI")]
+        [BindableMethod(name = "Toggle All UI", category = "Mod UI", allowLock = false)]
         public static void ToggleAllPanels()
         {
             bool active = !(

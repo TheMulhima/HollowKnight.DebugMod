@@ -7,5 +7,6 @@ namespace DebugMod
     {
         public string name;
         public string category;
+        public bool allowLock = true;
     }
 }

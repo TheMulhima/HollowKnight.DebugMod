@@ -81,21 +81,27 @@ namespace DebugMod
         }
 
         #region saving
-        public void SaveState(SaveStateType stateType)
+        public void SaveSaveState(SaveStateType stateType)
         {
-            switch (stateType)
+            if (!SaveState.loadingSavestate)
             {
-                case SaveStateType.Memory:
-                    quickState.SaveTempState();
-                    break;
-                case SaveStateType.File or SaveStateType.SkipOne:
-                    if (!inSelectSlotState)
-                    {
-                        RefreshStateMenu();
-                        GameManager.instance.StartCoroutine(SelectSlot(true, stateType));
-                    }
-                    break;
-                default: break;
+                switch (stateType)
+                {
+                    case SaveStateType.Memory:
+                        quickState.SaveTempState();
+                        break;
+                    case SaveStateType.File or SaveStateType.SkipOne:
+                        if (!inSelectSlotState)
+                        {
+                            RefreshStateMenu();
+                            GameManager.instance.StartCoroutine(SelectSlot(true, stateType));
+                        }
+                        break;
+                }
+            }
+            else
+            {
+                Console.AddLine("Cannot save new states while loading");
             }
         }
 
@@ -103,14 +109,15 @@ namespace DebugMod
 
         #region loading
 
-        public void LoadState(SaveStateType stateType)
+        //loadDuped is used by external mods
+        public void LoadSaveState(SaveStateType stateType, bool loadDuped = false, string operationName = null)
         {
             switch (stateType)
             {
                 case SaveStateType.Memory:
                     if (quickState.IsSet())
                     {
-                        quickState.LoadTempState();
+                        quickState.LoadTempState(loadDuped);
                     }
                     else
                     {
@@ -121,7 +128,7 @@ namespace DebugMod
                     if (!inSelectSlotState)
                     {
                         RefreshStateMenu();
-                        GameManager.instance.StartCoroutine(SelectSlot(false, stateType));
+                        GameManager.instance.StartCoroutine(SelectSlot(false, stateType, loadDuped, operationName));
                     }
                     break;
                 default:
@@ -132,27 +139,35 @@ namespace DebugMod
         #endregion
 
         #region helper functionality
-        private IEnumerator SelectSlot(bool save, SaveStateType stateType)
+        private IEnumerator SelectSlot(bool save, SaveStateType stateType, bool loadDuped = false, string operationName = null)
         {
-            switch (stateType)
+            if (operationName == null)
             {
-                case SaveStateType.Memory:
-                    currentStateOperation = save ? "Quickslot (save)" : "Quickslot (load)";
-                    break;
-                case SaveStateType.File:
-                    currentStateOperation = save ? "Quickslot save to file" : "Load file to quickslot";
-                    break;
-                case SaveStateType.SkipOne:
-                    currentStateOperation = save ? "Save new state to file" : "Load new state from file";
-                    break;
-                default:
-                    //DebugMod.instance.LogError("SelectSlot ended started");
-                    throw new ArgumentException("Helper func SelectSlot requires `bool` and `SaveStateType` to proceed the savestate process");
+                switch (stateType)
+                {
+                    case SaveStateType.Memory:
+                        currentStateOperation = save ? "Quickslot (save)" : "Quickslot (load)";
+                        break;
+                    case SaveStateType.File:
+                        currentStateOperation = save ? "Quickslot save to file" : "Load file to quickslot";
+                        break;
+                    case SaveStateType.SkipOne:
+                        currentStateOperation = save ? "Save new state to file" : "Load new state from file";
+                        break;
+                    default:
+                        //DebugMod.instance.LogError("SelectSlot ended started");
+                        throw new ArgumentException(
+                            "Helper func SelectSlot requires `bool` and `SaveStateType` to proceed the savestate process");
+                }
+            }
+            else
+            {
+                currentStateOperation = operationName;
             }
 
-            if (DebugMod.settings.binds.TryGetValue(currentStateOperation, out int keycode))
+            if (DebugMod.settings.binds.TryGetValue(currentStateOperation, out KeyCode keycode))
             {
-                DebugMod.alphaKeyDict.Add((KeyCode)keycode, keycode);
+                DebugMod.alphaKeyDict.Add(keycode, (int)keycode);
             }
             else
             {
@@ -174,7 +189,7 @@ namespace DebugMod
                     }
                     else
                     {
-                        LoadCoroHelper(stateType);
+                        LoadCoroHelper(stateType, loadDuped);
                     }
                 }
             }
@@ -221,7 +236,8 @@ namespace DebugMod
             }
         }
 
-        private void LoadCoroHelper(SaveStateType stateType)
+        //loadDuped is used by external mods
+        private void LoadCoroHelper(SaveStateType stateType, bool loadDuped)
         {
             switch (stateType)
             {
@@ -240,7 +256,7 @@ namespace DebugMod
                         saveStateFiles.Remove(currentStateSlot);
                     }
                     saveStateFiles.Add(currentStateSlot, new SaveState());
-                    saveStateFiles[currentStateSlot].NewLoadStateFromFile();
+                    saveStateFiles[currentStateSlot].NewLoadStateFromFile(loadDuped);
                     break;
                 default:
                     break;
@@ -341,7 +357,7 @@ namespace DebugMod
             }
             catch (Exception ex)
             {
-                DebugMod.instance.LogError(string.Format(ex.Source, ex.Message));
+                DebugMod.instance.LogError(ex);
                 //throw ex;
             }
         }

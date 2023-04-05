@@ -3,50 +3,87 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Object = UnityEngine.Object;
 
 namespace DebugMod.MethodHelpers
 {
     public static class VisualMaskHelper
     {
-        private static bool DeactivatingOnSceneChange = false;
-        public static bool MasksDeactivated = false;
+        private static bool MasksDisabled = false;
+        private static bool VignetteDisabled = false;
 
-        public static void InvokedBindableFunction()
+        private static bool ReEnableVignette = false;
+
+        public static void ToggleAllMasks()
         {
-            if (!MasksDeactivated)
+            MasksDisabled = !MasksDisabled;
+            if (MasksDisabled)
             {
-                DeactivateVisualMasks(GameObject.FindObjectsOfType<GameObject>());
-                MasksDeactivated = true;
-                Console.AddLine("Press again to deactivate masks each scene change");
+                DeactivateVisualMasks(Object.FindObjectsOfType<GameObject>());
+                Console.AddLine("Disabled all visual masks");
             }
             else
             {
-                DeactivatingOnSceneChange = !DeactivatingOnSceneChange;
-                Console.AddLine((DeactivatingOnSceneChange ? "D" : "No longer d") + "eactivating visual masks each scene change");
+                Console.AddLine("No longer disabling all visual masks; reload the room to see changes");
+                // Cannot reactivate most visual masks because it's impractical to find all that should be active;
+                // Need to manually reenable the vignette, but do not do so immediately for consistency
+                ReEnableVignette = true;
+            }
+        }
+
+        public static void ToggleVignette()
+        {
+            VignetteDisabled = !VignetteDisabled;
+            if (VignetteDisabled)
+            {
+                DisableVignette(false);
+                Console.AddLine("Disabled vignette");
+            }
+            else
+            {
+                Console.AddLine("Enabled vignette");
+                DebugMod.HC.vignette.enabled = true;
+                if (MasksDisabled)
+                {
+                    Console.AddLine("All visual masks were disabled; re-enabling");
+                    MasksDisabled = false;
+                }
             }
         }
 
         public static void OnSceneChange(Scene s)
         {
-            if (DeactivatingOnSceneChange)
+            if (MasksDisabled)
             {
-                DelayInvoke(() => DeactivateVisualMasks(GetGameObjectsInScene(s)));
-                MasksDeactivated = true;
+                // Delaying for 2f seems enough - wait for 3 just to be sure though.
+                DelayInvoke(3, () => DeactivateVisualMasks(GetGameObjectsInScene(s)));
+                return;
             }
-            else
+            
+            if (VignetteDisabled)
             {
-                MasksDeactivated = false;
+                DelayInvoke(3, () => DisableVignette(false));
+            }
+
+            if (ReEnableVignette)
+            {
+                // Should not wait before reactivating these
+                foreach (Renderer r in DebugMod.HC.vignette.GetComponentsInChildren<Renderer>())
+                {
+                    Console.AddLine(r.name);
+                    r.enabled = true;
+                }
             }
         }
 
-        public static void DelayInvoke(Action method)
+        public static void DelayInvoke(int delay, Action method)
         {
             IEnumerator coro()
             {
-                // Delaying for 2f seems enough - wait for 3 just to be sure though.
-                yield return null;
-                yield return null;
-                yield return null;
+                for (int i = 0; i < delay; i++)
+                {
+                    yield return null;
+                }
                 method();
             }
             GameManager.instance.StartCoroutine(coro());
@@ -54,6 +91,11 @@ namespace DebugMod.MethodHelpers
 
         public static IEnumerable<GameObject> GetGameObjectsInScene(Scene s)
         {
+            if (!s.IsValid())
+            {
+                yield break;
+            }
+
             foreach (GameObject go in s.GetRootGameObjects())
             {
                 yield return go;
@@ -100,6 +142,8 @@ namespace DebugMod.MethodHelpers
                     disableMask(go);
                 else if (go.name.ToLower().Contains("vignette"))
                     disableMask(go);
+                else if (go.name.ToLower().Contains("secret mask"))
+                    disableMask(go);
                 else if (go.LocateMyFSM("unmasker") is PlayMakerFSM)
                     disableMask(go);
                 else if (go.LocateMyFSM("remasker_inverse") is PlayMakerFSM)
@@ -111,20 +155,28 @@ namespace DebugMod.MethodHelpers
             Console.AddLine($"Deactivated {ctr} masks" + (HeroController.instance.vignette.enabled ? " and toggling vignette off" : string.Empty));
 
             // The vignette counts as a visual mask :)
-            ProperlyDisableVignette();
+            DisableVignette(true);
 
             return ctr;
         }
 
         /// <summary>
-        /// Disable the Vignette, as well as all of the renderers in its children
+        /// Disable the Vignette, as well as all renderers in its children.
         /// </summary>
-        public static void ProperlyDisableVignette()
+        /// <param name="includeChildren">If this is false, do not disable renderers in the vignette's children.</param>
+        public static void DisableVignette(bool includeChildren = true)
         {
-            // Not suitable for toggle vignette because not easily reversible
             DebugMod.HC.vignette.enabled = false;
+            
+            if (!includeChildren)
+            {
+                return;
+            }
+            
+            // Not suitable for toggle vignette because not easily reversible
             foreach (Renderer r in DebugMod.HC.vignette.GetComponentsInChildren<Renderer>())
             {
+                Console.AddLine(r.name);
                 r.enabled = false;
             }
         }

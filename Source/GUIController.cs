@@ -23,6 +23,13 @@ namespace DebugMod
         public GameObject canvas;
         private static GUIController _instance;
 
+        private readonly Array allKeyCodes = Enum.GetValues(typeof(KeyCode));
+
+        private readonly List<KeyCode> UnbindableKeys = new List<KeyCode>()
+        {
+            KeyCode.Mouse0
+        };
+
         /// <summary>
         /// If this returns true, all DebugMod UI elements will be hidden.
         /// </summary>
@@ -54,13 +61,11 @@ namespace DebugMod
             EnemiesPanel.BuildMenu(canvas);
             Console.BuildMenu(canvas);
 
-            // Modding.ModHooks.FinishedLoadingModsHook += () => InfoPanel.BuildInfoPanels(canvas);
-            // Modding.ModHooks.FinishedLoadingModsHook += () => KeyBindPanel.BuildMenu(canvas);
             On.HeroController.Awake += HeroController_Awake;
 
             DontDestroyOnLoad(canvas);
         }
-
+        
         private void HeroController_Awake(On.HeroController.orig_Awake orig, HeroController self)
         {
             orig(self);
@@ -105,7 +110,6 @@ namespace DebugMod
 
             foreach (string res in resourceNames)
             {
-                //DebugMod.instance.Log(res + "\n\n");
                 if (res.StartsWith("DebugMod.Images."))
                 {
                     try
@@ -121,7 +125,7 @@ namespace DebugMod
                         string internalName = split[split.Length - 2];
                         images.Add(internalName, tex);
 
-                        DebugMod.instance.Log("Loaded image: " + internalName);
+                        DebugMod.instance.LogDebug("Loaded image: " + internalName);
                     }
                     catch (Exception e)
                     {
@@ -152,22 +156,27 @@ namespace DebugMod
             }
 
             //Handle keybinds
-            foreach (KeyValuePair<string, int> bind in DebugMod.settings.binds)
+            //foreach (KeyValuePair<string, KeyCode> bind in DebugMod.settings.binds)
+            for(int i = 0; i < DebugMod.settings.binds.Count; i++)
             {
-                if (DebugMod.bindMethods.ContainsKey(bind.Key) || DebugMod.AdditionalBindMethods.ContainsKey(bind.Key) )
+                var bind = DebugMod.settings.binds.ElementAt(i);
+                string bindName = bind.Key;
+                KeyCode bindKeyCode  = bind.Value;
+                
+                if (DebugMod.bindMethods.ContainsKey(bindName) || DebugMod.AdditionalBindMethods.ContainsKey(bindName))
                 {
-                    if ((KeyCode) bind.Value == KeyCode.None)
+                    //check for keys that are waiting to be bound
+                    if (bindKeyCode == KeyCode.None)
                     {
-                        foreach (KeyCode kc in Enum.GetValues(typeof(KeyCode)))
+                        foreach (KeyCode kc in allKeyCodes)
                         {
-                            if (Input.GetKeyDown(kc) && kc != KeyCode.Mouse0)
+                            if (Input.GetKeyDown(kc) && !UnbindableKeys.Contains(kc))
                             {
-                                // Fix UX
                                 if (KeyBindPanel.keyWarning != kc)
                                 {
-                                    foreach (KeyValuePair<string, int> kvp in DebugMod.settings.binds)
+                                    foreach (KeyValuePair<string, KeyCode> kvp in DebugMod.settings.binds)
                                     {
-                                        if (kvp.Value == (int) kc)
+                                        if (kvp.Value == kc)
                                         {
                                             Console.AddLine(kc.ToString() + " already bound to " + kvp.Key +
                                                             ", press again to confirm");
@@ -183,12 +192,13 @@ namespace DebugMod
                                 //remove bind
                                 if (kc == KeyCode.Escape)
                                 {
-                                    DebugMod.settings.binds.Remove(bind.Key);
-                                    DebugMod.instance.LogWarn($"The key {Enum.GetName(typeof(KeyCode),kc)} has been unbound from {bind.Key}");
+                                    DebugMod.settings.binds.Remove(bindName);
+                                    i--;
+                                    DebugMod.instance.LogWarn($"The key {Enum.GetName(typeof(KeyCode),kc)} has been unbound from {bindName}");
                                 }
                                 else if (kc != KeyCode.Escape)
                                 {
-                                    DebugMod.settings.binds[bind.Key] = (int) kc;
+                                    DebugMod.settings.binds[bindName] = kc;
                                 }
 
                                 KeyBindPanel.UpdateHelpText();
@@ -196,45 +206,36 @@ namespace DebugMod
                             }
                         }
                     }
-                    else if (Input.GetKeyDown((KeyCode) bind.Value))
+                    else if (Input.GetKeyDown(bindKeyCode))
                     {
                         //This makes sure atleast you can close the UI when the KeyBindLock is active.
                         //Im sure theres a better way to do this but idk. 
-                        if (bind.Value == DebugMod.settings.binds["Toggle All UI"])
+                        try
                         {
-                            try
+                            //cat, allowLock, the method
+                            (string, bool, Action) methodData;
+                            
+                            if (DebugMod.bindMethods.TryGetValue(bindName, out methodData) 
+                                || DebugMod.AdditionalBindMethods.TryGetValue(bindName, out methodData))
                             {
-                                if (DebugMod.bindMethods.ContainsKey(bind.Key))
-                                    (DebugMod.bindMethods[bind.Key].method).Invoke();
-                                if (DebugMod.AdditionalBindMethods.ContainsKey(bind.Key))
-                                    (DebugMod.AdditionalBindMethods[bind.Key].method).Invoke();
+                                //run if not locked or locked but bind doesnt allow locks
+                                if (!DebugMod.KeyBindLock || DebugMod.KeyBindLock && !methodData.Item2)
+                                {
+                                    methodData.Item3.Invoke();
+                                }
+                            }
 
-                            }
-                            catch (Exception e)
-                            {
-                                DebugMod.instance.LogError("Error running keybind method " + bind.Key + ":\n" +
-                                                           e.ToString());
-                            }
                         }
-                        else if (!DebugMod.KeyBindLock)
+                        catch (Exception e)
                         {
-                            try
-                            {
-                                if (DebugMod.bindMethods.ContainsKey(bind.Key))
-                                    (DebugMod.bindMethods[bind.Key].method).Invoke();
-                                if (DebugMod.AdditionalBindMethods.ContainsKey(bind.Key))
-                                    (DebugMod.AdditionalBindMethods[bind.Key].method).Invoke();
-
-                            }
-                            catch (Exception e)
-                            {
-                                DebugMod.instance.LogError("Error running keybind method " + bind.Key + ":\n" +
-                                                           e.ToString());
-                            }
+                            DebugMod.instance.LogError("Error running keybind method " + bindName + ":\n" +
+                                                       e.ToString());
                         }
+                        
                     }
                 }
             }
+            
             if (SaveStateManager.inSelectSlotState && DebugMod.settings.SaveStatePanelVisible)
             {
                 foreach (KeyValuePair<KeyCode, int> entry in DebugMod.alphaKeyDict)
@@ -258,7 +259,12 @@ namespace DebugMod
                 }
             }
 
-            if (DebugMod.infiniteSoul && PlayerData.instance.MPCharge < PlayerData.instance.maxMP && PlayerData.instance.health > 0 && !HeroController.instance.cState.dead && GameManager.instance.IsGameplayScene())
+            if (DebugMod.infiniteSoul 
+                && PlayerData.instance.MPCharge < PlayerData.instance.maxMP 
+                && PlayerData.instance.health > 0 
+                && HeroController.instance != null
+                && !HeroController.instance.cState.dead
+                && GameManager.instance.IsGameplayScene())
             {
                 PlayerData.instance.MPCharge = PlayerData.instance.maxMP - 1;
                 if (PlayerData.instance.MPReserveMax > 0)
@@ -298,7 +304,7 @@ namespace DebugMod
                     DebugMod.noclipPos = new Vector3(DebugMod.noclipPos.x, DebugMod.noclipPos.y - Time.deltaTime * 20f * DebugMod.settings.NoClipSpeedModifier, DebugMod.noclipPos.z);
                 }
 
-                if (HeroController.instance.transitionState.ToString() == "WAITING_TO_TRANSITION")
+                if (HeroController.instance.transitionState == GlobalEnums.HeroTransitionState.WAITING_TO_TRANSITION)
                 {
                     DebugMod.RefKnight.transform.position = DebugMod.noclipPos;
                 }
@@ -312,11 +318,6 @@ namespace DebugMod
             {
                 BindableFunctions.cameraGameplayScene.SetValue(DebugMod.RefCamera, false);
                 DebugMod.RefCamera.SnapTo(DebugMod.RefKnight.transform.position.x, DebugMod.RefKnight.transform.position.y);
-            }
-
-            if (PlayerDeathWatcher.PlayerDied())
-            {
-                PlayerDeathWatcher.LogDeathDetails();
             }
 
             if (PlayerData.instance.hazardRespawnLocation != hazardLocation)

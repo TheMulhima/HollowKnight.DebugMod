@@ -65,10 +65,10 @@ namespace DebugMod
             EnemyData dat = enemyPool.FindAll(ed => ed.gameObject?.activeSelf == true)[num - 1];
 
             GameObject gameObject2 = UnityEngine.Object.Instantiate(dat.gameObject, dat.gameObject.transform.position, dat.gameObject.transform.rotation) as GameObject;
-            Component component = gameObject2.GetComponent<tk2dSprite>();
+            tk2dSprite spr = gameObject2.GetComponent<tk2dSprite>();
             HealthManager HM2 = gameObject2.GetComponent<HealthManager>();
             int value8 = HM2.hp;
-            enemyPool.Add(new EnemyData(value8, HM2, component, parent, gameObject2));
+            enemyPool.Add(new EnemyData(value8, HM2, spr, parent, gameObject2));
             Console.AddLine("Cloning enemy as: " + gameObject2.name);
         }
 
@@ -81,25 +81,13 @@ namespace DebugMod
             Console.AddLine("HP for enemy: " + dat.gameObject.name + " is now 9999");
         }
 
-        private static void CollisionClicked(string buttonName)
-        {
-            BindableFunctions.ToggleEnemyCollision();
-        }
+        private static void CollisionClicked(string buttonName) => BindableFunctions.ToggleEnemyCollision();
+        private static void HPBarsClicked(string buttonName) => BindableFunctions.ToggleEnemyHPBars();
 
-        private static void HPBarsClicked(string buttonName)
-        {
-            BindableFunctions.ToggleEnemyHPBars();
-        }
+        private static void AutoClicked(string buttonName) => BindableFunctions.ToggleEnemyAutoScan();
 
-        private static void AutoClicked(string buttonName)
-        {
-            BindableFunctions.ToggleEnemyAutoScan();
-        }
-
-        private static void ScanClicked(string buttonName)
-        {
-            BindableFunctions.EnemyScan();
-        }
+        private static void ScanClicked(string buttonName) => BindableFunctions.EnemyScan();
+        
 
         public static void Update()
         {
@@ -214,9 +202,8 @@ namespace DebugMod
 
                         if (hitboxes)
                         {
-                            if ((dat.Spr as tk2dSprite).boxCollider2D != null)
+                            if (dat.boxCollider2D is BoxCollider2D boxCollider2D && boxCollider2D != null)
                             {
-                                BoxCollider2D boxCollider2D = (dat.Spr as tk2dSprite).boxCollider2D;
                                 Bounds bounds2 = boxCollider2D.bounds;
 
                                 float width = Math.Abs(bounds2.max.x - bounds2.min.x);
@@ -270,7 +257,7 @@ namespace DebugMod
 
                             enemyPos.y = 1080f - enemyPos.y;
 
-                            Bounds bounds = (dat.Spr as tk2dSprite).GetBounds();
+                            Bounds bounds = dat.GetBounds();
                             enemyPos.y -= (Camera.main.WorldToScreenPoint(bounds.max).y * (1080f / Screen.height) -
                                            Camera.main.WorldToScreenPoint(bounds.min).y * (1080f / Screen.height)) / 2f;
                             enemyPos.x -= 60;
@@ -381,21 +368,17 @@ namespace DebugMod
                         if ((gameObject.layer == 11 || gameObject.layer == 17 || gameObject.tag == "Boss") && !Ignore(gameObject.name))
                         {
                             HealthManager healthManager = gameObject.GetComponent<HealthManager>();
-                            Component component = gameObject.GetComponent<tk2dSprite>();
+                            tk2dSprite spr = gameObject.GetComponent<tk2dSprite>();
                             int num3 = gameObject.name.IndexOf("grass", StringComparison.OrdinalIgnoreCase);
                             int num2 = gameObject.name.IndexOf("hopper", StringComparison.OrdinalIgnoreCase);
                             if (num3 >= 0 && num2 >= 0)
                             {
-                                component = gameObject.transform.Find("Sprite").gameObject.gameObject.GetComponent<tk2dSprite>();
+                                spr = gameObject.transform.Find("Sprite").gameObject.gameObject.GetComponent<tk2dSprite>();
                             }
                             if (healthManager != null)
                             {
-                                if (component == null)
-                                {
-                                    component = null;
-                                }
                                 int value = healthManager.hp;
-                                enemyPool.Add(new EnemyData(value, healthManager, component, parent, gameObject));
+                                enemyPool.Add(new EnemyData(value, healthManager, spr, parent, gameObject));
                             }
                         }
                         EnemyDescendants(gameObject.transform);
@@ -432,7 +415,7 @@ namespace DebugMod
             if (DebugMod.settings.EnemiesPanelVisible && HeroController.instance != null && !HeroController.instance.cState.transitioning && DebugMod.GM.IsGameplayScene())
             {
                 int count = enemyPool.Count;
-                int layerMask = 133120;
+                int layerMask = 1 << (int) PhysLayers.ENEMIES;
                 Collider2D[] array = Physics2D.OverlapBoxAll(DebugMod.RefKnight.transform.position, new Vector2(boxSize, boxSize), 1f, layerMask);
                 if (array == null) return;
                 
@@ -441,9 +424,9 @@ namespace DebugMod
                     HealthManager healthManager = t.gameObject.GetComponent<HealthManager>();
                     if (healthManager && enemyPool.All(ed => ed.gameObject != t.gameObject) && !Ignore(t.gameObject.name))
                     {
-                        Component component = t.gameObject.GetComponent<tk2dSprite>();
+                        tk2dSprite spr = t.gameObject.GetComponent<tk2dSprite>();
                         int value = healthManager.hp;
-                        enemyPool.Add(new EnemyData(value, healthManager, component, parent, t.gameObject));
+                        enemyPool.Add(new EnemyData(value, healthManager, spr, parent, t.gameObject));
                     }
                 }
 
@@ -470,15 +453,11 @@ namespace DebugMod
                 if ((transform2.gameObject.layer == 11 || transform2.gameObject.layer == 17) && !enemyPool.Any(ed => ed.gameObject == transform2.gameObject) && !Ignore(transform2.gameObject.name))
                 {
                     HealthManager healthManager = transform2.gameObject.GetComponent<HealthManager>();
-                    Component component = transform2.gameObject.GetComponent<tk2dSprite>();
+                    tk2dSprite spr = transform2.gameObject.GetComponent<tk2dSprite>();
                     if (healthManager)
                     {
-                        if (component == null)
-                        {
-                            component = null;
-                        }
                         int value = healthManager.hp;
-                        enemyPool.Add(new EnemyData(value, healthManager, component, parent, transform2.gameObject));
+                        enemyPool.Add(new EnemyData(value, healthManager, spr, parent, transform2.gameObject));
                     }
                 }
                 list.Add(transform2);
@@ -493,15 +472,11 @@ namespace DebugMod
                         if ((transform3.gameObject.layer == 11 || transform3.gameObject.layer == 17) && !enemyPool.Any(ed => ed.gameObject == transform3.gameObject) && !Ignore(transform3.gameObject.name))
                         {
                             HealthManager healthManager2 = transform3.gameObject.GetComponent<HealthManager>();
-                            Component component2 = transform3.gameObject.GetComponent<tk2dSprite>();
+                            tk2dSprite spr2 = transform3.gameObject.GetComponent<tk2dSprite>();
                             if (healthManager2)
                             {
-                                if (component2 == null)
-                                {
-                                    component2 = null;
-                                }
                                 int value2 = healthManager2.hp;
-                                enemyPool.Add(new EnemyData(value2, healthManager2, component2, parent, transform3.gameObject));
+                                enemyPool.Add(new EnemyData(value2, healthManager2, spr2, parent, transform3.gameObject));
                             }
                         }
                         list.Add(transform3);

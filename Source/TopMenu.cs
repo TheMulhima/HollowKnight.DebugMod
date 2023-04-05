@@ -15,7 +15,6 @@ namespace DebugMod
     public static class TopMenu
     {
         private static CanvasPanel panel;
-        private static List<float> PreviousBindChange = new List<float>();
 
         private static List<Vector2> AllPossibleLocations = new();
 
@@ -169,11 +168,11 @@ namespace DebugMod
         private static void MakeList()
         {
             //currently only 5 slots available
-            AllPossibleLocations.Add(new Vector2(546,28f));
-            AllPossibleLocations.Add(new Vector2(646,68f));
+            AllPossibleLocations.Add(new Vector2(546,68f));
             AllPossibleLocations.Add(new Vector2(646,28f));
-            AllPossibleLocations.Add(new Vector2(746,68f));
+            AllPossibleLocations.Add(new Vector2(646,68f));
             AllPossibleLocations.Add(new Vector2(746,28f));
+            AllPossibleLocations.Add(new Vector2(746,68f));
         }
 
         public static void Update()
@@ -642,13 +641,7 @@ namespace DebugMod
         }
         private static void KeyBindLockClicked(string buttonName)
         {
-            DebugMod.KeyBindLock = !DebugMod.KeyBindLock;
-            float currentTime = Time.realtimeSinceStartup;
-            Console.AddLine($"{(DebugMod.KeyBindLock ? "Removing" : "Adding")} the ability to use keybinds. This was done at {currentTime}");
-            PreviousBindChange.Add(currentTime);
-            int listLength = PreviousBindChange.Count;
-            if (listLength == 1) return;
-            Console.AddLine($"Time since {(DebugMod.KeyBindLock ? "Unlock":"Lock")} was {currentTime - PreviousBindChange[listLength - 2]}");
+            BindableFunctions.ToggleLockKeyBinds();
         }
         #endregion
         

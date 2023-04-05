@@ -19,12 +19,14 @@ namespace DebugMod
 {
     public static partial class BindableFunctions
     {
-        private static void UpdateCharms()
+
+        public static event Action OnGiveAllCharms;
+        public static event Action OnRemoveAllCharms;
+        
+        private static void UpdateCharmsEffects()
         {
             PlayMakerFSM.BroadcastEvent("CHARM INDICATOR CHECK");
             PlayMakerFSM.BroadcastEvent("CHARM EQUIP CHECK");
-            EventRegister.SendEvent("CHARM EQUIP CHECK");
-            EventRegister.SendEvent("CHARM INDICATOR CHECK");
         }
 
         [BindableMethod(name = "Give All Charms", category = "Charms")]
@@ -41,23 +43,29 @@ namespace DebugMod
             PlayerData.instance.royalCharmState = 4;
             PlayerData.instance.gotShadeCharm = true;
             PlayerData.instance.charmCost_36 = 0;
-            PlayerData.instance.gotKingFragment = true;
-            PlayerData.instance.gotQueenFragment = true;
-            PlayerData.instance.notchShroomOgres = true;
-            PlayerData.instance.notchFogCanyon = true;
-            PlayerData.instance.colosseumBronzeOpened = true;
-            PlayerData.instance.colosseumBronzeCompleted = true;
-            PlayerData.instance.salubraNotch1 = true;
-            PlayerData.instance.salubraNotch2 = true;
-            PlayerData.instance.salubraNotch3 = true;
-            PlayerData.instance.salubraNotch4 = true;
             PlayerData.instance.fragileGreed_unbreakable = true;
             PlayerData.instance.fragileStrength_unbreakable = true;
             PlayerData.instance.fragileHealth_unbreakable = true;
             PlayerData.instance.grimmChildLevel = 5;
             PlayerData.instance.charmCost_40 = 3;
             PlayerData.instance.charmSlots = 11;
-            UpdateCharms();
+
+            if (OnGiveAllCharms != null)
+            {
+                foreach (Action toInvoke in OnGiveAllCharms.GetInvocationList())
+                {
+                    try
+                    {
+                        toInvoke();
+                    }
+                    catch (Exception ex)
+                    {
+                        DebugMod.instance.LogError(ex);
+                    }
+                }
+            }
+
+            UpdateCharmsEffects();
 
             Console.AddLine("Added all charms to inventory");
         }
@@ -76,16 +84,6 @@ namespace DebugMod
             PlayerData.instance.charmsOwned = 0;
             PlayerData.instance.royalCharmState = 0;
             PlayerData.instance.gotShadeCharm = false;
-            PlayerData.instance.gotKingFragment = false;
-            PlayerData.instance.gotQueenFragment = false;
-            PlayerData.instance.notchShroomOgres = false;
-            PlayerData.instance.notchFogCanyon = false;
-            PlayerData.instance.colosseumBronzeOpened = false;
-            PlayerData.instance.colosseumBronzeCompleted = false;
-            PlayerData.instance.salubraNotch1 = false;
-            PlayerData.instance.salubraNotch2 = false;
-            PlayerData.instance.salubraNotch3 = false;
-            PlayerData.instance.salubraNotch4 = false;
             PlayerData.instance.fragileGreed_unbreakable = true;
             PlayerData.instance.fragileStrength_unbreakable = true;
             PlayerData.instance.fragileHealth_unbreakable = true;
@@ -93,10 +91,23 @@ namespace DebugMod
             PlayerData.instance.charmCost_40 = 2;
             PlayerData.instance.charmSlots = 3;
             PlayerData.instance.equippedCharms.Clear();
-
-
-
-            UpdateCharms();
+            
+            if (OnRemoveAllCharms != null)
+            {
+                foreach (Action toInvoke in OnRemoveAllCharms.GetInvocationList())
+                {
+                    try
+                    {
+                        toInvoke();
+                    }
+                    catch (Exception ex)
+                    {
+                        DebugMod.instance.LogError(ex);
+                    }
+                }
+            }
+            
+            UpdateCharmsEffects();
             Console.AddLine("Removed all charms from inventory");
         }
 
@@ -124,7 +135,7 @@ namespace DebugMod
                 _ => PlayerData.instance.charmCost_36,
             };
             
-            UpdateCharms();
+            UpdateCharmsEffects();
         }
 
         [BindableMethod(name = "Fix Fragile Heart", category = "Charms")]
@@ -133,10 +144,8 @@ namespace DebugMod
             if (PlayerData.instance.brokenCharm_23)
             {
                 PlayerData.instance.brokenCharm_23 = false;
+                UpdateCharmsEffects();
                 Console.AddLine("Fixed fragile heart");
-                
-                PlayMakerFSM.BroadcastEvent("CHARM INDICATOR CHECK");
-                PlayMakerFSM.BroadcastEvent("CHARM EQUIP CHECK");
             }
         }
 
@@ -146,9 +155,8 @@ namespace DebugMod
             if (PlayerData.instance.brokenCharm_24)
             {
                 PlayerData.instance.brokenCharm_24 = false;
+                UpdateCharmsEffects();
                 Console.AddLine("Fixed fragile greed");
-                
-                UpdateCharms();
             }
         }
 
@@ -158,9 +166,8 @@ namespace DebugMod
             if (PlayerData.instance.brokenCharm_25)
             {
                 PlayerData.instance.brokenCharm_25 = false;
+                UpdateCharmsEffects();
                 Console.AddLine("Fixed fragile strength");
-                
-                UpdateCharms();
             }
         }
 
@@ -197,14 +204,13 @@ namespace DebugMod
 
             Object.Destroy(GameObject.FindWithTag("Grimmchild"));
 
-            UpdateCharms();
+            UpdateCharmsEffects();
 
             GameManager.instance.StartCoroutine(SpawnGrimmChild());
 
             IEnumerator SpawnGrimmChild()
             {
-                yield return null;
-                yield return null;
+                for (int i = 0; i < 2; i++) yield return null;
                 HeroController.instance.transform.Find("Charm Effects").gameObject.LocateMyFSM("Spawn Grimmchild").SendEvent("CHARM EQUIP CHECK");
             }
         }

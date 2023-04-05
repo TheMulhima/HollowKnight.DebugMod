@@ -57,9 +57,10 @@ namespace DebugMod
 
 
         internal static DebugMod instance;
-        public static GlobalSettings settings;
 
-        //internal static int NailDamage;  
+        //internal static int NailDamage;
+
+        public static GlobalSettings settings;
 
         private static float _loadTime;
         private static float _unloadTime;
@@ -72,13 +73,13 @@ namespace DebugMod
         internal static Vector3 noclipPos;
         internal static bool cameraFollow;
         internal static SaveStateManager saveStateManager;
-        internal static bool KeyBindLock;
+        public static bool KeyBindLock;
         internal static bool TimeScaleActive;
         internal static float CurrentTimeScale = 1f;
         internal static bool PauseGameNoUIActive = false;
 
-        internal static Dictionary<string, (string category, Action method)> bindMethods = new();
-        internal static Dictionary<string, (string category, Action method)> AdditionalBindMethods = new();
+        internal static Dictionary<string, (string category, bool allowLock, Action method)> bindMethods = new();
+        internal static Dictionary<string, (string category, bool allowLock, Action method)> AdditionalBindMethods = new();
 
         internal static Dictionary<KeyCode, int> alphaKeyDict = new Dictionary<KeyCode, int>();
 
@@ -87,9 +88,7 @@ namespace DebugMod
         
         public override void Initialize()
         {
-            instance = this;
             settings = GlobalSettings;
-
             instance.Log("Initializing");
 
             float startTime = Time.realtimeSinceStartup;
@@ -105,8 +104,9 @@ namespace DebugMod
                     BindableMethod attr = (BindableMethod)attributes[0];
                     string name = attr.name;
                     string cat = attr.category;
+                    bool allowLock = attr.allowLock;
 
-                    bindMethods.Add(name, (cat, (Action)Delegate.CreateDelegate(typeof(Action), method)));
+                    bindMethods.Add(name, (cat, allowLock, (Action)Delegate.CreateDelegate(typeof(Action), method)));
                 }
             }
             
@@ -154,7 +154,7 @@ namespace DebugMod
             saveStateManager = new SaveStateManager();
             ModHooks.Instance.AfterSavegameLoadHook += LoadCharacter;
 
-            //ModHooks.HitInstanceHook += DoDamage;
+            //ModHooks.Instance.HitInstanceHook += DoDamage;
             
             ModHooks.Instance.NewGameHook += NewCharacter;
             ModHooks.Instance.BeforeSceneLoadHook += OnLevelUnload;
@@ -168,6 +168,7 @@ namespace DebugMod
 
             BossHandler.PopulateBossLists();
             GUIController.Instance.BuildMenus();
+            SceneWatcher.Init();
 
             KeyBindLock = false;
             TimeScaleActive = false;
@@ -177,6 +178,7 @@ namespace DebugMod
 
         public DebugMod()
         {
+            instance = this;
             // Register exports early so other mods can use them when initializing
             typeof(DebugExport).ModInterop();
 
@@ -189,7 +191,7 @@ namespace DebugMod
         private static bool OpenedSave;
         private void DoTrollMenu()
         {
-            chooser = Random.Range(1, 100);
+            chooser = Random.Range(1, 1000);
             OpenedSave = false;
             if (chooser != 1) return;
             GameObject DebugEasterEgg = new GameObject("DebugEasterEgg");
@@ -248,20 +250,20 @@ namespace DebugMod
         {
             settings.binds.Clear();
 
-            settings.binds.Add("Toggle All UI", (int) KeyCode.F1);
-            settings.binds.Add("Toggle Info", (int) KeyCode.F2);
-            settings.binds.Add("Toggle Menu", (int) KeyCode.F3);
-            settings.binds.Add("Toggle Console", (int) KeyCode.F4);
-            settings.binds.Add("Full/Min Info Switch", (int) KeyCode.F6);
-            settings.binds.Add("Force Camera Follow", (int) KeyCode.F8);
-            settings.binds.Add("Toggle Enemy Panel", (int) KeyCode.F9);
-            settings.binds.Add("Toggle Binds", (int) KeyCode.BackQuote);
-            settings.binds.Add("Nail Damage +4", (int) KeyCode.Equals);
-            settings.binds.Add("Nail Damage -4", (int) KeyCode.Minus);
-            settings.binds.Add("Increase Timescale", (int) KeyCode.KeypadPlus);
-            settings.binds.Add("Decrease Timescale", (int) KeyCode.KeypadMinus);
-            settings.binds.Add("Zoom In", (int) KeyCode.PageUp);
-            settings.binds.Add("Zoom Out", (int) KeyCode.PageDown);
+            settings.binds.Add("Toggle All UI", KeyCode.F1);
+            settings.binds.Add("Toggle Info", KeyCode.F2);
+            settings.binds.Add("Toggle Menu", KeyCode.F3);
+            settings.binds.Add("Toggle Console", KeyCode.F4);
+            settings.binds.Add("Full/Min Info Switch", KeyCode.F6);
+            settings.binds.Add("Force Camera Follow", KeyCode.F8);
+            settings.binds.Add("Toggle Enemy Panel", KeyCode.F9);
+            settings.binds.Add("Toggle Binds", KeyCode.BackQuote);
+            settings.binds.Add("Nail Damage +4", KeyCode.Equals);
+            settings.binds.Add("Nail Damage -4", KeyCode.Minus);
+            settings.binds.Add("Increase Timescale", KeyCode.KeypadPlus);
+            settings.binds.Add("Decrease Timescale", KeyCode.KeypadMinus);
+            settings.binds.Add("Zoom In", KeyCode.PageUp);
+            settings.binds.Add("Zoom Out", KeyCode.PageDown);
         }
         private void SaveSettings()
         {
@@ -302,10 +304,7 @@ namespace DebugMod
                 TimeSpan timeSpan = TimeSpan.FromSeconds(PlayerData.instance.playTime);
                 string text = string.Format("{0:00}.{1:00}", Math.Floor(timeSpan.TotalHours), timeSpan.Minutes);
                 int profileID = PlayerData.instance.profileID;
-                string saveFilename = "no";// Platform.Current.getsavefilename(profileID);
-                DateTime lastWriteTime = File.GetLastWriteTime(Application.persistentDataPath + saveFilename);
-                Console.AddLine("New savegame loaded. Profile playtime " + text + " Completion: " + PlayerData.instance.completionPercentage + " Save slot: " + profileID + " Game Version: " + PlayerData.instance.version + " Last Written: " + lastWriteTime);
-
+                Console.AddLine("New savegame loaded. Profile playtime " + text + " Completion: " + PlayerData.instance.completionPercentage + " Save slot: " + profileID + " Game Version: " + PlayerData.instance.version);
                 _loadingChar = false;
             }
 
@@ -368,7 +367,7 @@ namespace DebugMod
         /// </summary>
         [PublicAPI]
         public static void AddTopMenuContent(string MenuName, List<TopMenuButton> ButtonList) => TopMenu.AddTopMenuContent(MenuName, ButtonList);
-
+        
         /// <summary>
         /// Add all public static methods on a type to the keybinds list. Methods must be decorated with the BindableMethod attribute.
         /// </summary>
@@ -384,9 +383,10 @@ namespace DebugMod
                     BindableMethod attr = (BindableMethod) attributes[0];
                     string name = attr.name;
                     string cat = attr.category;
+                    bool allowLock = attr.allowLock;
 
                     instance.Log($"Recieved Action: {name} (from {BindableFunctionsClass.Name})");
-                    AdditionalBindMethods.Add(name, (cat, (Action) Delegate.CreateDelegate(typeof(Action), method)));
+                    AdditionalBindMethods.Add(name, (cat, allowLock, (Action) Delegate.CreateDelegate(typeof(Action), method)));
                 }
             }
         }
@@ -397,9 +397,17 @@ namespace DebugMod
         [PublicAPI]
         public static void AddActionToKeyBindList(Action method, string name, string category)
         {
-            instance.Log($"Recieved Action: {name}");
-            AdditionalBindMethods.Add(name, (category, method));
+            AddActionToKeyBindList(method, name, category, true);   
         }
-        public bool ToggleButtonInsideMenu => false;
+
+        /// <summary>
+        /// Add an action to the keybinds list.
+        /// </summary>
+        [PublicAPI]
+        public static void AddActionToKeyBindList(Action method, string name, string category, bool allowLock)
+        {
+            instance.Log($"Received Action: {name}");
+            AdditionalBindMethods.Add(name, (category, allowLock, method));
+        }
     }
 }

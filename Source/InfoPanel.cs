@@ -163,6 +163,10 @@ namespace DebugMod
         }
         public static string GetHeroPos()
         {
+            if (DebugMod.RefKnight == null)
+            {
+                return String.Empty;
+            }
             float HeroX = DebugMod.RefKnight.transform.position.x;
             float HeroY = DebugMod.RefKnight.transform.position.y;
 

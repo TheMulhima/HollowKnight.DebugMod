@@ -239,5 +239,11 @@ namespace DebugMod
             yield return new WaitForFixedUpdate();
             Time.timeScale = 0;
         }
+        [BindableMethod(name = "Lock KeyBinds", category = "Misc")]
+        public static void ToggleLockKeyBinds()
+        {
+            DebugMod.KeyBindLock = !DebugMod.KeyBindLock;
+            Console.AddLine($"{(DebugMod.KeyBindLock ? "Removing" : "Adding")} the ability to use keybinds");
+        }
     }
 }
