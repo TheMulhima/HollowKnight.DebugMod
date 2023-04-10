@@ -29,7 +29,7 @@ namespace DebugMod
         {
             public string saveStateIdentifier;
             public string saveScene;
-            public int useRoomSpecific = 0;
+            public string roomSpecificOptions = "0";
             public PlayerData savedPd;
             public object lockArea;
             public SceneData savedSd;
@@ -53,7 +53,7 @@ namespace DebugMod
                 savePos = _data.savePos;
                 lockArea = _data.lockArea;
                 isKinematized = _data.isKinematized;
-                useRoomSpecific = _data.useRoomSpecific;
+                roomSpecificOptions = _data.roomSpecificOptions;
 
                 if (_data.loadedScenes is not null)
                 {
@@ -100,7 +100,7 @@ namespace DebugMod
             data.cameraLockArea = (data.cameraLockArea ?? typeof(CameraController).GetField("currentLockArea", BindingFlags.Instance | BindingFlags.NonPublic));
             data.lockArea = data.cameraLockArea.GetValue(GameManager.instance.cameraCtrl);
             data.isKinematized = HeroController.instance.GetComponent<Rigidbody2D>().isKinematic;
-            data.useRoomSpecific = 0;
+            data.roomSpecificOptions = "0";
             var scenes = SceneWatcher.LoadedScenes;
             data.loadedScenes = scenes.Select(s => s.name).ToArray();
             data.loadedSceneActiveScenes = scenes.Select(s => s.activeSceneWhenLoaded).ToArray();
@@ -341,7 +341,7 @@ namespace DebugMod
             
             if (data.useRoomSpecific != 0)
             {
-                RoomSpecific.DoRoomSpecific(data.saveScene.ToLower() /* they changed capitalization across versions */, data.useRoomSpecific);
+                RoomSpecific.DoRoomSpecific(data.saveScene, data.roomSpecificOptions);
             }
             
             TimeSpan loadingStateTime = loadingStateTimer.Elapsed;

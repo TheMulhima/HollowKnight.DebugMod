@@ -95,8 +95,11 @@ namespace DebugMod
         }
         #endregion
 
-        public static void DoRoomSpecific(string scene, int index)//index only used if multiple functionallities in one room, safe to ignore for now.
+        public static void DoRoomSpecific(string scene, string options)//index only used if multiple functionallities in one room, safe to ignore for now.
         {
+            // caps in scene names change across versions
+            scene = scene.ToLower();
+            int index = int.Parse(options);
             switch (scene)
             {
                 case "deepnest_spider_town":
