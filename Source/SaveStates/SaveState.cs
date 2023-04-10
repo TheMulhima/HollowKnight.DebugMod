@@ -142,7 +142,7 @@ namespace DebugMod
         //loadDuped is used by external mods
         public void LoadTempState(bool loadDuped = false)
         {
-            if (PlayerDeathWatcher.playerDead && 
+            if (!PlayerDeathWatcher.playerDead && 
                 !HeroController.instance.cState.transitioning && 
                 HeroController.instance.transform.parent == null && // checks if in elevator/conveyor
                 !loadingSavestate)
