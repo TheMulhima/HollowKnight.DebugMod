@@ -1,0 +1,48 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI
+
+on:
+  # Triggers the workflow on push or pull request events but only for the main branch
+  push:
+    branches: [ 1.4.3.2 ]
+  pull_request:
+    branches: [ 1.4.3.2 ]
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      - name: Setup API files
+        run: |
+            wget https://files.catbox.moe/7jlrlv.zip -O API.zip
+            unzip API.zip -d API
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v1
+      - name: Setup ms-build
+        run: sudo apt-get install -y nuget mono-devel mono-xbuild
+      - name: Restore dependencies
+        run: dotnet restore
+      - name: Build Mod
+        run: dotnet build -c Release
+      - name: Copy Files
+        run: |
+          cp ./Source/bin/Release/DebugMod.dll ./Source/
+          cp ./Source/bin/Release/DebugMod.pdb ./Source/
+          cp ./Source/bin/Release/DebugMod.xml ./Source/
+      - name: Upload Mod
+        uses: actions/upload-artifact@v3
+        with:
+          name: DebugMod
+          path: |
+            ./Source/DebugMod.dll
+            ./Source/DebugMod.pdb
+            ./Source/DebugMod.xml
