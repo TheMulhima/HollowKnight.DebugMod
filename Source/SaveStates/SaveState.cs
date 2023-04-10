@@ -339,7 +339,7 @@ namespace DebugMod
                 .GetMethod("UpdateUIStateFromGameState", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)?
                 .Invoke(GameManager.instance, new object[] {});
             
-            if (data.useRoomSpecific != 0)
+            if (data.roomSpecificOptions != "0")
             {
                 RoomSpecific.DoRoomSpecific(data.saveScene, data.roomSpecificOptions);
             }
