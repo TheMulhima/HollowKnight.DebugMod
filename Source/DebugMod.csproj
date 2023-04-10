@@ -86,12 +86,20 @@
         <Copy SourceFiles="$(TargetDir)$(TargetName).xml" DestinationFolder="$(ProjectDir)/Output/" />
         <Copy SourceFiles="$(SolutionDir)/README.md" DestinationFolder="$(ProjectDir)/Output/" ContinueOnError="true" />
         <ZipDirectory DestinationFile="$(ProjectDir)/$(TargetName).zip" SourceDirectory="$(ProjectDir)/Output" />
-        <RemoveDir Directories="$(ProjectDir)Output" />
+        <RemoveDir Directories="$(ProjectDir)/Output" />
         
         <GetFileHash Files="$(ProjectDir)/$(TargetName).zip" Algorithm="SHA256">
             <Output TaskParameter="Items" ItemName="FilesWithHashes" />
         </GetFileHash>
+        <GetAssemblyIdentity AssemblyFiles="$(TargetPath)">
+          <Output TaskParameter="Assemblies" ItemName="Targets" />
+        </GetAssemblyIdentity>
+        <ItemGroup>
+          <VersionNumber Include="@(Targets->'%(Version)')" />
+        </ItemGroup>
         <Message Importance="High" Text="@(FilesWithHashes->'%(Identity): %(FileHash)')" />
+		    <WriteLinesToFile File="$(ProjectDir)/SHA.txt" Lines="@(FilesWithHashes->'%(FileHash)')" Overwrite="true" Encoding="UTF-8" />
+		    <WriteLinesToFile File="$(ProjectDir)/VERSION.txt" Lines="@(VersionNumber)" Overwrite="true" Encoding="UTF-8" />
     </Target>
 	
 </Project>
