@@ -74,7 +74,6 @@ jobs:
         run: |
           $sha = Get-Content artifacts/DebugMod/SHA.txt
           $ver = Get-Content artifacts/DebugMod/VERSION.txt
-          $ver = "v" + $ver
           echo "archiveHash=$sha" >> $env:GITHUB_OUTPUT
           echo "buildVersion=$ver" >> $env:GITHUB_OUTPUT
       - name: Release
