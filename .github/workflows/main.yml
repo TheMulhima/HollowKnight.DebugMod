@@ -2,8 +2,19 @@
 
 name: CI
 
-# Controls when the workflow will run
-on: [push, pull_request]
+on:
+  # Triggers the workflow on push or pull request events but only for the main branch
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+    inputs:
+      should_release:
+        description: "Create release?"
+        required: true
+        default: false
+        type: boolean
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -28,9 +39,52 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore
       - name: Build Mod
-        run: dotnet build
+        run: dotnet build -c Release
+      - name: Copy Files
+        run: |
+          cp ./Source/bin/Release/DebugMod.dll ./Source/
+          cp ./Source/bin/Release/DebugMod.pdb ./Source/
+          cp ./Source/bin/Release/DebugMod.xml ./Source/
       - name: Upload Mod
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: DebugMod
-          path: ./DebugMod/
+          path: |
+            ./Source/DebugMod.dll
+            ./Source/DebugMod.pdb
+            ./Source/DebugMod.xml
+            ./Source/SHA.txt
+            ./Source/VERSION.txt
+            ./Source/DebugMod.zip
+  release:
+    needs:
+      - build
+    runs-on: windows-latest
+    # only make a release if we manually request the build - other builds will be handled automatically with a push
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.should_release == 'true'
+    steps:
+      - name: Download Artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: artifacts
+      - name: Get build details
+        id: details
+        # this assumes that an MSBuild task that writes the SHA256 of the zip file to SHA.txt, and the mod version (usually
+        # the same as the assembly version) to version.txt. The contents of these files are read to step outputs for use in release
+        run: |
+          $sha = Get-Content artifacts/DebugMod/SHA.txt
+          $ver = Get-Content artifacts/DebugMod/VERSION.txt
+          $ver = "v" + $ver
+          echo "archiveHash=$sha" >> $env:GITHUB_OUTPUT
+          echo "buildVersion=$ver" >> $env:GITHUB_OUTPUT
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          draft: false
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          tag_name: v${{ steps.details.outputs.buildVersion }}
+          body: |
+            SHA256: ${{ steps.details.outputs.archiveHash }}
+          files: |
+            artifacts/DebugMod/DebugMod.zip
