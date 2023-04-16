@@ -28,6 +28,7 @@ namespace DebugMod
         {
             public string saveStateIdentifier;
             public string saveScene;
+            public string roomSpecificOptions = "0";
             public PlayerData savedPd;
             public object lockArea;
             public SceneData savedSd;
@@ -51,6 +52,8 @@ namespace DebugMod
                 savePos = _data.savePos;
                 lockArea = _data.lockArea;
                 isKinematized = _data.isKinematized;
+                roomSpecificOptions = _data.roomSpecificOptions;
+
                 if (_data.loadedScenes is not null)
                 {
                     loadedScenes = new string[_data.loadedScenes.Length];
@@ -96,6 +99,7 @@ namespace DebugMod
             data.cameraLockArea = (data.cameraLockArea ?? typeof(CameraController).GetField("currentLockArea", BindingFlags.Instance | BindingFlags.NonPublic));
             data.lockArea = data.cameraLockArea.GetValue(GameManager.instance.cameraCtrl);
             data.isKinematized = HeroController.instance.GetComponent<Rigidbody2D>().isKinematic;
+            data.roomSpecificOptions = "0";
             var scenes = SceneWatcher.LoadedScenes;
             data.loadedScenes = scenes.Select(s => s.name).ToArray();
             data.loadedSceneActiveScenes = scenes.Select(s => s.activeSceneWhenLoaded).ToArray();
@@ -138,7 +142,7 @@ namespace DebugMod
         //loadDuped is used by external mods
         public void LoadTempState(bool loadDuped = false)
         {
-            if (PlayerDeathWatcher.playerDead && 
+            if (!PlayerDeathWatcher.playerDead && 
                 !HeroController.instance.cState.transitioning && 
                 HeroController.instance.transform.parent == null && // checks if in elevator/conveyor
                 !loadingSavestate)
@@ -171,6 +175,7 @@ namespace DebugMod
                     try
                     {
                         data = new SaveStateData(tmpData);
+
                         DebugMod.instance.Log("Load SaveState ready: " + data.saveStateIdentifier);
                     }
                     catch (Exception ex)
@@ -328,6 +333,12 @@ namespace DebugMod
 
             ReflectionHelper.CallMethod(HeroController.instance, "FinishedEnteringScene", true, false);
             ReflectionHelper.CallMethod(GameManager.instance, "UpdateUIStateFromGameState");
+
+            if (data.roomSpecificOptions != "0")
+            {
+                RoomSpecific.DoRoomSpecific(data.saveScene, data.roomSpecificOptions);
+            }
+
             TimeSpan loadingStateTime = loadingStateTimer.Elapsed;
             Console.AddLine("Loaded savestate in " + loadingStateTime.ToString(@"ss\.fff") + "s");
         }
