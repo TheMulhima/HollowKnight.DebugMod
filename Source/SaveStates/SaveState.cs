@@ -103,6 +103,7 @@ namespace DebugMod
             var scenes = SceneWatcher.LoadedScenes;
             data.loadedScenes = scenes.Select(s => s.name).ToArray();
             data.loadedSceneActiveScenes = scenes.Select(s => s.activeSceneWhenLoaded).ToArray();
+            Console.AddLine("Saved temp state");
         }
 
         public void NewSaveStateToFile(int paramSlot)
@@ -291,11 +292,6 @@ namespace DebugMod
             HeroController.instance.AddMPChargeSpa(1);
 
             //preserve correct hp amount
-            bool isInfiniteHp = DebugMod.infiniteHP;
-            DebugMod.infiniteHP = false;
-            HeroController.instance.AddHealth(1);
-            HeroController.instance.TakeHealth(1);
-            DebugMod.infiniteHP = isInfiniteHp;
 
             GameManager.instance.SetPlayerDataBool(nameof(PlayerData.atBench), false);
 
@@ -306,6 +302,13 @@ namespace DebugMod
             PlayMakerFSM.BroadcastEvent("UPDATE BLUE HEALTH");       //update lifeblood
 
             HeroController.instance.geoCounter.geoTextMesh.text = data.savedPd.geo.ToString();
+
+            bool isInfiniteHp = DebugMod.infiniteHP;
+            DebugMod.infiniteHP = false;
+            PlayerData.instance.health = data.savedPd.health; // charm indicator check sets health to max for some reason
+            HeroController.instance.AddHealth(1);
+            if (data.savedPd.health != data.savedPd.maxHealth) HeroController.instance.TakeHealth(1);
+            DebugMod.infiniteHP = isInfiniteHp;
 
             GameCameras.instance.hudCanvas.gameObject.SetActive(true);
 
@@ -338,6 +341,11 @@ namespace DebugMod
             {
                 RoomSpecific.DoRoomSpecific(data.saveScene, data.roomSpecificOptions);
             }
+
+            yield return null;
+
+            GameCameras.instance.hudCanvas.transform.Find("Health").gameObject.SetActive(false);
+            GameCameras.instance.hudCanvas.transform.Find("Health").gameObject.SetActive(true);
 
             TimeSpan loadingStateTime = loadingStateTimer.Elapsed;
             Console.AddLine("Loaded savestate in " + loadingStateTime.ToString(@"ss\.fff") + "s");
