@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Drawing.Text;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -91,6 +92,8 @@ namespace DebugMod
 
         public void SaveTempState()
         {
+            //save level state before savestates so levers and dead enemies persist properly
+            GameManager.instance.SaveLevelState();
             data.saveScene = GameManager.instance.GetSceneNameString();
             data.saveStateIdentifier = $"(tmp)_{data.saveScene}-{DateTime.Now.ToString("H:mm_d-MMM")}";
             data.savedPd = JsonUtility.FromJson<PlayerData>(JsonUtility.ToJson(PlayerData.instance));
@@ -200,16 +203,9 @@ namespace DebugMod
             System.Diagnostics.Stopwatch loadingStateTimer = new System.Diagnostics.Stopwatch();
             loadingStateTimer.Start();
 
-            //code taken from Homothety Benchwarp
-            //actually broadcasts the event
             HeroController.instance.TakeMPQuick(PlayerData.instance.MPCharge);
             HeroController.instance.SetMPCharge(0);
             PlayerData.instance.MPReserve = 0;
-            // This is the main fsm path for removing soul from the orb
-            PlayMakerFSM.BroadcastEvent("MP DRAIN");
-            // This is an alternate path (used for bindings and other things) that actually plays an animation?
-            PlayMakerFSM.BroadcastEvent("MP LOSE");
-            PlayMakerFSM.BroadcastEvent("MP RESERVE DOWN");
 
             if (data.savedPd == null || string.IsNullOrEmpty(data.saveScene)) yield break;
 
@@ -244,6 +240,8 @@ namespace DebugMod
 
             sceneData[0].LoadHook();
 
+            //this resets the enemys 
+            JsonUtility.FromJsonOverwrite(JsonUtility.ToJson(data.savedSd), SceneData.instance);
             GameManager.instance.BeginSceneTransition
             (
                 new DebugModSaveStateSceneLoadInfo
@@ -290,13 +288,6 @@ namespace DebugMod
             HeroController.instance.TakeMP(1);
             HeroController.instance.AddMPChargeSpa(1);
 
-            //preserve correct hp amount
-            bool isInfiniteHp = DebugMod.infiniteHP;
-            DebugMod.infiniteHP = false;
-            HeroController.instance.AddHealth(1);
-            HeroController.instance.TakeHealth(1);
-            DebugMod.infiniteHP = isInfiniteHp;
-
             GameManager.instance.SetPlayerDataBool(nameof(PlayerData.atBench), false);
 
             HeroController.instance.CharmUpdate();
@@ -304,6 +295,18 @@ namespace DebugMod
             PlayMakerFSM.BroadcastEvent("CHARM INDICATOR CHECK");    //update twister             
             PlayMakerFSM.BroadcastEvent("UPDATE NAIL DAMAGE");       //update nail
             PlayMakerFSM.BroadcastEvent("UPDATE BLUE HEALTH");       //update lifeblood
+
+            //preserve correct hp amount
+            bool isInfiniteHp = DebugMod.infiniteHP;
+            DebugMod.infiniteHP = false;
+            //prevent flower break by taking it, then giving it back
+            PlayerData.instance.hasXunFlower = false;
+            PlayerData.instance.health = data.savedPd.health;
+            HeroController.instance.TakeHealth(1);
+            HeroController.instance.AddHealth(1);
+
+            PlayerData.instance.hasXunFlower = data.savedPd.hasXunFlower;
+            DebugMod.infiniteHP = isInfiniteHp;
 
             HeroController.instance.geoCounter.geoTextMesh.text = data.savedPd.geo.ToString();
 
@@ -334,13 +337,63 @@ namespace DebugMod
             ReflectionHelper.CallMethod(HeroController.instance, "FinishedEnteringScene", true, false);
             ReflectionHelper.CallMethod(GameManager.instance, "UpdateUIStateFromGameState");
 
-            if (data.roomSpecificOptions != "0")
+            if (data.roomSpecificOptions != "0" && data.roomSpecificOptions != null)
             {
                 RoomSpecific.DoRoomSpecific(data.saveScene, data.roomSpecificOptions);
             }
 
+            //run animations later to actually add the soul
+            PlayMakerFSM.BroadcastEvent("MP DRAIN"); 
+            PlayMakerFSM.BroadcastEvent("MP LOSE");
+            PlayMakerFSM.BroadcastEvent("MP RESERVE DOWN");
+
+
+
+            //removes things like bench storage no clip float etc
+            if (DebugMod.settings.SaveStateGlitchFixes) SaveStateGlitchFixes(); 
             TimeSpan loadingStateTime = loadingStateTimer.Elapsed;
             Console.AddLine("Loaded savestate in " + loadingStateTime.ToString(@"ss\.fff") + "s");
+        }
+        
+        //these are toggleable, as they will make glitches impossible
+        private void SaveStateGlitchFixes()
+        {
+            var rb2d = HeroController.instance.GetComponent<Rigidbody2D>();
+            GameObject knight = GameObject.Find("Knight");
+            PlayMakerFSM wakeFSM = knight.LocateMyFSM("Dream Return");
+            PlayMakerFSM spellFSM = knight.LocateMyFSM("Spell Control");
+
+            //White screen fixes
+            wakeFSM.SetState("Idle");
+
+            //float
+            HeroController.instance.AffectedByGravity(true);
+            rb2d.gravityScale = 0.79f;
+            spellFSM.SetState("Inactive");
+            
+            //dgate invuln
+            HeroController.instance.gameObject.LocateMyFSM("Roar Lock").FsmVariables.FindFsmBool("No Roar").Value = false;
+
+            //no clip
+            rb2d.isKinematic = false;
+
+            if (HeroController.SilentInstance != null)
+            {
+                if (HeroController.instance.cState.onConveyor || HeroController.instance.cState.onConveyorV || HeroController.instance.cState.inConveyorZone)
+                {
+                    HeroController.instance.GetComponent<ConveyorMovementHero>()?.StopConveyorMove();
+                    HeroController.instance.cState.inConveyorZone = false;
+                    HeroController.instance.cState.onConveyor = false;
+                    HeroController.instance.cState.onConveyorV = false;
+                }
+
+                HeroController.instance.cState.nearBench = false;
+            }
+
+
+            PlayMakerFSM proxyFSM = knight.LocateMyFSM("ProxyFSM");
+
+
         }
         #endregion
 

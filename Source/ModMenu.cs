@@ -72,8 +72,23 @@ namespace DebugMod
                                         Text = "Current keybinds are removed and the default keybinds are loaded",
                                     },
                                     Label = "Reset KeyBinds to Default",
-                                    Proceed = false   
-                                });
+                                    Proceed = false
+                                })
+                            .AddMenuButton(
+                                "Toggle Savestate Fixes",
+                                new MenuButtonConfig
+                                {
+                                    CancelAction = CancelAction,
+                                    SubmitAction = _ => DebugMod.settings.SaveStateGlitchFixes = !DebugMod.settings.SaveStateGlitchFixes,
+                                    Description = new DescriptionInfo
+                                    {
+                                        Text = "Turns off numerous changes to glitched states when loading savestates",
+                                    },
+                                    Label = "Toggle Savestate Fixes",
+                                    Proceed = false
+
+
+                                }); ;
                     })
                 .AddControls(
                     new SingleContentLayout(new AnchoredPosition(

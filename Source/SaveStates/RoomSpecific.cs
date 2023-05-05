@@ -4,6 +4,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using HutongGames.PlayMaker;
+using HutongGames.PlayMaker.Actions;
+using IL.HutongGames.PlayMaker.Actions;
+using HutongGames;
+using TeamCherry;
 using UnityEngine;
 
 namespace DebugMod
@@ -37,19 +41,45 @@ namespace DebugMod
         }
         private static void BreakTHKChains(int index)
         {
-            string fsmName = "Control";
-            string goName1 = "hollow_knight_chain_base";
-            string goName2 = "hollow_knight_chain_base 2";
-            string goName3 = "hollow_knight_chain_base 3";
-            string goName4 = "hollow_knight_chain_base 4";
-            PlayMakerFSM fsm1 = FindFsmGlobally(goName1, fsmName);
-            PlayMakerFSM fsm2 = FindFsmGlobally(goName2, fsmName);
-            PlayMakerFSM fsm3 = FindFsmGlobally(goName3, fsmName);
-            PlayMakerFSM fsm4 = FindFsmGlobally(goName4, fsmName);
-            fsm1.SetState("Break");
-            fsm2.SetState("Break");
-            fsm3.SetState("Break");
-            fsm4.SetState("Break");
+            //if (index == 1)
+            //{
+                string fsmName = "Control";
+                string goName1 = "hollow_knight_chain_base";
+                string goName2 = "hollow_knight_chain_base 2";
+                string goName3 = "hollow_knight_chain_base 3";
+                string goName4 = "hollow_knight_chain_base 4";
+                PlayMakerFSM fsm1 = FindFsmGlobally(goName1, fsmName);
+                PlayMakerFSM fsm2 = FindFsmGlobally(goName2, fsmName);
+                PlayMakerFSM fsm3 = FindFsmGlobally(goName3, fsmName);
+                PlayMakerFSM fsm4 = FindFsmGlobally(goName4, fsmName);
+                fsm1.SetState("Break");
+                fsm2.SetState("Break");
+                fsm3.SetState("Break");
+                fsm4.SetState("Break");
+            //}
+            if (index == 2)
+            {
+                PlayMakerFSM controlFSM = FindFsmGlobally("Boss Control", "Battle Start");
+                controlFSM.SetState("Init");
+                controlFSM.SendEvent("Revisit");
+                controlFSM.SetState("Fight Start");
+                string thkName = "Hollow Knight Boss";
+                GameObject thk = GameObject.Find(thkName);
+                PlayMakerFSM thkFSM = FindFsmGlobally(thkName, "Control");
+                PlayMakerFSM thkPhaseFSM = FindFsmGlobally(thkName, "Phase Control");
+                GameManager.instance.SetPlayerDataBool("gotShadeCharm", true);
+                thkPhaseFSM.SetState("Set Phase 4");
+                thkFSM.SetState("Roar");
+                PlayMakerFSM.BroadcastEvent("DREAMNAIL REJECT OFF");
+
+
+                PlayMakerFSM dreamControlFSM = FindFsmGlobally("Dream Enter", "Control");
+                GameObject dream = GameObject.Find("Dream Enter");
+                dreamControlFSM.SendEvent("Finished");
+                dreamControlFSM.SendEvent("Nail Hit");
+
+
+            }
         } //Room_Final_Boss
         private static void ObtainDreamNail(int index)
         {
@@ -93,6 +123,7 @@ namespace DebugMod
                 quakeFakeFSM.SendEvent("QUAKE FAKE APPEAR");
             }
         }
+
         #endregion
 
         public static void DoRoomSpecific(string scene, string options)//index only used if multiple functionallities in one room, safe to ignore for now.

@@ -46,6 +46,11 @@ namespace DebugMod
         public static void ToggleInfiniteSoul()
         {
             DebugMod.infiniteSoul = !DebugMod.infiniteSoul;
+            if (DebugMod.infiniteSoul)
+            {
+                //running this is a solution to inf soul not filling vessels when main is 99, not elegant but it works
+                HeroController.instance.SetMPCharge(0);
+            }
             Console.AddLine("Infinite SOUL set to " + DebugMod.infiniteSoul.ToString().ToUpper());
         }
 

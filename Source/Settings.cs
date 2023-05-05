@@ -55,5 +55,7 @@ namespace DebugMod
         public float NoClipSpeedModifier = 1f;
 
         public bool ShowCursorWhileUnpaused = false;
+
+        public bool SaveStateGlitchFixes = true;
     }
 }

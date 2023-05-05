@@ -90,6 +90,7 @@ namespace DebugMod
         internal static bool TimeScaleActive;
         internal static float CurrentTimeScale = 1f;
         internal static bool PauseGameNoUIActive = false;
+        internal static bool savestateFixes = true;
 
         internal static Dictionary<string, (string category, bool allowLock, Action method)> bindMethods = new();
         internal static Dictionary<string, (string category, bool allowLock, Action method)> AdditionalBindMethods = new();
