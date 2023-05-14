@@ -107,6 +107,7 @@ namespace DebugMod
             var scenes = SceneWatcher.LoadedScenes;
             data.loadedScenes = scenes.Select(s => s.name).ToArray();
             data.loadedSceneActiveScenes = scenes.Select(s => s.activeSceneWhenLoaded).ToArray();
+            Console.AddLine("Saved temp state");
         }
 
         public void NewSaveStateToFile(int paramSlot)
@@ -310,8 +311,8 @@ namespace DebugMod
 
             GameManager.instance.cameraCtrl.FadeSceneIn();
 
-            //update charms
             HeroController.instance.CharmUpdate();
+
             PlayMakerFSM.BroadcastEvent("CHARM INDICATOR CHECK");    //update twister             
             PlayMakerFSM.BroadcastEvent("UPDATE NAIL DAMAGE");       //update nail
             PlayMakerFSM.BroadcastEvent("UPDATE BLUE HEALTH");       //update lifeblood
@@ -402,7 +403,6 @@ namespace DebugMod
 
             TimeSpan loadingStateTime = loadingStateTimer.Elapsed;
             Console.AddLine("Loaded savestate in " + loadingStateTime.ToString(@"ss\.fff") + "s");
-
         }
         
         //these are toggleable, as they will prevent glitches from persisting
