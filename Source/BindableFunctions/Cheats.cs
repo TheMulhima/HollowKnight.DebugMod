@@ -121,5 +121,7 @@ namespace DebugMod
             GameCameras.instance.hudCanvas.gameObject.SetActive(false);
             GameCameras.instance.hudCanvas.gameObject.SetActive(true);
         }
+
+
     }
 }

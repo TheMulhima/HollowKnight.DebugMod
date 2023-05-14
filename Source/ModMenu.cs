@@ -74,6 +74,7 @@ namespace DebugMod
                                     Label = "Reset KeyBinds to Default",
                                     Proceed = false
                                 })
+                            //TODO: Make this Toggle Visible
                             .AddMenuButton(
                                 "Toggle Savestate Fixes",
                                 new MenuButtonConfig
@@ -86,9 +87,7 @@ namespace DebugMod
                                     },
                                     Label = "Toggle Savestate Fixes",
                                     Proceed = false
-
-
-                                }); ;
+                                });
                     })
                 .AddControls(
                     new SingleContentLayout(new AnchoredPosition(

@@ -7,6 +7,7 @@ using System.Reflection;
 using DebugMod.Hitbox;
 using GlobalEnums;
 using Modding;
+using On;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using USceneManager = UnityEngine.SceneManagement.SceneManager;
@@ -197,21 +198,44 @@ namespace DebugMod
         //loadDuped is used by external mods
         private IEnumerator LoadStateCoro(bool loadDuped)
         {
-            //var used to prevent saves/loads, double saves softlock in menderbug and double loads
-            //prevents a black screen requiring another load
+            //var used to prevent saves/loads, double save/loads softlock in menderbug, double load, black screen, etc
             loadingSavestate = true;
+
+            //timer for loading savestates
             System.Diagnostics.Stopwatch loadingStateTimer = new System.Diagnostics.Stopwatch();
             loadingStateTimer.Start();
 
-            HeroController.instance.TakeMPQuick(PlayerData.instance.MPCharge);
-            HeroController.instance.SetMPCharge(0);
-            PlayerData.instance.MPReserve = 0;
+            //called here because this needs to be done here
+            if (DebugMod.savestateFixes)
+            {
+                //TODO: Cleaner way to do this?
+                //prevent hazard respawning
+                if(DebugMod.CurrentHazardCoro != null) HeroController.instance.StopCoroutine(DebugMod.CurrentHazardCoro);
+                if (DebugMod.CurrentInvulnCoro != null) HeroController.instance.StopCoroutine(DebugMod.CurrentInvulnCoro);
+                DebugMod.CurrentHazardCoro = null;
+                DebugMod.CurrentInvulnCoro = null;
+
+                //fixes knockback storage
+                ReflectionHelper.CallMethod(HeroController.instance, "CancelDamageRecoil");
+
+                //ends hazard respawn animation
+                var invPulse = HeroController.instance.GetComponent<InvulnerablePulse>();
+                invPulse.stopInvulnerablePulse();
+            }
 
             if (data.savedPd == null || string.IsNullOrEmpty(data.saveScene)) yield break;
 
             //remove dialogues if exists
             PlayMakerFSM.BroadcastEvent("BOX DOWN DREAM");
             PlayMakerFSM.BroadcastEvent("CONVO CANCEL");
+
+            //step 1 of clearing soul
+            HeroController.instance.TakeMPQuick(PlayerData.instance.MPCharge);
+            HeroController.instance.SetMPCharge(0);
+            PlayerData.instance.MPReserve = 0;
+            PlayMakerFSM.BroadcastEvent("MP DRAIN");
+            PlayMakerFSM.BroadcastEvent("MP LOSE");
+            PlayMakerFSM.BroadcastEvent("MP RESERVE DOWN");
 
             GameManager.instance.entryGateName = "dreamGate";
             GameManager.instance.startedOnThisScene = true;
@@ -240,8 +264,9 @@ namespace DebugMod
 
             sceneData[0].LoadHook();
 
-            //this resets the enemys 
+            //this kills enemies that were dead on the state, they respawn from previous code
             JsonUtility.FromJsonOverwrite(JsonUtility.ToJson(data.savedSd), SceneData.instance);
+
             GameManager.instance.BeginSceneTransition
             (
                 new DebugModSaveStateSceneLoadInfo
@@ -285,28 +310,28 @@ namespace DebugMod
 
             GameManager.instance.cameraCtrl.FadeSceneIn();
 
-            HeroController.instance.TakeMP(1);
-            HeroController.instance.AddMPChargeSpa(1);
-
-            GameManager.instance.SetPlayerDataBool(nameof(PlayerData.atBench), false);
-
+            //update charms
             HeroController.instance.CharmUpdate();
-
             PlayMakerFSM.BroadcastEvent("CHARM INDICATOR CHECK");    //update twister             
             PlayMakerFSM.BroadcastEvent("UPDATE NAIL DAMAGE");       //update nail
             PlayMakerFSM.BroadcastEvent("UPDATE BLUE HEALTH");       //update lifeblood
 
-            //preserve correct hp amount
-            bool isInfiniteHp = DebugMod.infiniteHP;
-            DebugMod.infiniteHP = false;
-            //prevent flower break by taking it, then giving it back
-            PlayerData.instance.hasXunFlower = false;
-            PlayerData.instance.health = data.savedPd.health;
-            HeroController.instance.TakeHealth(1);
-            HeroController.instance.AddHealth(1);
-
-            PlayerData.instance.hasXunFlower = data.savedPd.hasXunFlower;
-            DebugMod.infiniteHP = isInfiniteHp;
+            //step 2,manually trigger vessels lol, this is the only way besides turning off the mesh, but that will break stuff when you collect them
+            if (PlayerData.instance.MPReserveMax < 33) GameObject.Find("Vessel 1").LocateMyFSM("vessel_orb").SetState("Init");
+                else GameObject.Find("Vessel 1").LocateMyFSM("vessel_orb").SetState("Up Check");
+            if (PlayerData.instance.MPReserveMax < 66) GameObject.Find("Vessel 2").LocateMyFSM("vessel_orb").SetState("Init");
+                else GameObject.Find("Vessel 2").LocateMyFSM("vessel_orb").SetState("Up Check");
+            if (PlayerData.instance.MPReserveMax < 99) GameObject.Find("Vessel 3").LocateMyFSM("vessel_orb").SetState("Init");
+                else GameObject.Find("Vessel 3").LocateMyFSM("vessel_orb").SetState("Up Check");
+            if (PlayerData.instance.MPReserveMax < 132) GameObject.Find("Vessel 4").LocateMyFSM("vessel_orb").SetState("Init");
+                else GameObject.Find("Vessel 4").LocateMyFSM("vessel_orb").SetState("Up Check");
+            //step 3, take and add some soul
+            HeroController.instance.TakeMP(1);
+            HeroController.instance.AddMPChargeSpa(1);
+            //step 4, run animations later to actually add the soul on the main vessel
+            PlayMakerFSM.BroadcastEvent("MP DRAIN");
+            PlayMakerFSM.BroadcastEvent("MP LOSE");
+            PlayMakerFSM.BroadcastEvent("MP RESERVE DOWN");
 
             HeroController.instance.geoCounter.geoTextMesh.text = data.savedPd.geo.ToString();
 
@@ -323,7 +348,6 @@ namespace DebugMod
             HeroController.instance.GetComponent<Rigidbody2D>().isKinematic = data.isKinematized;
 
             loadingStateTimer.Stop();
-            //var used to prevent saves/loads
             loadingSavestate = false;
 
             if (loadDuped && DebugMod.settings.ShowHitBoxes > 0)
@@ -342,20 +366,46 @@ namespace DebugMod
                 RoomSpecific.DoRoomSpecific(data.saveScene, data.roomSpecificOptions);
             }
 
-            //run animations later to actually add the soul
-            PlayMakerFSM.BroadcastEvent("MP DRAIN"); 
-            PlayMakerFSM.BroadcastEvent("MP LOSE");
-            PlayMakerFSM.BroadcastEvent("MP RESERVE DOWN");
-
-
+            //moving this here seems to work now? no need to toggle canvas
+            //preserve correct hp amount
+            bool isInfiniteHp = DebugMod.infiniteHP;
+            DebugMod.infiniteHP = false;
+            //prevent flower break by taking it, then giving it back
+            PlayerData.instance.hasXunFlower = false;
+            PlayerData.instance.health = data.savedPd.health;
+            HeroController.instance.TakeHealth(1);
+            HeroController.instance.AddHealth(1);
+            PlayerData.instance.hasXunFlower = data.savedPd.hasXunFlower;
+            DebugMod.infiniteHP = isInfiniteHp;
 
             //removes things like bench storage no clip float etc
-            if (DebugMod.settings.SaveStateGlitchFixes) SaveStateGlitchFixes(); 
+            if (DebugMod.settings.SaveStateGlitchFixes) SaveStateGlitchFixes();
+
+            //Benchwarp fixes courtesy of homothety, needed since savestates are now performed while paused
+            // Revert pause menu timescale
+            Time.timeScale = 1f;
+            GameManager.instance.FadeSceneIn();
+
+            // We have to set the game non-paused because TogglePauseMenu sucks and UIClosePauseMenu doesn't do it for us.
+            GameManager.instance.isPaused = false;
+
+            // Restore various things normally handled by exiting the pause menu. None of these are necessary afaik
+            GameCameras.instance.ResumeCameraShake();
+            if (HeroController.SilentInstance != null)
+            {
+                HeroController.instance.UnPause();
+            }
+            MenuButtonList.ClearAllLastSelected();
+
+            //This allows the next pause to stop the game correctly
+            TimeController.GenericTimeScale = 1f;
+
             TimeSpan loadingStateTime = loadingStateTimer.Elapsed;
             Console.AddLine("Loaded savestate in " + loadingStateTime.ToString(@"ss\.fff") + "s");
+
         }
         
-        //these are toggleable, as they will make glitches impossible
+        //these are toggleable, as they will prevent glitches from persisting
         private void SaveStateGlitchFixes()
         {
             var rb2d = HeroController.instance.GetComponent<Rigidbody2D>();
@@ -371,11 +421,15 @@ namespace DebugMod
             rb2d.gravityScale = 0.79f;
             spellFSM.SetState("Inactive");
             
-            //dgate invuln
+            //invuln
             HeroController.instance.gameObject.LocateMyFSM("Roar Lock").FsmVariables.FindFsmBool("No Roar").Value = false;
+            HeroController.instance.cState.invulnerable = false;
 
             //no clip
             rb2d.isKinematic = false;
+
+            //bench storage
+            GameManager.instance.SetPlayerDataBool(nameof(PlayerData.atBench), false);
 
             if (HeroController.SilentInstance != null)
             {
@@ -389,11 +443,6 @@ namespace DebugMod
 
                 HeroController.instance.cState.nearBench = false;
             }
-
-
-            PlayMakerFSM proxyFSM = knight.LocateMyFSM("ProxyFSM");
-
-
         }
         #endregion
 

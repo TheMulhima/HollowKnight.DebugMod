@@ -31,29 +31,34 @@ namespace DebugMod
             DebugMod.saveStateManager.LoadSaveState(SaveStateType.Memory);
         }
 
+        //TODO: Allow these binds to override each other properly
         [BindableMethod(name = "Quickslot save to file", category = "Savestates")]
         public static void CurrentSaveStateToFile()
         {
-            DebugMod.saveStateManager.SaveSaveState(SaveStateType.File);
+            if (SaveStateManager.currentStateOperation != "Quickslot save to file") DebugMod.saveStateManager.SaveSaveState(SaveStateType.File);
+            else DebugMod.settings.ClearSaveStatePanel = true;
         }
 
         [BindableMethod(name = "Load file to quickslot", category = "Savestates")]
         public static void CurrentSlotToSaveMemory()
         {
-            DebugMod.saveStateManager.LoadSaveState(SaveStateType.File);
+            if (SaveStateManager.currentStateOperation != "Load file to quickslot") DebugMod.saveStateManager.LoadSaveState(SaveStateType.File);
+            else DebugMod.settings.ClearSaveStatePanel = true;
         }
 
         [BindableMethod(name = "Save new state to file", category = "Savestates")]
         public static void NewSaveStateToFile()
         {
-            DebugMod.saveStateManager.SaveSaveState(SaveStateType.SkipOne);
-
+            if (SaveStateManager.currentStateOperation != "Save new state to file") DebugMod.saveStateManager.SaveSaveState(SaveStateType.SkipOne);
+            else DebugMod.settings.ClearSaveStatePanel = true;
         }
 
         [BindableMethod(name = "Load new state from file", category = "Savestates")]
         public static void LoadFromFile()
         {
-            DebugMod.saveStateManager.LoadSaveState(SaveStateType.SkipOne);
+            if (SaveStateManager.currentStateOperation != "Load new state from file") DebugMod.saveStateManager.LoadSaveState(SaveStateType.SkipOne);
+            else DebugMod.settings.ClearSaveStatePanel = true;
+
         }
 
         [BindableMethod(name = "Next Save Page", category = "Savestates")]
@@ -84,6 +89,13 @@ namespace DebugMod
                 SaveStateManager.saveStatesBaseDirectory,
                 SaveStateManager.currentStateFolder.ToString()); //change path
             DebugMod.saveStateManager.RefreshStateMenu(); // update menu
+        }
+
+        [BindableMethod(name = "Load Savestate On Death", category = "Savestates")]
+        public static void LoadStateOnDeath()
+        {
+            DebugMod.stateOnDeath = !DebugMod.stateOnDeath;
+            Console.AddLine("Quickslot SaveState will now" + (DebugMod.stateOnDeath ? " be" : " no longer") + " loaded on death");
         }
 
         /*

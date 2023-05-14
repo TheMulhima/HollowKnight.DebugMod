@@ -14,6 +14,8 @@ using Newtonsoft.Json;
 using UnityEngine;
 using Object = UnityEngine.Object;
 using USceneManager = UnityEngine.SceneManagement.SceneManager;
+using Modding.Utils;
+using System.ComponentModel;
 
 namespace DebugMod
 {
@@ -23,6 +25,7 @@ namespace DebugMod
         private static readonly FieldInfo IgnoreUnpause = typeof(UIManager).GetField("ignoreUnpause", BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Static);
         internal static readonly FieldInfo cameraGameplayScene = typeof(CameraController).GetField("isGameplayScene", BindingFlags.Instance | BindingFlags.NonPublic);
         private static float TimeScaleDuringFrameAdvance = 0f;
+
 
         /*[BindableMethod(name = "Nail Damage +4 Temp", category = "Misc")]
         public static void IncreaseNailDamageTemp()

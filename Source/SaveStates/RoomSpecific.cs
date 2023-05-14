@@ -9,6 +9,8 @@ using IL.HutongGames.PlayMaker.Actions;
 using HutongGames;
 using TeamCherry;
 using UnityEngine;
+using Modding.Utils;
+using System.Drawing.Text;
 
 namespace DebugMod
 {
@@ -41,8 +43,8 @@ namespace DebugMod
         }
         private static void BreakTHKChains(int index)
         {
-            //if (index == 1)
-            //{
+            if (index == 1)
+            {
                 string fsmName = "Control";
                 string goName1 = "hollow_knight_chain_base";
                 string goName2 = "hollow_knight_chain_base 2";
@@ -56,30 +58,35 @@ namespace DebugMod
                 fsm2.SetState("Break");
                 fsm3.SetState("Break");
                 fsm4.SetState("Break");
-            //}
+            }
+
+            //alternative method of radiance reload that doesn't softlock on game pause, sets shade correctly, and a couple other minor benefits related to timing
             if (index == 2)
             {
                 PlayMakerFSM controlFSM = FindFsmGlobally("Boss Control", "Battle Start");
+
                 controlFSM.SetState("Init");
                 controlFSM.SendEvent("Revisit");
                 controlFSM.SetState("Fight Start");
+
                 string thkName = "Hollow Knight Boss";
+
                 GameObject thk = GameObject.Find(thkName);
-                PlayMakerFSM thkFSM = FindFsmGlobally(thkName, "Control");
-                PlayMakerFSM thkPhaseFSM = FindFsmGlobally(thkName, "Phase Control");
-                GameManager.instance.SetPlayerDataBool("gotShadeCharm", true);
-                thkPhaseFSM.SetState("Set Phase 4");
-                thkFSM.SetState("Roar");
-                PlayMakerFSM.BroadcastEvent("DREAMNAIL REJECT OFF");
+                thk.SetActiveChildren(true);
 
-
-                PlayMakerFSM dreamControlFSM = FindFsmGlobally("Dream Enter", "Control");
                 GameObject dream = GameObject.Find("Dream Enter");
-                dreamControlFSM.SendEvent("Finished");
-                dreamControlFSM.SendEvent("Nail Hit");
 
+                PlayMakerFSM thkFSM = thk.LocateMyFSM("Control");
+                PlayMakerFSM dreamControlFSM = FindFsmGlobally("Dream Enter", "Control");
 
+                thk.SetActiveChildren(false);
+                dream.SetActive(true);
+                thkFSM.SetState("Long Roar End");
+                thkFSM.SendEvent("Hornet Start");
+
+                dreamControlFSM.SetState("Take Control");
             }
+
         } //Room_Final_Boss
         private static void ObtainDreamNail(int index)
         {
