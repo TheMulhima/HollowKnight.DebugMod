@@ -37,8 +37,9 @@ namespace DebugMod
             panel.AddButton("Skills", GUIController.Instance.images["ButtonRect"], new Vector2(246f, 68f), Vector2.zero, _=> panel.TogglePanel("Skills Panel"), buttonRect, GUIController.Instance.trajanBold, "Skills");
             panel.AddButton("Items", GUIController.Instance.images["ButtonRect"], new Vector2(346f, 68f), Vector2.zero, _=>  panel.TogglePanel("Items Panel"), buttonRect, GUIController.Instance.trajanBold, "Items");
             panel.AddButton("Bosses", GUIController.Instance.images["ButtonRect"], new Vector2(446f, 68f), Vector2.zero, _=>  panel.TogglePanel("Bosses Panel"), buttonRect, GUIController.Instance.trajanBold, "Bosses");
-           
-            
+            panel.AddButton("SaveStates", GUIController.Instance.images["ButtonRect"], new Vector2(546f, 68f), Vector2.zero, _ => panel.TogglePanel("SaveStates Panel"), buttonRect, GUIController.Instance.trajanBold, "SaveStates");
+
+
             //Dropdown panels
             panel.AddPanel("Cheats Panel", GUIController.Instance.images["DropdownBG"], new Vector2(45f, 75f), Vector2.zero, new Rect(0, 0, GUIController.Instance.images["DropdownBG"].width, 240f));
             panel.AddPanel("Charms Panel", GUIController.Instance.images["DropdownBG"], new Vector2(145f, 75f), Vector2.zero, new Rect(0, 0, GUIController.Instance.images["DropdownBG"].width, 270f));
@@ -47,8 +48,9 @@ namespace DebugMod
             panel.AddPanel("Bosses Panel", GUIController.Instance.images["DropdownBG"], new Vector2(445f, 75f), Vector2.zero, new Rect(0, 0, GUIController.Instance.images["DropdownBG"].width, 200f));
             panel.AddPanel("DreamGate Panel", GUIController.Instance.images["DreamGateDropdownBG"], new Vector2(545f, 75f), Vector2.zero, new Rect(0, 0, GUIController.Instance.images["DreamGateDropdownBG"].width, GUIController.Instance.images["DreamGateDropdownBG"].height));
             panel.AddPanel("Other Panel", GUIController.Instance.images["DropdownBG"], new Vector2(445f, 75f), Vector2.zero, new Rect(0, 0, GUIController.Instance.images["DropdownBG"].width, GUIController.Instance.images["DropdownBG"].height));
+            panel.AddPanel("SaveStates Panel", GUIController.Instance.images["DropdownBG"], new Vector2(545f, 75f), Vector2.zero, new Rect(0, 0, GUIController.Instance.images["DropdownBG"].width, 170f));
 
-            
+
             //Cheats panel
             panel.GetPanel("Cheats Panel").AddButton("Infinite Jump", GUIController.Instance.images["ButtonRectEmpty"], new Vector2(5f, 30f), Vector2.zero, InfiniteJumpClicked, new Rect(0f, 0f, 80f, 20f), GUIController.Instance.trajanNormal, "Infinite Jump", 10);
             panel.GetPanel("Cheats Panel").AddButton("Infinite Soul", GUIController.Instance.images["ButtonRectEmpty"], new Vector2(5f, 60f), Vector2.zero, InfiniteSoulClicked, new Rect(0f, 0f, 80f, 20f), GUIController.Instance.trajanNormal, "Infinite Soul", 10);
@@ -56,9 +58,10 @@ namespace DebugMod
             panel.GetPanel("Cheats Panel").AddButton("Invincibility", GUIController.Instance.images["ButtonRectEmpty"], new Vector2(5f, 120f), Vector2.zero, InvincibilityClicked, new Rect(0f, 0f, 80f, 20f), GUIController.Instance.trajanNormal, "Invincibility", 10);
             panel.GetPanel("Cheats Panel").AddButton("Noclip", GUIController.Instance.images["ButtonRectEmpty"], new Vector2(5f, 150f), Vector2.zero, NoclipClicked, new Rect(0f, 0f, 80f, 20f), GUIController.Instance.trajanNormal, "Noclip", 10);
             panel.GetPanel("Cheats Panel").AddButton("Kill Self", GUIController.Instance.images["ButtonRectEmpty"], new Vector2(5f, 180f), Vector2.zero, KillSelfClicked, new Rect(0f, 0f, 80f, 20f), GUIController.Instance.trajanNormal, "Kill Self", 10);
-            panel.GetPanel("Cheats Panel").AddButton("Lock KeyBinds", GUIController.Instance.images["ButtonRectEmpty"], new Vector2(5f, 210f), Vector2.zero, KeyBindLockClicked, new Rect(0f, 0f, 80f, 20f), GUIController.Instance.trajanNormal, "Lock KeyBinds", 10);
-            
-            
+            panel.GetPanel("Cheats Panel").AddButton("Lock KeyBinds", GUIController.Instance.images["ButtonRectEmpty"], new Vector2(5f, 210f), Vector2.zero, KeyBindLockClicked, new Rect(0f, 0f, 80f, 20f), GUIController.Instance.trajanNormal, "Lock KeyBinds", 9);
+
+
+
             //Charms panel
             panel.GetPanel("Charms Panel").AddButton("All Charms", GUIController.Instance.images["ButtonRectEmpty"], new Vector2(5f, 30f), Vector2.zero, AllCharmsClicked, new Rect(0f, 0f, 80f, 20f), GUIController.Instance.trajanNormal, "All Charms", 10);
             panel.GetPanel("Charms Panel").AddButton("Kingsoul", GUIController.Instance.images["ButtonRectEmpty"], new Vector2(5f, 60f), Vector2.zero, KingsoulClicked, new Rect(0f, 0f, 80f, 20f), GUIController.Instance.trajanNormal, "Kingsoul: " + PlayerData.instance.royalCharmState, 10);
@@ -161,7 +164,17 @@ namespace DebugMod
             panel.GetPanel("Other Panel").AddButton("View Debug Additions", GUIController.Instance.images["ButtonRectEmpty"], new Vector2(5f, 60f), Vector2.zero, _ => Application.OpenURL("https://docs.google.com/spreadsheets/d/1XLrikYGdLCVZ5YiD8i0ZuFNsY5k3Yi5IZmDTYPD-QVI/edit?usp=sharing"), new Rect(0f, 0f, 80f, 20f), GUIController.Instance.trajanNormal, "View Debug Additions", 10);
             panel.GetPanel("Other Panel").AddButton("Open Saves", GUIController.Instance.images["ButtonRectEmpty"], new Vector2(5f, 90f), Vector2.zero, _ => Process.Start(Application.persistentDataPath), new Rect(0f, 0f, 80f, 20f), GUIController.Instance.trajanNormal, "Open Saves Files", 10);
             panel.GetPanel("Other Panel").AddButton("Open Mods", GUIController.Instance.images["ButtonRectEmpty"], new Vector2(5f, 120f), Vector2.zero, _ => Process.Start(Directory.GetParent(Path.GetDirectoryName(System.Reflection.Assembly.GetCallingAssembly().Location)).ToString()), new Rect(0f, 0f, 80f, 20f), GUIController.Instance.trajanNormal, "Open Mods Folder", 10);
-            
+
+            //SaveStates Panel
+            //TODO: Make the left/right page arrows, make them hidden when an option isn't up, integrate this into its own menu instead of top menu and combine it with the file panel itself
+            panel.GetPanel("SaveStates Panel").AddButton("QuickSlot Save", GUIController.Instance.images["ButtonRectEmpty"], new Vector2(5f, 30f), Vector2.zero, QuickslotSaveClicked, new Rect(0f, 0f, 80f, 20f), GUIController.Instance.trajanNormal, "QuickSlot Save", 8);
+            panel.GetPanel("SaveStates Panel").AddButton("QuickSlot Load", GUIController.Instance.images["ButtonRectEmpty"], new Vector2(5f, 50f), Vector2.zero, QuickslotLoadClicked, new Rect(0f, 0f, 80f, 20f), GUIController.Instance.trajanNormal, "QuickSlot Load", 8);
+            panel.GetPanel("SaveStates Panel").AddButton("File Save", GUIController.Instance.images["ButtonRectEmpty"], new Vector2(5f, 80f), Vector2.zero, FileslotSaveClicked, new Rect(0f, 0f, 80f, 20f), GUIController.Instance.trajanNormal, "File Save", 10);
+            panel.GetPanel("SaveStates Panel").AddButton("File Load", GUIController.Instance.images["ButtonRectEmpty"], new Vector2(5f, 100f), Vector2.zero, FileslotLoadClicked, new Rect(0f, 0f, 80f, 20f), GUIController.Instance.trajanNormal, "File Load", 10);
+            panel.GetPanel("SaveStates Panel").AddButton("Scroll Left", GUIController.Instance.images["ButtonRectEmpty"], new Vector2(-15f, 115f), Vector2.zero, PrevPageClicked, new Rect(0f, 0f, 80f, 20f), GUIController.Instance.trajanNormal, "Left", 8);
+            panel.GetPanel("SaveStates Panel").AddButton("Scroll Right", GUIController.Instance.images["ButtonRectEmpty"], new Vector2(20f, 115f), Vector2.zero, NextPageClicked, new Rect(0f, 0f, 80f, 20f), GUIController.Instance.trajanNormal, "Right", 8);
+            panel.GetPanel("SaveStates Panel").AddButton("Load State On Death", GUIController.Instance.images["ButtonRectEmpty"], new Vector2(5f, 145f), Vector2.zero, LoadOnDeathClicked, new Rect(0f, 0f, 80f, 20f), GUIController.Instance.trajanNormal, "State On Death", 9);
+
             panel.FixRenderOrder();
         }
 
@@ -175,6 +188,7 @@ namespace DebugMod
             AllPossibleLocations.Add(new Vector2(746,68f));
         }
 
+        //TODO: Set A Color Variable for highlighted so its easier to add new buttons
         public static void Update()
         {
             if (panel == null)
@@ -232,6 +246,18 @@ namespace DebugMod
                 panel.GetButton("NK Grimm", "Bosses Panel").SetTextColor((PlayerData.instance.GetBoolInternal("killedNightmareGrimm") || PlayerData.instance.GetBoolInternal("destroyedNightmareLantern")) ? new Color(244f / 255f, 127f / 255f, 32f / 255f) : Color.white);
                 
             }
+            
+            //TODO fix naming so this doesnt require it to be setup like this (currently page panel is savestate panel so CC thinks its throwing errors not sure)
+            if (panel.GetPanel("SaveStates Panel").active)
+            {
+                CanvasPanel savepanel = panel.GetPanel("SaveStates Panel");
+                savepanel.GetButton("Scroll Left").SetTextColor(SaveStateManager.inSelectSlotState ? new Color(244f / 255f, 216f / 255f, 184f / 255f) : new Color(69f / 255f, 69f / 255f, 69f / 255f));
+                savepanel.GetButton("Scroll Right").SetTextColor(SaveStateManager.inSelectSlotState ? new Color(244f / 255f, 216f / 255f, 184f / 255f) : new Color(69f / 255f, 69f / 255f, 69f / 255f));
+                savepanel.GetButton("File Save").SetTextColor(SaveStateManager.currentStateOperation == "Save new state to file" ? new Color(244f / 255f, 127f / 255f, 32f / 255f) : Color.white);
+                savepanel.GetButton("File Load").SetTextColor(SaveStateManager.currentStateOperation == "Load new state from file" ? new Color(244f / 255f, 127f / 255f, 32f / 255f) : Color.white);
+                savepanel.GetButton("Load State On Death").SetTextColor(DebugMod.stateOnDeath ? new Color(244f / 255f, 127f / 255f, 32f / 255f) : Color.white);
+            }
+
             if (panel.GetPanel("DreamGate Panel").active)
             {
                 panel.GetPanel("DreamGate Panel").GetButton("Delete Item").SetTextColor(DreamGate.delMenu ? new Color(244f / 255f, 127f / 255f, 32f / 255f) : Color.white);
@@ -257,7 +283,7 @@ namespace DebugMod
                             break;
                         }
                     }
-
+                    
                     i++;
                 }
             }
@@ -643,8 +669,43 @@ namespace DebugMod
         {
             BindableFunctions.ToggleLockKeyBinds();
         }
+
+        private static void LoadOnDeathClicked(string buttonName)
+        {
+            BindableFunctions.LoadStateOnDeath();
+        }
+
+        private static void QuickslotSaveClicked(string buttonName)
+        {
+            BindableFunctions.SaveState();
+        }
+
+        private static void QuickslotLoadClicked(string buttonName)
+        {
+            BindableFunctions.LoadState();
+        }
+
+        private static void FileslotSaveClicked(string buttonName)
+        {
+            BindableFunctions.NewSaveStateToFile();
+        }
+
+        private static void FileslotLoadClicked(string buttonName)
+        {
+            BindableFunctions.LoadFromFile();
+        }
+
+        private static void NextPageClicked(string buttonName)
+        {
+            BindableFunctions.NextStatePage();
+        }
+
+        private static void PrevPageClicked(string buttonName)
+        {
+            BindableFunctions.PrevStatePage();
+        }
         #endregion
-        
+
         internal static void AddTopMenuContent(string MenuName, List<TopMenuButton> ButtonList)
         {
             if (panel.GetPanel(MenuName) == null)

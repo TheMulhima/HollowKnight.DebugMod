@@ -55,5 +55,10 @@ namespace DebugMod
         public float NoClipSpeedModifier = 1f;
 
         public bool ShowCursorWhileUnpaused = false;
+
+        public bool SaveStateGlitchFixes = true;
+
+        //TODO Get rid of this variable and implement an actual clear method
+        public bool ClearSaveStatePanel = false;
     }
 }
