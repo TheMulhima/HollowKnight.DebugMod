@@ -315,7 +315,6 @@ namespace DebugMod
 
             PlayMakerFSM.BroadcastEvent("CHARM INDICATOR CHECK");    //update twister             
             PlayMakerFSM.BroadcastEvent("UPDATE NAIL DAMAGE");       //update nail
-            PlayMakerFSM.BroadcastEvent("UPDATE BLUE HEALTH");       //update lifeblood
 
             //step 2,manually trigger vessels lol, this is the only way besides turning off the mesh, but that will break stuff when you collect them
             if (PlayerData.instance.MPReserveMax < 33) GameObject.Find("Vessel 1").LocateMyFSM("vessel_orb").SetState("Init");
@@ -378,6 +377,14 @@ namespace DebugMod
             HeroController.instance.AddHealth(1);
             PlayerData.instance.hasXunFlower = data.savedPd.hasXunFlower;
             DebugMod.infiniteHP = isInfiniteHp;
+
+            //this fixes actual lifeblood not just charms, and obsoletes UPDATE BLUE HEALTH
+            int healthBlue = data.savedPd.healthBlue;
+            for (int i = 0; i < healthBlue; i++)
+            {
+                EventRegister.SendEvent("ADD BLUE HEALTH");
+            }
+
 
             //removes things like bench storage no clip float etc
             if (DebugMod.settings.SaveStateGlitchFixes) SaveStateGlitchFixes();
