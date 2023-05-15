@@ -23,7 +23,6 @@ namespace DebugMod
      internal class SaveState
 
      {
-        public bool loadingSavestate;
         // Some mods (ItemChanger) check type to detect vanilla scene loads.
         private class DebugModSaveStateSceneLoadInfo : GameManager.SceneLoadInfo { }
 
@@ -35,7 +34,6 @@ namespace DebugMod
         {
             public string saveStateIdentifier;
             public string saveScene;
-            public string roomSpecificOptions = "0";
             public PlayerData savedPd;
             public object lockArea;
             public SceneData savedSd;
@@ -47,8 +45,7 @@ namespace DebugMod
             public string[] loadedSceneActiveScenes;
             //Special Case Variables
             public int specialIndex;
-            public bool isColoScene;
-            public string roomSpecificData;
+            public string roomSpecificOptions;
 
 
             internal SaveStateData() { }
@@ -60,9 +57,6 @@ namespace DebugMod
 
                 //Special Case Variables
                 specialIndex = _data.specialIndex;
-                isColoScene = _data.isColoScene;
-                roomSpecificData = _data.roomSpecificData;
-
                 cameraLockArea = _data.cameraLockArea;
                 savedPd = _data.savedPd;
                 savedSd = _data.savedSd;
@@ -114,13 +108,14 @@ namespace DebugMod
             GameManager.instance.SaveLevelState();
             data.saveScene = GameManager.instance.GetSceneNameString();
             data.saveStateIdentifier = $"(tmp)_{data.saveScene}-{DateTime.Now.ToString("H:mm_d-MMM")}";
+            //implementation so room specifics can be automatically saved
+            data.roomSpecificOptions = RoomSpecific.SaveRoomSpecific(data.saveScene) ?? 0.ToString();
             data.savedPd = JsonUtility.FromJson<PlayerData>(JsonUtility.ToJson(PlayerData.instance));
             data.savedSd = JsonUtility.FromJson<SceneData>(JsonUtility.ToJson(SceneData.instance));
             data.savePos = HeroController.instance.gameObject.transform.position;
             data.cameraLockArea = (data.cameraLockArea ?? typeof(CameraController).GetField("currentLockArea", BindingFlags.Instance | BindingFlags.NonPublic));
             data.lockArea = data.cameraLockArea.GetValue(GameManager.instance.cameraCtrl);
             data.isKinematized = HeroController.instance.GetComponent<Rigidbody2D>().isKinematic;
-            data.roomSpecificOptions = "0";
             var scenes = SceneWatcher.LoadedScenes;
             data.loadedScenes = scenes.Select(s => s.name).ToArray();
             data.loadedSceneActiveScenes = scenes.Select(s => s.activeSceneWhenLoaded).ToArray();
@@ -332,7 +327,6 @@ namespace DebugMod
 
             PlayMakerFSM.BroadcastEvent("CHARM INDICATOR CHECK");    //update twister             
             PlayMakerFSM.BroadcastEvent("UPDATE NAIL DAMAGE");       //update nail
-            PlayMakerFSM.BroadcastEvent("UPDATE BLUE HEALTH");       //update lifeblood
 
             //step 2,manually trigger vessels lol, this is the only way besides turning off the mesh, but that will break stuff when you collect them
             if (PlayerData.instance.MPReserveMax < 33) GameObject.Find("Vessel 1").LocateMyFSM("vessel_orb").SetState("Init");
@@ -384,17 +378,7 @@ namespace DebugMod
                 RoomSpecific.DoRoomSpecific(data.saveScene, data.roomSpecificOptions);
             }
 
-            //moving this here seems to work now? no need to toggle canvas
-            //preserve correct hp amount
-            bool isInfiniteHp = DebugMod.infiniteHP;
-            DebugMod.infiniteHP = false;
-            //prevent flower break by taking it, then giving it back
-            PlayerData.instance.hasXunFlower = false;
-            PlayerData.instance.health = data.savedPd.health;
-            HeroController.instance.TakeHealth(1);
-            HeroController.instance.AddHealth(1);
-            PlayerData.instance.hasXunFlower = data.savedPd.hasXunFlower;
-            DebugMod.infiniteHP = isInfiniteHp;
+
 
             //removes things like bench storage no clip float etc
             if (DebugMod.settings.SaveStateGlitchFixes) SaveStateGlitchFixes();
@@ -417,6 +401,25 @@ namespace DebugMod
 
             //This allows the next pause to stop the game correctly
             TimeController.GenericTimeScale = 1f;
+
+            //moving this here seems to work now? no need to toggle canvas
+            //preserve correct hp amount
+            bool isInfiniteHp = DebugMod.infiniteHP;
+            DebugMod.infiniteHP = false;
+            //prevent flower break by taking it, then giving it back
+            PlayerData.instance.hasXunFlower = false;
+            PlayerData.instance.health = data.savedPd.health;
+            int healthBlue = data.savedPd.healthBlue;
+            HeroController.instance.TakeHealth(1);
+            HeroController.instance.AddHealth(1);
+            for (int i = 0; i < healthBlue; i++)
+            {
+                EventRegister.SendEvent("ADD BLUE HEALTH");
+            }
+            PlayerData.instance.hasXunFlower = data.savedPd.hasXunFlower;
+            DebugMod.infiniteHP = isInfiniteHp;
+
+
 
             TimeSpan loadingStateTime = loadingStateTimer.Elapsed;
             Console.AddLine("Loaded savestate in " + loadingStateTime.ToString(@"ss\.fff") + "s");

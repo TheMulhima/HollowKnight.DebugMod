@@ -16,9 +16,10 @@ using USceneManager = UnityEngine.SceneManagement.SceneManager;
 
 namespace DebugMod
 {
-    internal static class SpecialSavestate
+    //Stored in separate class due to the amount of unique functionality
+    internal static class ColoSaveState
     {
-        public static string[] specialScenes =
+        public static string[] coloScenes =
         {
             //Colos (0-2)
             "Room_Colosseum_Bronze",
@@ -37,46 +38,38 @@ namespace DebugMod
         };
 
 
-        public static void SaveSpecialScene(string curScene, SaveState.SaveStateData _data)
+        public static string SaveColoScene(string curScene)
         {
             switch (curScene)
             {
                 case "Room_Colosseum_Bronze": //0
-                    _data.isColoScene = true;
-                    _data.roomSpecificData = GrabCurrentWave("Bronze", _data);
-                    break;
+                    return GrabCurrentWave("Bronze");
 
                 case "Room_Colosseum_Silver": //1
-                    _data.isColoScene = true;
-                    _data.roomSpecificData = GrabCurrentWave("Silver", _data);
-                    break;
+                    return GrabCurrentWave("Silver");
 
                 case "Room_Colosseum_Gold": //2
-                    _data.isColoScene = true;
-                    _data.roomSpecificData = GrabCurrentWave("Gold", _data);
-                    break;
-
-
+                    return GrabCurrentWave("Gold");
                 default:
                     Console.AddLine("Saved Scene has no Special Definition");
                     break;
-
-
             }
+            return null;
         }
 
         public static void LoadSpecialScene(string curScene, SaveState.SaveStateData _data)
         {
             string startWave;
-            if (_data.isColoScene && (!specialScenes.Contains(_data.roomSpecificData)))
+            bool isColoScene = coloScenes.Contains(curScene);
+            if (isColoScene && (!ignoreWaves.Contains(_data.roomSpecificOptions)))
             {
-                startWave = _data.roomSpecificData;
+                startWave = _data.roomSpecificOptions;
             }
             else { startWave = null; }
             switch (curScene)
             {
                 case "Room_Colosseum_Bronze": //0
-                    OverrideroomSpecificData("Bronze", startWave, _data);
+                    ChangeColoWave("Bronze", startWave);
                     break;
 
                 case "Room_Colosseum_Silver": //1
@@ -92,18 +85,15 @@ namespace DebugMod
             }
         }
 
-        private static string GrabCurrentWave(string coloLevel, SaveState.SaveStateData _data)
+        private static string GrabCurrentWave(string coloLevel)
         {
-
             GameObject waveController = GameObject.Find("Colosseum Manager");
             PlayMakerFSM waveFSM = waveController.LocateMyFSM("Battle Control");
             string wave = waveFSM.ActiveStateName;
             if (!ignoreWaves.Contains(wave)) return wave;
             else return null;
-
         }
-
-        private static void OverrideroomSpecificData(string coloLevel, string startWave, SaveState.SaveStateData _data)
+        private static void ChangeColoWave(string coloLevel, string startWave)
         {
             if (ignoreWaves.Contains(startWave)) return;
             GameObject waveController = GameObject.Find("Colosseum Manager");
@@ -111,11 +101,9 @@ namespace DebugMod
             FsmState idle = fsm.FsmStates.First(t => t.Name == "Idle");
             FsmState newWave = fsm.FsmStates.First(t => t.Name == startWave);
             idle.Transitions.First(tr => tr.EventName == "WAVES START").ToFsmState = newWave;
-            BroadcastColoArena(coloLevel, startWave, _data);
-
+            BroadcastColoArena(coloLevel, startWave);
         }
-
-        private static void BroadcastColoArena(string coloLevel, string startWave, SaveState.SaveStateData _data)
+        private static void BroadcastColoArena(string coloLevel, string startWave)
         {
 
         }

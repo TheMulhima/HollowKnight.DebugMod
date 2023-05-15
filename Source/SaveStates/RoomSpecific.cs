@@ -133,11 +133,23 @@ namespace DebugMod
 
         #endregion
 
-        public static void DoRoomSpecific(string scene, string options)//index only used if multiple functionallities in one room, safe to ignore for now.
+        //TODO: Add functionality for checking ALL room specifics :(
+        internal static string SaveRoomSpecific(string scene)
+        {
+            if (ColoSaveState.coloScenes.Contains(scene)) return ColoSaveState.SaveColoScene(scene);
+            //insert other room specifics here
+            return null;
+        }
+        internal static void DoRoomSpecific(string scene, string options)//index only used if multiple functionallities in one room, safe to ignore for now.
         {
             // caps in scene names change across versions
             scene = scene.ToLower();
             int index = int.Parse(options);
+            if (ColoSaveState.coloScenes.Contains(scene)) 
+            {
+                
+                return;
+            }
             switch (scene)
             {
                 case "deepnest_spider_town":
