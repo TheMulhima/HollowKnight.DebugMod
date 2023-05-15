@@ -292,3 +292,7 @@ __pycache__/
 *.btm.cs
 *.odx.cs
 *.xsd.cs
+
+Source/*.zip
+Source/SHA.txt
+Source/VERSION.txt

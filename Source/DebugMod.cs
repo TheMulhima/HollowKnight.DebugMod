@@ -2,6 +2,8 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Reflection;
+//we now use ienumerator so this is required (lost my mind over this)
+using System.Collections;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -55,6 +57,11 @@ namespace DebugMod
         internal static Collider2D RefHeroCollider => _refHeroCollider != null ? _refHeroCollider : (_refHeroCollider = RefKnight.GetComponent<Collider2D>());
         internal static Collider2D RefHeroBox => _refHeroBox != null ? _refHeroBox : (_refHeroBox = RefKnight.transform.Find("HeroBox").GetComponent<Collider2D>());
 
+        //used to stop hazard coros
+        internal static IEnumerator CurrentHazardCoro;
+
+        internal static IEnumerator CurrentInvulnCoro;
+
 
         internal static DebugMod instance;
 
@@ -79,6 +86,7 @@ namespace DebugMod
         private static float _unloadTime;
         private static bool _loadingChar;
 
+        internal static bool stateOnDeath;
         internal static bool infiniteHP;
         internal static bool infiniteSoul;
         internal static bool playerInvincible;
@@ -90,6 +98,7 @@ namespace DebugMod
         internal static bool TimeScaleActive;
         internal static float CurrentTimeScale = 1f;
         internal static bool PauseGameNoUIActive = false;
+        internal static bool savestateFixes = true;
 
         internal static Dictionary<string, (string category, bool allowLock, Action method)> bindMethods = new();
         internal static Dictionary<string, (string category, bool allowLock, Action method)> AdditionalBindMethods = new();
@@ -172,6 +181,10 @@ namespace DebugMod
             ModHooks.BeforeSceneLoadHook += OnLevelUnload;
             ModHooks.TakeHealthHook += PlayerDamaged;
             ModHooks.ApplicationQuitHook += SaveSettings;
+
+            //hooks needed for savestate fixes
+            On.HeroController.HazardRespawn += OnHazardRespawn;
+            On.HeroController.Invulnerable += OnInvulnerable;
 
             if (settings.ShowCursorWhileUnpaused)
             {
@@ -283,7 +296,31 @@ namespace DebugMod
             instance.Log("Saved");
         }
 
-        private int PlayerDamaged(int damageAmount) => infiniteHP ? 0 : damageAmount;
+        private int PlayerDamaged(int damageAmount)
+        {
+
+            int damage = infiniteHP ? 0 : damageAmount;
+            if (stateOnDeath && (PlayerData.instance.health - damage <= 0))
+            {
+                saveStateManager.LoadSaveState(SaveStateType.Memory);
+                Console.AddLine("Lethal damage prevented, savestate loading");
+                return 0;
+            }
+            return damage;
+        }
+
+        //save coros so they can be forcibly stopped
+        public static IEnumerator OnHazardRespawn(On.HeroController.orig_HazardRespawn orig, HeroController self)
+        {
+            CurrentHazardCoro = orig(self);
+            return CurrentHazardCoro;
+        }
+
+        public static IEnumerator OnInvulnerable(On.HeroController.orig_Invulnerable orig, HeroController self, float duration)
+        {
+            CurrentInvulnCoro = orig(self, duration);
+            return CurrentInvulnCoro;
+        }
 
         private void NewCharacter() => LoadCharacter(null);
 

@@ -81,9 +81,9 @@ namespace DebugMod
         }
 
         #region saving
-        public void SaveState(SaveStateType stateType)
+        public void SaveSaveState(SaveStateType stateType)
         {
-            if (quickState.loadingSavestate != true)
+            if (!SaveState.loadingSavestate)
             {
                 switch (stateType)
                 {
@@ -97,7 +97,6 @@ namespace DebugMod
                             GameManager.instance.StartCoroutine(SelectSlot(true, stateType));
                         }
                         break;
-                    default: break;
                 }
             }
             else
@@ -111,7 +110,7 @@ namespace DebugMod
         #region loading
 
         //loadDuped is used by external mods
-        public void LoadState(SaveStateType stateType, bool loadDuped = false, string operationName = null)
+        public void LoadSaveState(SaveStateType stateType, bool loadDuped = false, string operationName = null)
         {
             switch (stateType)
             {
@@ -166,6 +165,7 @@ namespace DebugMod
                 currentStateOperation = operationName;
             }
 
+            //TODO: this probably isn't necessary and makes it miserable to do anything with canceling it
             if (DebugMod.settings.binds.TryGetValue(currentStateOperation, out KeyCode keycode))
             {
                 DebugMod.alphaKeyDict.Add(keycode, (int)keycode);
@@ -177,6 +177,8 @@ namespace DebugMod
             
             yield return null;
             timeoutHelper = DateTime.Now.AddSeconds(timeoutAmount);
+            //TODO: get rid of this variable and have an actual clear panel function
+            DebugMod.settings.ClearSaveStatePanel = false;
             DebugMod.settings.SaveStatePanelVisible = inSelectSlotState = true;
             yield return new WaitUntil(DidInput);
             
@@ -197,6 +199,7 @@ namespace DebugMod
             else
             {
                 if (GUIController.didInput) Console.AddLine("Savestate action cancelled");
+                else if (DebugMod.settings.ClearSaveStatePanel) DebugMod.settings.ClearSaveStatePanel = false;
                 else Console.AddLine("Timeout (" + timeoutAmount.ToString() + ")s was reached");
             }
             
@@ -271,6 +274,10 @@ namespace DebugMod
                 return true;
             }
             else if (timeoutHelper < DateTime.Now)
+            {
+                return true;
+            }
+            else if(DebugMod.settings.ClearSaveStatePanel)
             {
                 return true;
             }
@@ -362,6 +369,7 @@ namespace DebugMod
                 //throw ex;
             }
         }
+
 
         #endregion
     }
