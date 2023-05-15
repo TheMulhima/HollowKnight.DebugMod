@@ -165,6 +165,7 @@ namespace DebugMod
                 currentStateOperation = operationName;
             }
 
+            //TODO: this probably isn't necessary and makes it miserable to do anything with canceling it
             if (DebugMod.settings.binds.TryGetValue(currentStateOperation, out KeyCode keycode))
             {
                 DebugMod.alphaKeyDict.Add(keycode, (int)keycode);
@@ -176,6 +177,8 @@ namespace DebugMod
             
             yield return null;
             timeoutHelper = DateTime.Now.AddSeconds(timeoutAmount);
+            //TODO: get rid of this variable and have an actual clear panel function
+            DebugMod.settings.ClearSaveStatePanel = false;
             DebugMod.settings.SaveStatePanelVisible = inSelectSlotState = true;
             yield return new WaitUntil(DidInput);
             
@@ -196,6 +199,7 @@ namespace DebugMod
             else
             {
                 if (GUIController.didInput) Console.AddLine("Savestate action cancelled");
+                else if (DebugMod.settings.ClearSaveStatePanel) DebugMod.settings.ClearSaveStatePanel = false;
                 else Console.AddLine("Timeout (" + timeoutAmount.ToString() + ")s was reached");
             }
             
@@ -270,6 +274,10 @@ namespace DebugMod
                 return true;
             }
             else if (timeoutHelper < DateTime.Now)
+            {
+                return true;
+            }
+            else if(DebugMod.settings.ClearSaveStatePanel)
             {
                 return true;
             }
@@ -361,6 +369,7 @@ namespace DebugMod
                 //throw ex;
             }
         }
+
 
         #endregion
     }

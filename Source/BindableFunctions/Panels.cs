@@ -14,6 +14,7 @@ using Newtonsoft.Json;
 using UnityEngine;
 using Object = UnityEngine.Object;
 using USceneManager = UnityEngine.SceneManagement.SceneManager;
+using static System.Runtime.CompilerServices.RuntimeHelpers;
 
 namespace DebugMod
 {
@@ -76,10 +77,12 @@ namespace DebugMod
             }
         }
 
+        //TODO: fix this function once theres an actual Clear Panel method
         [BindableMethod(name = "Toggle SaveState Panel", category = "Mod UI")]
         public static void ToggleSaveStatesPanel()
         {
-            DebugMod.settings.SaveStatePanelVisible = !DebugMod.settings.SaveStatePanelVisible;
+            if (!DebugMod.settings.SaveStatePanelVisible) DebugMod.settings.SaveStatePanelVisible = true;
+            else DebugMod.settings.ClearSaveStatePanel = true;
         }
 
         // View handled in the InfoPanel classes
