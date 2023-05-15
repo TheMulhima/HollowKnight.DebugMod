@@ -380,6 +380,14 @@ namespace DebugMod
 
 
 
+            //this fixes actual lifeblood not just charms, and obsoletes UPDATE BLUE HEALTH
+            int healthBlue = data.savedPd.healthBlue;
+            for (int i = 0; i < healthBlue; i++)
+            {
+                EventRegister.SendEvent("ADD BLUE HEALTH");
+            }
+
+
             //removes things like bench storage no clip float etc
             if (DebugMod.settings.SaveStateGlitchFixes) SaveStateGlitchFixes();
 
