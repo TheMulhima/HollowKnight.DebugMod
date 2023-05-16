@@ -321,6 +321,13 @@ namespace DebugMod
             HeroController.instance.gameObject.transform.position = data.savePos;
             HeroController.instance.transitionState = HeroTransitionState.WAITING_TO_TRANSITION;
             HeroController.instance.GetComponent<Rigidbody2D>().isKinematic = data.isKinematized;
+            
+            yield return null;
+
+            GameCameras.instance.hudCanvas.transform.Find("Health").gameObject.SetActive(false);
+            GameCameras.instance.hudCanvas.transform.Find("Health").gameObject.SetActive(true);
+            
+            yield return null;
 
             loadingStateTimer.Stop();
             //var used to prevent saves/loads
@@ -341,11 +348,6 @@ namespace DebugMod
             {
                 RoomSpecific.DoRoomSpecific(data.saveScene, data.roomSpecificOptions);
             }
-
-            yield return null;
-
-            GameCameras.instance.hudCanvas.transform.Find("Health").gameObject.SetActive(false);
-            GameCameras.instance.hudCanvas.transform.Find("Health").gameObject.SetActive(true);
 
             TimeSpan loadingStateTime = loadingStateTimer.Elapsed;
             Console.AddLine("Loaded savestate in " + loadingStateTime.ToString(@"ss\.fff") + "s");

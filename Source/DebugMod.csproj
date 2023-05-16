@@ -30,6 +30,9 @@
         <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
           <HintPath>$(HollowKnightFolder)\Assembly-CSharp.dll</HintPath>
         </Reference>
+        <Reference Include="Core_FsmUtil">
+          <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Hollow Knight\hollow_knight_Data\Managed\Mods\Core.FsmUtil\Core_FsmUtil.dll</HintPath>
+        </Reference>
         <Reference Include="Mono.Cecil, Version=0.11.3.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e">
           <HintPath>$(HollowKnightFolder)\Mono.Cecil.dll</HintPath>
         </Reference>

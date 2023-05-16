@@ -5,11 +5,13 @@ using System.Reflection;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using Core.FsmUtil;
 using Modding;
 using MonoMod.ModInterop;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using GlobalEnums;
+using HutongGames.PlayMaker.Actions;
 using JetBrains.Annotations;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
@@ -184,8 +186,32 @@ namespace DebugMod
 
             KeyBindLock = false;
             TimeScaleActive = false;
+            
+            if (AppDomain.CurrentDomain.GetAssemblies().Any(a => a.GetName().Name == "Core_FsmUtil"))
+            {
+                MakeHudInSaveStatesLoadFaster();
+            }
 
             Console.AddLine("New session started " + DateTime.Now);
+        }
+
+        private void MakeHudInSaveStatesLoadFaster()
+        {
+            LogError("LOADING CORE HOOKS");
+            for (int i = 1; i <= 11; i++)
+            {
+                Core.FsmUtil.Hooks.HookStateEntered(
+                    new FSMData($"Health {i}", "health_display", "Load Animation?"),
+                    fsm =>
+                    {
+                        var wait = fsm.GetAction<Wait>("Load Animation?", 7);
+                        if (wait != null)
+                        {
+                            wait.time = SaveState.loadingSavestate ? 0 : fsm.GetFloatVariable("Appear Pause");
+                        }
+
+                    });
+            }
         }
 
         public DebugMod()
