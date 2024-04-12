@@ -378,36 +378,19 @@ namespace DebugMod
                 RoomSpecific.DoRoomSpecific(data.saveScene, data.roomSpecificOptions);
             }
 
-
-
-            //this fixes actual lifeblood not just charms, and obsoletes UPDATE BLUE HEALTH
-            int healthBlue = data.savedPd.healthBlue;
-            for (int i = 0; i < healthBlue; i++)
-            {
-                EventRegister.SendEvent("ADD BLUE HEALTH");
-            }
-
-
             //removes things like bench storage no clip float etc
             if (DebugMod.settings.SaveStateGlitchFixes) SaveStateGlitchFixes();
 
-            //Benchwarp fixes courtesy of homothety, needed since savestates are now performed while paused
-            // Revert pause menu timescale
+            //pause fixes from homothety
             Time.timeScale = 1f;
             GameManager.instance.FadeSceneIn();
-
-            // We have to set the game non-paused because TogglePauseMenu sucks and UIClosePauseMenu doesn't do it for us.
             GameManager.instance.isPaused = false;
-
-            // Restore various things normally handled by exiting the pause menu. None of these are necessary afaik
             GameCameras.instance.ResumeCameraShake();
             if (HeroController.SilentInstance != null)
             {
                 HeroController.instance.UnPause();
             }
             MenuButtonList.ClearAllLastSelected();
-
-            //This allows the next pause to stop the game correctly
             TimeController.GenericTimeScale = 1f;
 
             //moving this here seems to work now? no need to toggle canvas
@@ -417,17 +400,17 @@ namespace DebugMod
             //prevent flower break by taking it, then giving it back
             PlayerData.instance.hasXunFlower = false;
             PlayerData.instance.health = data.savedPd.health;
-            int healthBlue = data.savedPd.healthBlue;
             HeroController.instance.TakeHealth(1);
             HeroController.instance.AddHealth(1);
+            PlayerData.instance.hasXunFlower = data.savedPd.hasXunFlower;
+            DebugMod.infiniteHP = isInfiniteHp;
+
+            //blue health fixes
+            int healthBlue = data.savedPd.healthBlue;
             for (int i = 0; i < healthBlue; i++)
             {
                 EventRegister.SendEvent("ADD BLUE HEALTH");
             }
-            PlayerData.instance.hasXunFlower = data.savedPd.hasXunFlower;
-            DebugMod.infiniteHP = isInfiniteHp;
-
-
 
             TimeSpan loadingStateTime = loadingStateTimer.Elapsed;
             Console.AddLine("Loaded savestate in " + loadingStateTime.ToString(@"ss\.fff") + "s");

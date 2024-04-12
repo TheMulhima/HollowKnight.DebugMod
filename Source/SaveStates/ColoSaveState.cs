@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Diagnostics.Contracts;
 using System.Drawing.Text;
 using System.IO;
 using System.Linq;
@@ -87,11 +88,19 @@ namespace DebugMod
 
         private static string GrabCurrentWave(string coloLevel)
         {
-            GameObject waveController = GameObject.Find("Colosseum Manager");
-            PlayMakerFSM waveFSM = waveController.LocateMyFSM("Battle Control");
-            string wave = waveFSM.ActiveStateName;
-            if (!ignoreWaves.Contains(wave)) return wave;
-            else return null;
+            try
+            {
+                GameObject waveController = GameObject.Find("Colosseum Manager");
+                PlayMakerFSM waveFSM = waveController.LocateMyFSM("Battle Control");
+                string wave = waveFSM.ActiveStateName;
+                if (!ignoreWaves.Contains(wave)) return wave;
+                
+            }
+            catch (Exception e)
+            {
+                Console.AddLine("Failed to grab colo wave: \n" + e);
+            }
+            return null;
         }
         private static void ChangeColoWave(string coloLevel, string startWave)
         {
