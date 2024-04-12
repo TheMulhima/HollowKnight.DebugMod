@@ -136,6 +136,7 @@ namespace DebugMod
         //TODO: Add functionality for checking ALL room specifics :(
         internal static string SaveRoomSpecific(string scene)
         {
+            scene = scene.ToLower();
             if (ColoSaveState.coloScenes.Contains(scene)) return ColoSaveState.SaveColoScene(scene);
             //insert other room specifics here
             return null;
@@ -143,12 +144,22 @@ namespace DebugMod
         internal static void DoRoomSpecific(string scene, string options)//index only used if multiple functionallities in one room, safe to ignore for now.
         {
             // caps in scene names change across versions
+            int index = 0;
             scene = scene.ToLower();
-            int index = int.Parse(options);
-            if (ColoSaveState.coloScenes.Contains(scene)) 
+            Console.AddLine(scene + " is lowercase");
+            if (ColoSaveState.coloScenes.Contains(scene))
             {
-                
+                Console.AddLine("Starting Colo Wave Room Specific");
+                ColoSaveState.LoadColoScene(scene, options);
                 return;
+            }
+            try 
+            {
+                index = int.Parse(options); 
+            }
+            catch (Exception e)
+            {
+                Console.AddLine("Invalid Room Specific: \n" + e);
             }
             switch (scene)
             {
@@ -168,7 +179,7 @@ namespace DebugMod
                     Console.AddLine("No Room Specific Function Found In: " + scene);
                     break;
             }
-        }
+            }
         private static PlayMakerFSM FindFsmGlobally(string gameObjectName, string fsmName)
         {
             return GameObject.Find(gameObjectName).LocateMyFSM(fsmName);

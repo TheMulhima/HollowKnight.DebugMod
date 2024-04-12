@@ -98,6 +98,13 @@ namespace DebugMod
             Console.AddLine("Quickslot SaveState will now" + (DebugMod.stateOnDeath ? " be" : " no longer") + " loaded on death");
         }
 
+        [BindableMethod(name = "Override Lockout", category = "Savestates")]
+        public static void OverrideLoadLockout()
+        {
+            DebugMod.overrideLoadLockout = !DebugMod.overrideLoadLockout;
+            Console.AddLine("SaveState Lockout set to " + DebugMod.overrideLoadLockout);
+        }
+
         /*
         [BindableMethod(name = "Toggle auto slot", category = "Savestates")]
         public static void ToggleAutoSlot()

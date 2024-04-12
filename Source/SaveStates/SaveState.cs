@@ -27,7 +27,7 @@ namespace DebugMod
         private class DebugModSaveStateSceneLoadInfo : GameManager.SceneLoadInfo { }
 
         //used to stop double loads/saves
-        public static bool loadingSavestate {get; private set;}
+        public static bool loadingSavestate {get; set;}
 
         [Serializable]
         public class SaveStateData
@@ -109,7 +109,14 @@ namespace DebugMod
             data.saveScene = GameManager.instance.GetSceneNameString();
             data.saveStateIdentifier = $"(tmp)_{data.saveScene}-{DateTime.Now.ToString("H:mm_d-MMM")}";
             //implementation so room specifics can be automatically saved
-            data.roomSpecificOptions = RoomSpecific.SaveRoomSpecific(data.saveScene) ?? 0.ToString();
+            try
+            {
+                data.roomSpecificOptions = RoomSpecific.SaveRoomSpecific(data.saveScene) ?? 0.ToString();
+            }
+            catch (Exception e)
+            {
+                DebugMod.instance.LogError(e);
+            }
             data.savedPd = JsonUtility.FromJson<PlayerData>(JsonUtility.ToJson(PlayerData.instance));
             data.savedSd = JsonUtility.FromJson<SceneData>(JsonUtility.ToJson(SceneData.instance));
             data.savePos = HeroController.instance.gameObject.transform.position;
@@ -164,6 +171,11 @@ namespace DebugMod
                 HeroController.instance.transform.parent == null && // checks if in elevator/conveyor
                 !loadingSavestate)
             {
+                GameManager.instance.StartCoroutine(LoadStateCoro(loadDuped));
+            }
+            else if (DebugMod.overrideLoadLockout)
+            {
+                Console.AddLine("Attempting Savestate Load Override");
                 GameManager.instance.StartCoroutine(LoadStateCoro(loadDuped));
             }
             else
@@ -375,9 +387,9 @@ namespace DebugMod
 
             if (data.roomSpecificOptions != "0" && data.roomSpecificOptions != null)
             {
+                Console.AddLine("Performing Room Specific Option " + data.roomSpecificOptions);
                 RoomSpecific.DoRoomSpecific(data.saveScene, data.roomSpecificOptions);
             }
-
             //removes things like bench storage no clip float etc
             if (DebugMod.settings.SaveStateGlitchFixes) SaveStateGlitchFixes();
 

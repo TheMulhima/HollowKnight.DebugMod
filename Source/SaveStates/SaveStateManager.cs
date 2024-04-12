@@ -26,7 +26,6 @@ namespace DebugMod
     {
         public static int maxSaveStates = DebugMod.settings.MaxSaveStates;
         public static int savePages = DebugMod.settings.MaxSavePages;
-
         public static int currentStateFolder = 0;
         public static SaveState quickState;
         public static bool inSelectSlotState = false;   // a mutex, in practice?
@@ -85,6 +84,23 @@ namespace DebugMod
         {
             if (!SaveState.loadingSavestate)
             {
+                switch (stateType)
+                {
+                    case SaveStateType.Memory:
+                        quickState.SaveTempState();
+                        break;
+                    case SaveStateType.File or SaveStateType.SkipOne:
+                        if (!inSelectSlotState)
+                        {
+                            RefreshStateMenu();
+                            GameManager.instance.StartCoroutine(SelectSlot(true, stateType));
+                        }
+                        break;
+                }
+            }
+            else if (DebugMod.overrideLoadLockout)
+            {
+                Console.AddLine("Attempting Savestate Load Override");
                 switch (stateType)
                 {
                     case SaveStateType.Memory:
