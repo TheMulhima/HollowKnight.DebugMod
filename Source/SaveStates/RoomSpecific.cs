@@ -134,25 +134,34 @@ namespace DebugMod
         #endregion
 
         //TODO: Add functionality for checking ALL room specifics :(
-        internal static string SaveRoomSpecific(string scene)
+        internal static (string value, int index) SaveRoomSpecific(string scene)
         {
             scene = scene.ToLower();
-            if (ColoSaveState.coloScenes.Contains(scene)) return ColoSaveState.SaveColoScene(scene);
+            if (ColoSaveState.coloScenes.Contains(scene)) return (ColoSaveState.SaveColoScene(scene), 0);
+            if (BossSequenceController.IsInSequence) return (PanthSaveState.SavePanthScene(scene));
             //insert other room specifics here
-            return null;
+            return (null, 0);
         }
-        internal static void DoRoomSpecific(string scene, string options)//index only used if multiple functionallities in one room, safe to ignore for now.
+        internal static void DoRoomSpecific(string scene, string options, int specialIndex)//index currently used for panth functionality (options is the sequencer, index is boss index, this cant be done by iteration because bench rooms repeat)
         {
             // caps in scene names change across versions
             int index = 0;
             scene = scene.ToLower();
-            Console.AddLine(scene + " is lowercase");
             if (ColoSaveState.coloScenes.Contains(scene))
             {
                 Console.AddLine("Starting Colo Wave Room Specific");
                 ColoSaveState.LoadColoScene(scene, options);
                 return;
             }
+            //TODO: Fix SetupNewBossScene() in PanthSaveState.cs so we can call LoadPanthScene here
+            
+            if (PanthSaveState.panthSequences.Contains(options))
+            {
+                //Console.AddLine("Loading Pantheon Sequencer");
+                //PanthSaveState.LoadPanthScene(options, specialIndex);
+                return;
+            }
+            
             try 
             {
                 index = int.Parse(options); 

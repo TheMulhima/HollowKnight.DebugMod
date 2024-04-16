@@ -111,7 +111,10 @@ namespace DebugMod
             //implementation so room specifics can be automatically saved
             try
             {
-                data.roomSpecificOptions = RoomSpecific.SaveRoomSpecific(data.saveScene) ?? 0.ToString();
+                var roomSpecificData = RoomSpecific.SaveRoomSpecific(data.saveScene);
+                Console.AddLine(roomSpecificData.value.ToString() + roomSpecificData.index);
+                data.roomSpecificOptions = roomSpecificData.value ?? 0.ToString();
+                data.specialIndex = roomSpecificData.index;
             }
             catch (Exception e)
             {
@@ -229,6 +232,13 @@ namespace DebugMod
             //timer for loading savestates
             System.Diagnostics.Stopwatch loadingStateTimer = new System.Diagnostics.Stopwatch();
             loadingStateTimer.Start();
+
+            //setup panth stuff since it wants to be loaded one room ahead of time
+            if (PanthSaveState.panthSequences.Contains(data.roomSpecificOptions))
+            {
+                Console.AddLine("Loading Pantheon Sequencer");
+                PanthSaveState.LoadPanthScene(data.roomSpecificOptions, data.specialIndex);
+            }
 
             //called here because this needs to be done here
             if (DebugMod.savestateFixes)
@@ -388,7 +398,7 @@ namespace DebugMod
             if (data.roomSpecificOptions != "0" && data.roomSpecificOptions != null)
             {
                 Console.AddLine("Performing Room Specific Option " + data.roomSpecificOptions);
-                RoomSpecific.DoRoomSpecific(data.saveScene, data.roomSpecificOptions);
+                RoomSpecific.DoRoomSpecific(data.saveScene, data.roomSpecificOptions, data.specialIndex);
             }
             //removes things like bench storage no clip float etc
             if (DebugMod.settings.SaveStateGlitchFixes) SaveStateGlitchFixes();
