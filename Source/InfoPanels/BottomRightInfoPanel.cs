@@ -30,14 +30,19 @@ namespace DebugMod.InfoPanels
             panel.AddText("Right1 Label", "Session Time\nLoad\nHero Pos\nMove Raw", new Vector2(1285, 747), Vector2.zero, GUIController.Instance.arial);
             panel.AddText("Right1", "", new Vector2(1385, 747), Vector2.zero, GUIController.Instance.trajanNormal);
 
-            panel.AddText("Right2 Label", "Move Vector\nKey Pressed\nMove Pressed\nInput X", new Vector2(1550, 747), Vector2.zero, GUIController.Instance.arial);
-            panel.AddText("Right2", "", new Vector2(1650, 747), Vector2.zero, GUIController.Instance.trajanNormal);
+            panel.AddText("Right2 Label", "Move Vector\nKey Pressed\nMove Pressed\nInput X", new Vector2(1525, 747), Vector2.zero, GUIController.Instance.arial);
+            panel.AddText("Right2", "", new Vector2(1625, 747), Vector2.zero, GUIController.Instance.trajanNormal);
+
+            panel.AddText("Right3 Label", "Frame Counter\nGame Time Elapsed", new Vector2(1670, 747), Vector2.zero, GUIController.Instance.arial);
+            panel.AddText("Right3", "", new Vector2(1800, 747), Vector2.zero, GUIController.Instance.trajanNormal);
+
 
             panel.FixRenderOrder();
         }
 
         public override void UpdatePanel()
         {
+            var frameTime = TimeSpan.FromSeconds(BindableFunctions.frameCounter * 0.02);
             if (panel == null) return;
 
             int time1 = Mathf.FloorToInt(Time.realtimeSinceStartup / 60f);
@@ -45,6 +50,7 @@ namespace DebugMod.InfoPanels
 
             panel.GetText("Right1").UpdateText(string.Format("{0:00}:{1:00}", time1, time2) + "\n" + DebugMod.GetLoadTime() + "s\n" + InfoPanel.GetHeroPos() + "\n" + string.Format("L: {0} R: {1}", DebugMod.IH.inputActions.left.RawValue, DebugMod.IH.inputActions.right.RawValue));
             panel.GetText("Right2").UpdateText(DebugMod.IH.inputActions.moveVector.Vector.x + ", " + DebugMod.IH.inputActions.moveVector.Vector.y + "\n" + InfoPanel.GetStringForBool(InputManager.AnyKeyIsPressed) + "\n" + InfoPanel.GetStringForBool(DebugMod.IH.inputActions.left.IsPressed || DebugMod.IH.inputActions.right.IsPressed) + "\n" + DebugMod.IH.inputX);
+            panel.GetText("Right3").UpdateText(BindableFunctions.frameCounter + "\n" + frameTime.ToString("mm':'ss'.'ff"));
         }
 
         public override bool Active => true;

@@ -133,30 +133,62 @@ namespace DebugMod
 
         #endregion
 
-        public static void DoRoomSpecific(string scene, string options)//index only used if multiple functionallities in one room, safe to ignore for now.
+        //TODO: Add functionality for checking ALL room specifics :(
+        internal static (string value, int index) SaveRoomSpecific(string scene)
+        {
+            scene = scene.ToLower();
+            if (ColoSaveState.coloScenes.Contains(scene)) return (ColoSaveState.SaveColoScene(scene), 0);
+            if (BossSequenceController.IsInSequence) return (PanthSaveState.SavePanthScene(scene));
+            //insert other room specifics here
+            return ("0", 0);
+        }
+        internal static void DoRoomSpecific(string scene, string options, int specialIndex)//index currently used for panth functionality (options is the sequencer, index is boss index, this cant be done by iteration because bench rooms repeat)
         {
             // caps in scene names change across versions
+            int legacyOptions = 0;
             scene = scene.ToLower();
-            int index = int.Parse(options);
+            if (ColoSaveState.coloScenes.Contains(scene))
+            {
+                Console.AddLine("Starting Colo Wave Room Specific");
+                ColoSaveState.LoadColoScene(scene, options);
+                return;
+            }
+            //TODO: Fix SetupNewBossScene() in PanthSaveState.cs so we can call LoadPanthScene here
+            
+            if (PanthSaveState.panthSequences.Contains(options))
+            {
+                //Console.AddLine("Loading Pantheon Sequencer");
+                //PanthSaveState.LoadPanthScene(options, specialIndex);
+                return;
+            }
+            
+            try 
+            {
+                legacyOptions = int.Parse(options); 
+            }
+            catch (Exception e)
+            {
+                Console.AddLine("Invalid Room Specific: \n" + e);
+            }
             switch (scene)
             {
                 case "deepnest_spider_town":
-                    EnterSpiderTownTrap(index);
+                    EnterSpiderTownTrap(legacyOptions);
                     break;
                 case "room_final_boss_core":
-                    BreakTHKChains(index);
+                    BreakTHKChains(legacyOptions);
                     break;
                 case "dream_nailcollection":
-                    ObtainDreamNail(index);
+                    ObtainDreamNail(legacyOptions);
                     break;
                 case "ruins1_24":
-                    FastSoulMaster(index);
+                    FastSoulMaster(legacyOptions);
                     break;
                 default:
                     Console.AddLine("No Room Specific Function Found In: " + scene);
                     break;
             }
-        }
+            }
         private static PlayMakerFSM FindFsmGlobally(string gameObjectName, string fsmName)
         {
             return GameObject.Find(gameObjectName).LocateMyFSM(fsmName);
