@@ -14,6 +14,8 @@ using Newtonsoft.Json;
 using UnityEngine;
 using Object = UnityEngine.Object;
 using USceneManager = UnityEngine.SceneManagement.SceneManager;
+using Modding.Utils;
+using System.ComponentModel;
 
 namespace DebugMod
 {
@@ -23,6 +25,8 @@ namespace DebugMod
         private static readonly FieldInfo IgnoreUnpause = typeof(UIManager).GetField("ignoreUnpause", BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Static);
         internal static readonly FieldInfo cameraGameplayScene = typeof(CameraController).GetField("isGameplayScene", BindingFlags.Instance | BindingFlags.NonPublic);
         private static float TimeScaleDuringFrameAdvance = 0f;
+        internal static int frameCounter = 0;
+
 
         /*[BindableMethod(name = "Nail Damage +4 Temp", category = "Misc")]
         public static void IncreaseNailDamageTemp()
@@ -79,6 +83,15 @@ namespace DebugMod
                 DebugMod.instance.Log("Error while attempting force pause:\n" + e);
             }
         }
+
+        [BindableMethod(name = "Reset Encounters", category = "Misc")]
+        public static void ResetProxyFSMEncounters()
+        {
+            HeroController.instance.proxyFSM.FsmVariables.FindFsmBool("Faced Nightmare").Value = false;
+            HeroController.instance.proxyFSM.FsmVariables.FindFsmBool("Faced Zote").Value = false;
+            HeroController.instance.proxyFSM.FsmVariables.FindFsmBool("Faced Radiance").Value = false;
+        }
+
 
         [BindableMethod(name = "Hazard Respawn", category = "Misc")]
         public static void Respawn()
@@ -141,6 +154,10 @@ namespace DebugMod
         [BindableMethod(name = "Clear White Screen", category = "Misc")]
         public static void ClearWhiteScreen()
         {
+            //fix white screen 
+            PlayMakerFSM wakeFSM = HeroController.instance.gameObject.LocateMyFSM("Dream Return");
+            wakeFSM.SetState("GET UP");
+            wakeFSM.SendEvent("FINISHED");
             GameObject.Find("Blanker White").LocateMyFSM("Blanker Control").SendEvent("FADE OUT");
             HeroController.instance.EnableRenderer();
         }
@@ -208,6 +225,7 @@ namespace DebugMod
         [BindableMethod(name = "Start/End Frame Advance", category = "Misc")]
         public static void ToggleFrameAdvance()
         {
+            frameCounter = 0;
             if (Time.timeScale != 0)
             {
                 if (GameManager.instance.GetComponent<TimeScale>() == null)
@@ -230,6 +248,7 @@ namespace DebugMod
         public static void AdvanceFrame()
         {
             if (Time.timeScale != 0) ToggleFrameAdvance();
+            frameCounter++;
             GameManager.instance.StartCoroutine(AdvanceMyFrame());
         }
 
@@ -237,13 +256,22 @@ namespace DebugMod
         {
             Time.timeScale = 1f;
             yield return new WaitForFixedUpdate();
+
             Time.timeScale = 0;
         }
+
+        [BindableMethod(name = "Reset Counter", category = "Misc")]
+        public static void ResetCounter()
+        {
+            frameCounter = 0;
+        }
+
         [BindableMethod(name = "Lock KeyBinds", category = "Misc")]
         public static void ToggleLockKeyBinds()
         {
             DebugMod.KeyBindLock = !DebugMod.KeyBindLock;
             Console.AddLine($"{(DebugMod.KeyBindLock ? "Removing" : "Adding")} the ability to use keybinds");
         }
+
     }
 }

@@ -1,11 +1,16 @@
 ﻿using System;
 using System.Collections;
+using System.Drawing.Text;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Security.Claims;
 using DebugMod.Hitbox;
 using GlobalEnums;
+using HutongGames.PlayMaker;
+using HutongGames.PlayMaker.Actions;
 using Modding;
+using On;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using USceneManager = UnityEngine.SceneManagement.SceneManager;
@@ -15,20 +20,21 @@ namespace DebugMod
     /// <summary>
     /// Handles struct SaveStateData and individual SaveState operations
     /// </summary>
-    internal class SaveState
-    {
+     internal class SaveState
+
+     {
         // Some mods (ItemChanger) check type to detect vanilla scene loads.
         private class DebugModSaveStateSceneLoadInfo : GameManager.SceneLoadInfo { }
 
         //used to stop double loads/saves
-        public static bool loadingSavestate {get; private set;}
+        public static bool loadingSavestate { get; private set; }
+        internal static bool isPanthState = false;
 
         [Serializable]
         public class SaveStateData
         {
             public string saveStateIdentifier;
             public string saveScene;
-            public string roomSpecificOptions = "0";
             public PlayerData savedPd;
             public object lockArea;
             public SceneData savedSd;
@@ -38,6 +44,9 @@ namespace DebugMod
             public bool isKinematized;
             public string[] loadedScenes;
             public string[] loadedSceneActiveScenes;
+            //Special Case Variables
+            public int specialIndex;
+            public string roomSpecificOptions;
 
 
             internal SaveStateData() { }
@@ -46,6 +55,9 @@ namespace DebugMod
             {
                 saveStateIdentifier = _data.saveStateIdentifier;
                 saveScene = _data.saveScene;
+
+                //Special Case Variables
+                specialIndex = _data.specialIndex;
                 cameraLockArea = _data.cameraLockArea;
                 savedPd = _data.savedPd;
                 savedSd = _data.savedSd;
@@ -76,6 +88,7 @@ namespace DebugMod
                         loadedSceneActiveScenes[i] = loadedScenes[i];
                     }
                 }
+
             }
         }
 
@@ -84,6 +97,7 @@ namespace DebugMod
 
         internal SaveState()
         {
+
             data = new SaveStateData();
         }
 
@@ -91,15 +105,27 @@ namespace DebugMod
 
         public void SaveTempState()
         {
+            //save level state before savestates so levers and dead enemies persist properly
+            GameManager.instance.SaveLevelState();
             data.saveScene = GameManager.instance.GetSceneNameString();
             data.saveStateIdentifier = $"(tmp)_{data.saveScene}-{DateTime.Now.ToString("H:mm_d-MMM")}";
+            //implementation so room specifics can be automatically saved
+            try
+            {
+                var roomSpecificData = RoomSpecific.SaveRoomSpecific(data.saveScene);
+                data.roomSpecificOptions = roomSpecificData.value ?? 0.ToString();
+                data.specialIndex = roomSpecificData.index;
+            }
+            catch (Exception e)
+            {
+                DebugMod.instance.LogError(e);
+            }
             data.savedPd = JsonUtility.FromJson<PlayerData>(JsonUtility.ToJson(PlayerData.instance));
             data.savedSd = JsonUtility.FromJson<SceneData>(JsonUtility.ToJson(SceneData.instance));
             data.savePos = HeroController.instance.gameObject.transform.position;
             data.cameraLockArea = (data.cameraLockArea ?? typeof(CameraController).GetField("currentLockArea", BindingFlags.Instance | BindingFlags.NonPublic));
             data.lockArea = data.cameraLockArea.GetValue(GameManager.instance.cameraCtrl);
             data.isKinematized = HeroController.instance.GetComponent<Rigidbody2D>().isKinematic;
-            data.roomSpecificOptions = "0";
             var scenes = SceneWatcher.LoadedScenes;
             data.loadedScenes = scenes.Select(s => s.name).ToArray();
             data.loadedSceneActiveScenes = scenes.Select(s => s.activeSceneWhenLoaded).ToArray();
@@ -126,8 +152,8 @@ namespace DebugMod
                 }
 
                 string saveStateFile = Path.Combine(SaveStateManager.path, $"savestate{paramSlot}.json");
-                File.WriteAllText (saveStateFile,
-                    JsonUtility.ToJson( data, prettyPrint: true )
+                File.WriteAllText(saveStateFile,
+                    JsonUtility.ToJson(data, prettyPrint: true)
                 );
             }
             catch (Exception ex)
@@ -148,6 +174,11 @@ namespace DebugMod
                 HeroController.instance.transform.parent == null && // checks if in elevator/conveyor
                 !loadingSavestate)
             {
+                GameManager.instance.StartCoroutine(LoadStateCoro(loadDuped));
+            }
+            else if (DebugMod.overrideLoadLockout)
+            {
+                Console.AddLine("Attempting Savestate Load Override");
                 GameManager.instance.StartCoroutine(LoadStateCoro(loadDuped));
             }
             else
@@ -195,22 +226,41 @@ namespace DebugMod
         //loadDuped is used by external mods
         private IEnumerator LoadStateCoro(bool loadDuped)
         {
-            //var used to prevent saves/loads, double saves softlock in menderbug and double loads
-            //prevents a black screen requiring another load
+            //var used to prevent saves/loads, double save/loads softlock in menderbug, double load, black screen, etc
             loadingSavestate = true;
+            bool stateondeath = DebugMod.stateOnDeath;
+            DebugMod.stateOnDeath = false;
+
+            //prevents silly things from happening
+            Time.timeScale = 0;
+
+            //timer for loading savestates
             System.Diagnostics.Stopwatch loadingStateTimer = new System.Diagnostics.Stopwatch();
             loadingStateTimer.Start();
 
-            //code taken from Homothety Benchwarp
-            //actually broadcasts the event
-            HeroController.instance.TakeMPQuick(PlayerData.instance.MPCharge);
-            HeroController.instance.SetMPCharge(0);
-            PlayerData.instance.MPReserve = 0;
-            // This is the main fsm path for removing soul from the orb
-            PlayMakerFSM.BroadcastEvent("MP DRAIN");
-            // This is an alternate path (used for bindings and other things) that actually plays an animation?
-            PlayMakerFSM.BroadcastEvent("MP LOSE");
-            PlayMakerFSM.BroadcastEvent("MP RESERVE DOWN");
+            //setup panth stuff since it wants to be loaded one room ahead of time
+            if (PanthSaveState.panthSequences.Contains(data.roomSpecificOptions) && (data.saveScene != "GG_Atrium") &&  (data.saveScene != "GG_Atrium_Roof"))
+            {
+                PanthSaveState.LoadPanthScene(data.roomSpecificOptions, data.specialIndex);
+            }
+
+            //called here because this needs to be done here
+            if (DebugMod.savestateFixes)
+            {
+                //TODO: Cleaner way to do this? Also get it to actually work
+                //prevent hazard respawning
+                if (DebugMod.CurrentHazardCoro != null) HeroController.instance.StopCoroutine(DebugMod.CurrentHazardCoro);
+                if (DebugMod.CurrentInvulnCoro != null) HeroController.instance.StopCoroutine(DebugMod.CurrentInvulnCoro);
+                DebugMod.CurrentHazardCoro = null;
+                DebugMod.CurrentInvulnCoro = null;
+
+                //fixes knockback storage
+                ReflectionHelper.CallMethod(HeroController.instance, "CancelDamageRecoil");
+
+                //ends hazard respawn animation
+                var invPulse = HeroController.instance.GetComponent<InvulnerablePulse>();
+                invPulse.stopInvulnerablePulse();
+            }
 
             if (data.savedPd == null || string.IsNullOrEmpty(data.saveScene)) yield break;
 
@@ -222,9 +272,9 @@ namespace DebugMod
             GameManager.instance.startedOnThisScene = true;
 
             //Menderbug room loads faster (Thanks Magnetic Pizza)
-            string dummySceneName = 
+            string dummySceneName =
                 UnityEngine.SceneManagement.SceneManager.GetActiveScene().name != "Room_Mender_House" ?
-                    "Room_Mender_House": 
+                    "Room_Mender_House" :
                     "Room_Sly_Storeroom";
 
             USceneManager.LoadScene(dummySceneName);
@@ -245,25 +295,52 @@ namespace DebugMod
 
             sceneData[0].LoadHook();
 
-            GameManager.instance.BeginSceneTransition
-            (
-                new DebugModSaveStateSceneLoadInfo
-                {
-                    SceneName = data.saveScene,
-                    HeroLeaveDirection = GatePosition.unknown,
-                    EntryGateName = "dreamGate",
-                    EntryDelay = 0f,
-                    WaitForSceneTransitionCameraFade = false,
-                    Visualization = 0,
-                    AlwaysUnloadUnusedAssets = true
-                }
-            );
+            //this kills enemies that were dead on the state, they respawn from previous code
+            JsonUtility.FromJsonOverwrite(JsonUtility.ToJson(data.savedSd), SceneData.instance);
+
+            //TODO:Set this more eloquently
+            if (isPanthState)
+            {
+                HeroController.instance.IgnoreInputWithoutReset();
+                HeroController.instance.EnterWithoutInput(true);
+                GameManager.instance.BeginSceneTransition
+                (
+                    new DebugModSaveStateSceneLoadInfo
+                    {
+                        SceneName = data.saveScene,
+                        HeroLeaveDirection = GatePosition.unknown,
+                        EntryGateName = "door_dreamEnter",
+                        EntryDelay = 0f,
+                        WaitForSceneTransitionCameraFade = false,
+                        Visualization = GameManager.SceneLoadVisualizations.GodsAndGlory,
+                        AlwaysUnloadUnusedAssets = true
+                    }
+                );
+            }   
+            else
+            {
+
+                GameManager.instance.BeginSceneTransition
+                (
+                    new DebugModSaveStateSceneLoadInfo
+                    {
+                        SceneName = data.saveScene,
+                        HeroLeaveDirection = GatePosition.unknown,
+                        EntryGateName = "dreamGate",
+                        EntryDelay = 0f,
+                        WaitForSceneTransitionCameraFade = false,
+                        Visualization = 0,
+                        AlwaysUnloadUnusedAssets = true
+                    }
+                );
+            }
 
             yield return new WaitUntil(() => USceneManager.GetActiveScene().name == data.saveScene);
 
             GameManager.instance.cameraCtrl.PositionToHero(false);
 
             ReflectionHelper.SetField(GameManager.instance.cameraCtrl, "isGameplayScene", true);
+            ReflectionHelper.CallMethod(GameManager.instance, "UpdateUIStateFromGameState");
 
             if (loadDuped)
             {
@@ -288,29 +365,10 @@ namespace DebugMod
 
             GameManager.instance.cameraCtrl.FadeSceneIn();
 
-            HeroController.instance.TakeMP(1);
-            HeroController.instance.AddMPChargeSpa(1);
-
-            //preserve correct hp amount
-
-            GameManager.instance.SetPlayerDataBool(nameof(PlayerData.atBench), false);
-
             HeroController.instance.CharmUpdate();
 
             PlayMakerFSM.BroadcastEvent("CHARM INDICATOR CHECK");    //update twister             
             PlayMakerFSM.BroadcastEvent("UPDATE NAIL DAMAGE");       //update nail
-            PlayMakerFSM.BroadcastEvent("UPDATE BLUE HEALTH");       //update lifeblood
-
-            HeroController.instance.geoCounter.geoTextMesh.text = data.savedPd.geo.ToString();
-
-            bool isInfiniteHp = DebugMod.infiniteHP;
-            DebugMod.infiniteHP = false;
-            PlayerData.instance.health = data.savedPd.health; // charm indicator check sets health to max for some reason
-            HeroController.instance.AddHealth(1);
-            if (data.savedPd.health != data.savedPd.maxHealth) HeroController.instance.TakeHealth(1);
-            DebugMod.infiniteHP = isInfiniteHp;
-
-            GameCameras.instance.hudCanvas.gameObject.SetActive(true);
 
             FieldInfo cameraGameplayScene = typeof(CameraController).GetField("isGameplayScene", BindingFlags.Instance | BindingFlags.NonPublic);
 
@@ -323,7 +381,6 @@ namespace DebugMod
             HeroController.instance.GetComponent<Rigidbody2D>().isKinematic = data.isKinematized;
 
             loadingStateTimer.Stop();
-            //var used to prevent saves/loads
             loadingSavestate = false;
 
             if (loadDuped && DebugMod.settings.ShowHitBoxes > 0)
@@ -334,21 +391,139 @@ namespace DebugMod
                 DebugMod.settings.ShowHitBoxes = cs;
             }
 
-            ReflectionHelper.CallMethod(HeroController.instance, "FinishedEnteringScene", true, false);
-            ReflectionHelper.CallMethod(GameManager.instance, "UpdateUIStateFromGameState");
+            if (!isPanthState) ReflectionHelper.CallMethod(HeroController.instance, "FinishedEnteringScene", true, false);
 
-            if (data.roomSpecificOptions != "0")
+            if (data.roomSpecificOptions != "0" && data.roomSpecificOptions != null)
             {
-                RoomSpecific.DoRoomSpecific(data.saveScene, data.roomSpecificOptions);
+                Console.AddLine("Performing Room Specific Option " + data.roomSpecificOptions);
+                RoomSpecific.DoRoomSpecific(data.saveScene, data.roomSpecificOptions, data.specialIndex);
+            }
+            //removes things like bench storage no clip float etc
+            if (DebugMod.settings.SaveStateGlitchFixes) SaveStateGlitchFixes();
+
+            //pause fixes from homothety
+            if (GameManager.instance.isPaused)
+            {
+                GameManager.instance.FadeSceneIn();
+                GameManager.instance.isPaused = false;
+                GameCameras.instance.ResumeCameraShake();
+                if (HeroController.SilentInstance != null)
+                {
+                    HeroController.instance.UnPause();
+                }
+                MenuButtonList.ClearAllLastSelected();
+                TimeController.GenericTimeScale = 1f;
             }
 
-            yield return null;
-
-            GameCameras.instance.hudCanvas.transform.Find("Health").gameObject.SetActive(false);
-            GameCameras.instance.hudCanvas.transform.Find("Health").gameObject.SetActive(true);
-
             TimeSpan loadingStateTime = loadingStateTimer.Elapsed;
+
+            HUDFixes();
+            
+            if (isPanthState) yield return PanthSaveState.SetupPanthTransition();
+
+            //set timescale back
+            Time.timeScale = DebugMod.CurrentTimeScale;
+            DebugMod.stateOnDeath = stateondeath;
+
             Console.AddLine("Loaded savestate in " + loadingStateTime.ToString(@"ss\.fff") + "s");
+
+        }
+        
+        //these are toggleable, as they will prevent glitches from persisting
+        private void SaveStateGlitchFixes()
+        {
+            var rb2d = HeroController.instance.GetComponent<Rigidbody2D>();
+            PlayMakerFSM wakeFSM = HeroController.instance.gameObject.LocateMyFSM("Dream Return");
+            PlayMakerFSM spellFSM = HeroController.instance.gameObject.LocateMyFSM("Spell Control");
+
+            //White screen fixes
+            wakeFSM.SetState("Idle");
+
+            //float
+            HeroController.instance.AffectedByGravity(true);
+            rb2d.gravityScale = 0.79f;
+            spellFSM.SetState("Inactive");
+                
+            //invuln
+            HeroController.instance.gameObject.LocateMyFSM("Roar Lock").FsmVariables.FindFsmBool("No Roar").Value = false;
+            HeroController.instance.cState.invulnerable = false;
+
+            //no clip
+            rb2d.isKinematic = false;
+
+            //bench storage
+            GameManager.instance.SetPlayerDataBool(nameof(PlayerData.atBench), false);
+
+            if (HeroController.SilentInstance != null)
+            {
+                if (HeroController.instance.cState.onConveyor || HeroController.instance.cState.onConveyorV || HeroController.instance.cState.inConveyorZone)
+                {
+                    HeroController.instance.GetComponent<ConveyorMovementHero>()?.StopConveyorMove();
+                    HeroController.instance.cState.inConveyorZone = false;
+                    HeroController.instance.cState.onConveyor = false;
+                    HeroController.instance.cState.onConveyorV = false;
+                }
+
+                HeroController.instance.cState.nearBench = false;
+            }
+        }
+
+        //Moving all HUD related code to here for clarity
+        private void HUDFixes()
+        {
+
+            GameCameras.instance.hudCanvas.gameObject.SetActive(true);
+
+            HeroController.instance.geoCounter.geoTextMesh.text = data.savedPd.geo.ToString();
+
+            bool isInfiniteHp = DebugMod.infiniteHP;
+            DebugMod.infiniteHP = false;
+            PlayerData.instance.hasXunFlower = false;
+            PlayerData.instance.health = data.savedPd.health;
+            HeroController.instance.TakeHealth(1);
+            HeroController.instance.AddHealth(1);
+            PlayerData.instance.hasXunFlower = data.savedPd.hasXunFlower;
+            DebugMod.infiniteHP = isInfiniteHp;
+
+            int healthBlue = data.savedPd.healthBlue;
+            for (int i = 0; i < healthBlue; i++)
+            {
+                EventRegister.SendEvent("ADD BLUE HEALTH");
+            }
+
+            //should fix hp
+            //the "Idle" mesh never gets disabled when Charm Indicator runs
+            //running the animation quickly would work but this does too and i understand it
+            int maxHP = GameManager.instance.playerData.maxHealth;
+            for (int i = maxHP; i > 0; i--)
+            {
+                GameObject health = GameObject.Find("Health " + i.ToString());
+                PlayMakerFSM fsm = health.LocateMyFSM("health_display");
+                Transform idle = health.transform.Find("Idle");
+                //This is the "HP Full" mesh, which covers the empty mesh
+                idle.gameObject.GetComponent<MeshRenderer>().enabled = false;
+                //This is the "HP Empty" mesh
+                health.GetComponent<MeshRenderer>().enabled = true;
+                //This turns back on the "HP Full" mesh if we should
+                fsm.SetState("Check if Full");
+            }
+
+            if (PlayerData.instance.MPReserveMax < 33) GameObject.Find("Vessel 1").LocateMyFSM("vessel_orb").SetState("Init");
+            else GameObject.Find("Vessel 1").LocateMyFSM("vessel_orb").SetState("Up Check");
+            if (PlayerData.instance.MPReserveMax < 66) GameObject.Find("Vessel 2").LocateMyFSM("vessel_orb").SetState("Init");
+            else GameObject.Find("Vessel 2").LocateMyFSM("vessel_orb").SetState("Up Check");
+            if (PlayerData.instance.MPReserveMax < 99) GameObject.Find("Vessel 3").LocateMyFSM("vessel_orb").SetState("Init");
+            else GameObject.Find("Vessel 3").LocateMyFSM("vessel_orb").SetState("Up Check");
+            if (PlayerData.instance.MPReserveMax < 132) GameObject.Find("Vessel 4").LocateMyFSM("vessel_orb").SetState("Init");
+            else GameObject.Find("Vessel 4").LocateMyFSM("vessel_orb").SetState("Up Check");
+
+            HeroController.instance.TakeMP(1);
+            HeroController.instance.AddMPChargeSpa(1);
+
+            PlayMakerFSM.BroadcastEvent("MP DRAIN");
+            PlayMakerFSM.BroadcastEvent("MP LOSE");
+            PlayMakerFSM.BroadcastEvent("MP RESERVE DOWN");
+
         }
         #endregion
 
@@ -377,7 +552,6 @@ namespace DebugMod
         {
             return new SaveState.SaveStateData(this.data);
         }
-        
         #endregion
     }
 }

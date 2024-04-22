@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
-    <HollowKnightFolder>..\API</HollowKnightFolder>
+    <HollowKnightFolder>C:\Program Files (x86)\Steam\steamapps\common\Hollow Knight 1.5 debug\hollow_knight_Data\Managed</HollowKnightFolder>
     <OutputDirectory>$(SolutionDir)</OutputDirectory>
   </PropertyGroup>
 </Project>
