@@ -70,12 +70,31 @@ namespace DebugMod
             BossSequenceController.SetupNewSequence(sequence, BossSequenceController.ChallengeBindings.None, HeroController.instance.playerData.ToString());
             ReflectionHelper.SetField<int>(typeof(BossSequenceController), "bossIndex", BossIndex);
             ReflectionHelper.CallMethod(typeof(BossSequenceController), "SetupBossScene");
+            isPanthState = true;
         }
         //TODO: Set this up to be able to avoid double loads
         private static void SetupCurrentBossScene()
         {
 
         }
+        public static IEnumerator SetupPanthTransition()
+        {
+            if (BossSequenceController.BossIndex == 0)
+            {
+                GameObject dreamEntry = GameObject.Find("Dream Entry");
+                PlayMakerFSM entryFSM = dreamEntry.LocateMyFSM("Control");
+                yield return new WaitUntil(() => entryFSM.ActiveStateName == "Start Fade");
+                GameManager.instance.StartCoroutine(SetupLoadDelay(dreamEntry, entryFSM));
+            }
+            isPanthState = false;
+        }
 
+        public static IEnumerator SetupLoadDelay(GameObject dreamEntry, PlayMakerFSM entryFSM)
+        {
+            dreamEntry.SetActive(false);
+            yield return new WaitForSeconds(DebugMod.settings.PanthLoadDelay);
+            dreamEntry.SetActive(true);
+            entryFSM.SetState("Start Fade");
+        }
     }
 }

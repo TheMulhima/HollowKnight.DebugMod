@@ -27,7 +27,8 @@ namespace DebugMod
         private class DebugModSaveStateSceneLoadInfo : GameManager.SceneLoadInfo { }
 
         //used to stop double loads/saves
-        public static bool loadingSavestate {get; set;}
+        public static bool loadingSavestate { get; private set; }
+        internal static bool isPanthState = false;
 
         [Serializable]
         public class SaveStateData
@@ -112,7 +113,6 @@ namespace DebugMod
             try
             {
                 var roomSpecificData = RoomSpecific.SaveRoomSpecific(data.saveScene);
-                Console.AddLine(roomSpecificData.value.ToString() + roomSpecificData.index);
                 data.roomSpecificOptions = roomSpecificData.value ?? 0.ToString();
                 data.specialIndex = roomSpecificData.index;
             }
@@ -228,24 +228,28 @@ namespace DebugMod
         {
             //var used to prevent saves/loads, double save/loads softlock in menderbug, double load, black screen, etc
             loadingSavestate = true;
+            bool stateondeath = DebugMod.stateOnDeath;
+            DebugMod.stateOnDeath = false;
+
+            //prevents silly things from happening
+            Time.timeScale = 0;
 
             //timer for loading savestates
             System.Diagnostics.Stopwatch loadingStateTimer = new System.Diagnostics.Stopwatch();
             loadingStateTimer.Start();
 
             //setup panth stuff since it wants to be loaded one room ahead of time
-            if (PanthSaveState.panthSequences.Contains(data.roomSpecificOptions))
+            if (PanthSaveState.panthSequences.Contains(data.roomSpecificOptions) && (data.saveScene != "GG_Atrium") &&  (data.saveScene != "GG_Atrium_Roof"))
             {
-                Console.AddLine("Loading Pantheon Sequencer");
                 PanthSaveState.LoadPanthScene(data.roomSpecificOptions, data.specialIndex);
             }
 
             //called here because this needs to be done here
             if (DebugMod.savestateFixes)
             {
-                //TODO: Cleaner way to do this?
+                //TODO: Cleaner way to do this? Also get it to actually work
                 //prevent hazard respawning
-                if(DebugMod.CurrentHazardCoro != null) HeroController.instance.StopCoroutine(DebugMod.CurrentHazardCoro);
+                if (DebugMod.CurrentHazardCoro != null) HeroController.instance.StopCoroutine(DebugMod.CurrentHazardCoro);
                 if (DebugMod.CurrentInvulnCoro != null) HeroController.instance.StopCoroutine(DebugMod.CurrentInvulnCoro);
                 DebugMod.CurrentHazardCoro = null;
                 DebugMod.CurrentInvulnCoro = null;
@@ -264,21 +268,13 @@ namespace DebugMod
             PlayMakerFSM.BroadcastEvent("BOX DOWN DREAM");
             PlayMakerFSM.BroadcastEvent("CONVO CANCEL");
 
-            //step 1 of clearing soul
-            HeroController.instance.TakeMPQuick(PlayerData.instance.MPCharge);
-            HeroController.instance.SetMPCharge(0);
-            PlayerData.instance.MPReserve = 0;
-            PlayMakerFSM.BroadcastEvent("MP DRAIN");
-            PlayMakerFSM.BroadcastEvent("MP LOSE");
-            PlayMakerFSM.BroadcastEvent("MP RESERVE DOWN");
-
             GameManager.instance.entryGateName = "dreamGate";
             GameManager.instance.startedOnThisScene = true;
 
             //Menderbug room loads faster (Thanks Magnetic Pizza)
-            string dummySceneName = 
+            string dummySceneName =
                 UnityEngine.SceneManagement.SceneManager.GetActiveScene().name != "Room_Mender_House" ?
-                    "Room_Mender_House": 
+                    "Room_Mender_House" :
                     "Room_Sly_Storeroom";
 
             USceneManager.LoadScene(dummySceneName);
@@ -302,25 +298,49 @@ namespace DebugMod
             //this kills enemies that were dead on the state, they respawn from previous code
             JsonUtility.FromJsonOverwrite(JsonUtility.ToJson(data.savedSd), SceneData.instance);
 
-            GameManager.instance.BeginSceneTransition
-            (
-                new DebugModSaveStateSceneLoadInfo
-                {
-                    SceneName = data.saveScene,
-                    HeroLeaveDirection = GatePosition.unknown,
-                    EntryGateName = "dreamGate",
-                    EntryDelay = 0f,
-                    WaitForSceneTransitionCameraFade = false,
-                    Visualization = 0,
-                    AlwaysUnloadUnusedAssets = true
-                }
-            );
+            //TODO:Set this more eloquently
+            if (isPanthState)
+            {
+                HeroController.instance.IgnoreInputWithoutReset();
+                HeroController.instance.EnterWithoutInput(true);
+                GameManager.instance.BeginSceneTransition
+                (
+                    new DebugModSaveStateSceneLoadInfo
+                    {
+                        SceneName = data.saveScene,
+                        HeroLeaveDirection = GatePosition.unknown,
+                        EntryGateName = "door_dreamEnter",
+                        EntryDelay = 0f,
+                        WaitForSceneTransitionCameraFade = false,
+                        Visualization = GameManager.SceneLoadVisualizations.GodsAndGlory,
+                        AlwaysUnloadUnusedAssets = true
+                    }
+                );
+            }   
+            else
+            {
+
+                GameManager.instance.BeginSceneTransition
+                (
+                    new DebugModSaveStateSceneLoadInfo
+                    {
+                        SceneName = data.saveScene,
+                        HeroLeaveDirection = GatePosition.unknown,
+                        EntryGateName = "dreamGate",
+                        EntryDelay = 0f,
+                        WaitForSceneTransitionCameraFade = false,
+                        Visualization = 0,
+                        AlwaysUnloadUnusedAssets = true
+                    }
+                );
+            }
 
             yield return new WaitUntil(() => USceneManager.GetActiveScene().name == data.saveScene);
 
             GameManager.instance.cameraCtrl.PositionToHero(false);
 
             ReflectionHelper.SetField(GameManager.instance.cameraCtrl, "isGameplayScene", true);
+            ReflectionHelper.CallMethod(GameManager.instance, "UpdateUIStateFromGameState");
 
             if (loadDuped)
             {
@@ -350,27 +370,6 @@ namespace DebugMod
             PlayMakerFSM.BroadcastEvent("CHARM INDICATOR CHECK");    //update twister             
             PlayMakerFSM.BroadcastEvent("UPDATE NAIL DAMAGE");       //update nail
 
-            //step 2,manually trigger vessels lol, this is the only way besides turning off the mesh, but that will break stuff when you collect them
-            if (PlayerData.instance.MPReserveMax < 33) GameObject.Find("Vessel 1").LocateMyFSM("vessel_orb").SetState("Init");
-                else GameObject.Find("Vessel 1").LocateMyFSM("vessel_orb").SetState("Up Check");
-            if (PlayerData.instance.MPReserveMax < 66) GameObject.Find("Vessel 2").LocateMyFSM("vessel_orb").SetState("Init");
-                else GameObject.Find("Vessel 2").LocateMyFSM("vessel_orb").SetState("Up Check");
-            if (PlayerData.instance.MPReserveMax < 99) GameObject.Find("Vessel 3").LocateMyFSM("vessel_orb").SetState("Init");
-                else GameObject.Find("Vessel 3").LocateMyFSM("vessel_orb").SetState("Up Check");
-            if (PlayerData.instance.MPReserveMax < 132) GameObject.Find("Vessel 4").LocateMyFSM("vessel_orb").SetState("Init");
-                else GameObject.Find("Vessel 4").LocateMyFSM("vessel_orb").SetState("Up Check");
-            //step 3, take and add some soul
-            HeroController.instance.TakeMP(1);
-            HeroController.instance.AddMPChargeSpa(1);
-            //step 4, run animations later to actually add the soul on the main vessel
-            PlayMakerFSM.BroadcastEvent("MP DRAIN");
-            PlayMakerFSM.BroadcastEvent("MP LOSE");
-            PlayMakerFSM.BroadcastEvent("MP RESERVE DOWN");
-
-            HeroController.instance.geoCounter.geoTextMesh.text = data.savedPd.geo.ToString();
-
-            GameCameras.instance.hudCanvas.gameObject.SetActive(true);
-
             FieldInfo cameraGameplayScene = typeof(CameraController).GetField("isGameplayScene", BindingFlags.Instance | BindingFlags.NonPublic);
 
             cameraGameplayScene.SetValue(GameManager.instance.cameraCtrl, true);
@@ -392,8 +391,7 @@ namespace DebugMod
                 DebugMod.settings.ShowHitBoxes = cs;
             }
 
-            ReflectionHelper.CallMethod(HeroController.instance, "FinishedEnteringScene", true, false);
-            ReflectionHelper.CallMethod(GameManager.instance, "UpdateUIStateFromGameState");
+            if (!isPanthState) ReflectionHelper.CallMethod(HeroController.instance, "FinishedEnteringScene", true, false);
 
             if (data.roomSpecificOptions != "0" && data.roomSpecificOptions != null)
             {
@@ -404,38 +402,31 @@ namespace DebugMod
             if (DebugMod.settings.SaveStateGlitchFixes) SaveStateGlitchFixes();
 
             //pause fixes from homothety
-            Time.timeScale = 1f;
-            GameManager.instance.FadeSceneIn();
-            GameManager.instance.isPaused = false;
-            GameCameras.instance.ResumeCameraShake();
-            if (HeroController.SilentInstance != null)
+            if (GameManager.instance.isPaused)
             {
-                HeroController.instance.UnPause();
-            }
-            MenuButtonList.ClearAllLastSelected();
-            TimeController.GenericTimeScale = 1f;
-
-            //moving this here seems to work now? no need to toggle canvas
-            //preserve correct hp amount
-            bool isInfiniteHp = DebugMod.infiniteHP;
-            DebugMod.infiniteHP = false;
-            //prevent flower break by taking it, then giving it back
-            PlayerData.instance.hasXunFlower = false;
-            PlayerData.instance.health = data.savedPd.health;
-            HeroController.instance.TakeHealth(1);
-            HeroController.instance.AddHealth(1);
-            PlayerData.instance.hasXunFlower = data.savedPd.hasXunFlower;
-            DebugMod.infiniteHP = isInfiniteHp;
-
-            //blue health fixes
-            int healthBlue = data.savedPd.healthBlue;
-            for (int i = 0; i < healthBlue; i++)
-            {
-                EventRegister.SendEvent("ADD BLUE HEALTH");
+                GameManager.instance.FadeSceneIn();
+                GameManager.instance.isPaused = false;
+                GameCameras.instance.ResumeCameraShake();
+                if (HeroController.SilentInstance != null)
+                {
+                    HeroController.instance.UnPause();
+                }
+                MenuButtonList.ClearAllLastSelected();
+                TimeController.GenericTimeScale = 1f;
             }
 
             TimeSpan loadingStateTime = loadingStateTimer.Elapsed;
+
+            HUDFixes();
+            
+            if (isPanthState) yield return PanthSaveState.SetupPanthTransition();
+
+            //set timescale back
+            Time.timeScale = DebugMod.CurrentTimeScale;
+            DebugMod.stateOnDeath = stateondeath;
+
             Console.AddLine("Loaded savestate in " + loadingStateTime.ToString(@"ss\.fff") + "s");
+
         }
         
         //these are toggleable, as they will prevent glitches from persisting
@@ -477,6 +468,64 @@ namespace DebugMod
                 HeroController.instance.cState.nearBench = false;
             }
         }
+
+        //Moving all HUD related code to here for clarity
+        private void HUDFixes()
+        {
+
+            GameCameras.instance.hudCanvas.gameObject.SetActive(true);
+
+            HeroController.instance.geoCounter.geoTextMesh.text = data.savedPd.geo.ToString();
+
+            bool isInfiniteHp = DebugMod.infiniteHP;
+            DebugMod.infiniteHP = false;
+            PlayerData.instance.hasXunFlower = false;
+            PlayerData.instance.health = data.savedPd.health;
+            HeroController.instance.TakeHealth(1);
+            HeroController.instance.AddHealth(1);
+            PlayerData.instance.hasXunFlower = data.savedPd.hasXunFlower;
+            DebugMod.infiniteHP = isInfiniteHp;
+
+            int healthBlue = data.savedPd.healthBlue;
+            for (int i = 0; i < healthBlue; i++)
+            {
+                EventRegister.SendEvent("ADD BLUE HEALTH");
+            }
+
+            //should fix hp
+            //the "Idle" mesh never gets disabled when Charm Indicator runs
+            //running the animation quickly would work but this does too and i understand it
+            int maxHP = GameManager.instance.playerData.maxHealth;
+            for (int i = maxHP; i > 0; i--)
+            {
+                GameObject health = GameObject.Find("Health " + i.ToString());
+                PlayMakerFSM fsm = health.LocateMyFSM("health_display");
+                Transform idle = health.transform.Find("Idle");
+                //This is the "HP Full" mesh, which covers the empty mesh
+                idle.gameObject.GetComponent<MeshRenderer>().enabled = false;
+                //This is the "HP Empty" mesh
+                health.GetComponent<MeshRenderer>().enabled = true;
+                //This turns back on the "HP Full" mesh if we should
+                fsm.SetState("Check if Full");
+            }
+
+            if (PlayerData.instance.MPReserveMax < 33) GameObject.Find("Vessel 1").LocateMyFSM("vessel_orb").SetState("Init");
+            else GameObject.Find("Vessel 1").LocateMyFSM("vessel_orb").SetState("Up Check");
+            if (PlayerData.instance.MPReserveMax < 66) GameObject.Find("Vessel 2").LocateMyFSM("vessel_orb").SetState("Init");
+            else GameObject.Find("Vessel 2").LocateMyFSM("vessel_orb").SetState("Up Check");
+            if (PlayerData.instance.MPReserveMax < 99) GameObject.Find("Vessel 3").LocateMyFSM("vessel_orb").SetState("Init");
+            else GameObject.Find("Vessel 3").LocateMyFSM("vessel_orb").SetState("Up Check");
+            if (PlayerData.instance.MPReserveMax < 132) GameObject.Find("Vessel 4").LocateMyFSM("vessel_orb").SetState("Init");
+            else GameObject.Find("Vessel 4").LocateMyFSM("vessel_orb").SetState("Up Check");
+
+            HeroController.instance.TakeMP(1);
+            HeroController.instance.AddMPChargeSpa(1);
+
+            PlayMakerFSM.BroadcastEvent("MP DRAIN");
+            PlayMakerFSM.BroadcastEvent("MP LOSE");
+            PlayMakerFSM.BroadcastEvent("MP RESERVE DOWN");
+
+        }
         #endregion
 
         #region helper functionality
@@ -504,7 +553,6 @@ namespace DebugMod
         {
             return new SaveState.SaveStateData(this.data);
         }
-
         #endregion
     }
 }

@@ -140,12 +140,12 @@ namespace DebugMod
             if (ColoSaveState.coloScenes.Contains(scene)) return (ColoSaveState.SaveColoScene(scene), 0);
             if (BossSequenceController.IsInSequence) return (PanthSaveState.SavePanthScene(scene));
             //insert other room specifics here
-            return (null, 0);
+            return ("0", 0);
         }
         internal static void DoRoomSpecific(string scene, string options, int specialIndex)//index currently used for panth functionality (options is the sequencer, index is boss index, this cant be done by iteration because bench rooms repeat)
         {
             // caps in scene names change across versions
-            int index = 0;
+            int legacyOptions = 0;
             scene = scene.ToLower();
             if (ColoSaveState.coloScenes.Contains(scene))
             {
@@ -164,7 +164,7 @@ namespace DebugMod
             
             try 
             {
-                index = int.Parse(options); 
+                legacyOptions = int.Parse(options); 
             }
             catch (Exception e)
             {
@@ -173,16 +173,16 @@ namespace DebugMod
             switch (scene)
             {
                 case "deepnest_spider_town":
-                    EnterSpiderTownTrap(index);
+                    EnterSpiderTownTrap(legacyOptions);
                     break;
                 case "room_final_boss_core":
-                    BreakTHKChains(index);
+                    BreakTHKChains(legacyOptions);
                     break;
                 case "dream_nailcollection":
-                    ObtainDreamNail(index);
+                    ObtainDreamNail(legacyOptions);
                     break;
                 case "ruins1_24":
-                    FastSoulMaster(index);
+                    FastSoulMaster(legacyOptions);
                     break;
                 default:
                     Console.AddLine("No Room Specific Function Found In: " + scene);

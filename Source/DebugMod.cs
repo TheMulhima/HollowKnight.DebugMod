@@ -16,7 +16,7 @@ using JetBrains.Annotations;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
-
+using System.Security.Policy;
 
 namespace DebugMod
 {
@@ -173,7 +173,7 @@ namespace DebugMod
                 alphaKeyDict.Add(tmpKeyCode, alphaInt++);
             }
             
-
+            
             UnityEngine.SceneManagement.SceneManager.activeSceneChanged += LevelActivated;
             GameObject UIObj = new GameObject();
             UIObj.AddComponent<GUIController>();
@@ -358,7 +358,6 @@ namespace DebugMod
             CurrentInvulnCoro = orig(self, duration);
             return CurrentInvulnCoro;
         }
-
         private void NewCharacter() => LoadCharacter(null);
 
         private void LoadCharacter(SaveGameData saveGameData)
