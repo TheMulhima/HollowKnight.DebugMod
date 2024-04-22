@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <ProjectGuid>{932ED497-4C09-461E-B198-8B44FD9B288F}</ProjectGuid>
 
@@ -11,9 +11,10 @@
     <TargetFramework>net472</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>CS1591</NoWarn>
+	<Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <!-- Create a LocalBuildProperties.props file which defines HollowKnightFolder (references dir) 
+	<!-- Create a LocalBuildProperties.props file which defines HollowKnightFolder (references dir) 
   and OutputDirectory (where the post-build event sends the dll to) -->
   <Import Project="LocalBuildProperties_example.props" Condition="Exists('LocalBuildProperties_example.props')" />
   <Import Project="LocalBuildProperties.props" Condition="Exists('LocalBuildProperties.props')" />

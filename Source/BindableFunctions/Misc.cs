@@ -86,24 +86,11 @@ namespace DebugMod
         [BindableMethod(name = "Reset Encounters", category = "Misc")]
         public static void ResetProxyFSMEncounters()
         {
-            try
-            {
-                //literally couldnt figure out how to get this to not be awful to look at
-                //this resets the fsm responsible for a couple weird persistent values with the knight
-                GameObject knight = GameObject.Find("Knight");
-                PlayMakerFSM proxyFSM = knight.LocateMyFSM("ProxyFSM");
-                proxyFSM.FsmVariables.FindFsmBool("Faced Radiance").Value = false;
-                proxyFSM.FsmVariables.FindFsmBool("Faced Nightmare").Value = false;
-                proxyFSM.FsmVariables.FindFsmBool("Faced Zote").Value = false;
-
-
-            }
-            catch (Exception e)
-            {
-                Console.AddLine("Error while attempting to reset Proxy variables");
-                DebugMod.instance.Log("Error while attempting to reset Knight-ProxyFSM variables: \n" + e);
-            }
+            HeroController.instance.proxyFSM.FsmVariables.FindFsmBool("Faced Nightmare").Value = false;
+            HeroController.instance.proxyFSM.FsmVariables.FindFsmBool("Faced Zote").Value = false;
+            HeroController.instance.proxyFSM.FsmVariables.FindFsmBool("Faced Radiance").Value = false;
         }
+
 
         [BindableMethod(name = "Hazard Respawn", category = "Misc")]
         public static void Respawn()
@@ -167,9 +154,7 @@ namespace DebugMod
         public static void ClearWhiteScreen()
         {
             //fix white screen 
-            string wakeControl = "Dream Return";
-            GameObject knight = GameObject.Find("Knight");
-            PlayMakerFSM wakeFSM = knight.LocateMyFSM(wakeControl);
+            PlayMakerFSM wakeFSM = HeroController.instance.gameObject.LocateMyFSM("Dream Return");
             wakeFSM.SetState("GET UP");
             wakeFSM.SendEvent("FINISHED");
             GameObject.Find("Blanker White").LocateMyFSM("Blanker Control").SendEvent("FADE OUT");

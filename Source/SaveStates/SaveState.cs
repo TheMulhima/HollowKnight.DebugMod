@@ -416,9 +416,8 @@ namespace DebugMod
         private void SaveStateGlitchFixes()
         {
             var rb2d = HeroController.instance.GetComponent<Rigidbody2D>();
-            GameObject knight = GameObject.Find("Knight");
-            PlayMakerFSM wakeFSM = knight.LocateMyFSM("Dream Return");
-            PlayMakerFSM spellFSM = knight.LocateMyFSM("Spell Control");
+            PlayMakerFSM wakeFSM = HeroController.instance.gameObject.LocateMyFSM("Dream Return");
+            PlayMakerFSM spellFSM = HeroController.instance.gameObject.LocateMyFSM("Spell Control");
 
             //White screen fixes
             wakeFSM.SetState("Idle");
@@ -427,7 +426,7 @@ namespace DebugMod
             HeroController.instance.AffectedByGravity(true);
             rb2d.gravityScale = 0.79f;
             spellFSM.SetState("Inactive");
-            
+                
             //invuln
             HeroController.instance.gameObject.LocateMyFSM("Roar Lock").FsmVariables.FindFsmBool("No Roar").Value = false;
             HeroController.instance.cState.invulnerable = false;
